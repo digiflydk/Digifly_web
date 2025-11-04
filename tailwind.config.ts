@@ -8,11 +8,28 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        headline: ['Space Grotesk', 'sans-serif'],
         code: ['monospace'],
+      },
+      fontSize: {
+        'h1': 'var(--fs-h1)',
+        'h2': 'var(--fs-h2)',
+        'h3': 'var(--fs-h3)',
+        'body': 'var(--fs-body)',
+        'caption': 'var(--fs-caption)',
+      },
+      lineHeight: {
+        base: 'var(--lh-base)',
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -70,6 +87,7 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        full: 'var(--btn-radius, 9999px)',
       },
       keyframes: {
         'accordion-down': {
