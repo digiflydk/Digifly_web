@@ -1,8 +1,6 @@
-
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { getNavigation, getDesign } from "@/lib/cms-server";
-import { Brand } from "@/lib/types";
 
 export default async function SiteLayout({
   children,

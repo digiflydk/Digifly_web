@@ -25,19 +25,48 @@ export const zBrand = z.object({
 }).default({ name: 'Digifly', logo: { src: '/logo.svg' }, favicon: { src: '/icon-192.png' } });
 
 
-export const zDesignTokens = z.object({
-  brand: zBrand.optional(),
+export const zDesignSettings = z.object({
   colors: z.object({
-    primary: z.string().default('#111111'),
-    accent: z.string().default('#6D5EF7'),
-    bg: z.string().default('#FFFFFF'),
-    muted: z.string().default('#6B7280'),
+    primary: z.string().default('#1E90FF'),
+    electricBlue: z.string().default('#1E90FF'),
+    digitalPurple: z.string().default('#6A5ACD'),
+    graphiteGrey: z.string().default('#2B2B2B'),
+    platinumGrey: z.string().default('#E5E5E5'),
+    softWhite: z.string().default('#F9F9F9'),
+    success: z.string().default('#00B894'),
+    error: z.string().default('#FF4D4D'),
   }).default({}),
   typography: z.object({
-    headline: z.string().default('Inter'),
-    body: z.string().default('Inter'),
+    headlineFont: z.string().default('Space Grotesk'),
+    bodyFont: z.string().default('Inter'),
+    h1: z.number().default(56),
+    h2: z.number().default(40),
+    h3: z.number().default(28),
+    body: z.number().default(16),
+    caption: z.number().default(13),
+    lineHeight: z.number().default(1.4),
   }).default({}),
+  buttons: z.object({
+    shape: z.enum(['pill']).default('pill'),
+    radius: z.number().default(50),
+    primary: z.object({
+      bg: z.string().default('#1E90FF'),
+      text: z.string().default('#FFFFFF'),
+      hoverBg: z.string().default('#6A5ACD'),
+    }).default({}),
+    secondary: z.object({
+      border: z.string().default('#1E90FF'),
+      text: z.string().default('#1E90FF'),
+      hoverBg: z.string().default('#E5F1FF'),
+    }).default({}),
+    ghost: z.object({
+      text: z.string().default('#2B2B2B'),
+      hoverBg: z.string().default('#E5E5E5'),
+    }).default({}),
+  }).default({}),
+  brand: zBrand.optional(),
 });
+
 
 export const zFooterNav = z.object({
     columns: z.array(z.object({

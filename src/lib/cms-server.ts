@@ -1,16 +1,16 @@
-
 'use server';
 import { z } from 'zod';
-import { zDesignTokens, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/cms-schemas';
+import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/cms-schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { DesignSettings, HomePage, Navigation, CaseDoc, Page, RichTextContent } from '@/lib/types';
+import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';
 
 export async function getDesign(): Promise<DesignSettings> {
     try {
         const db = getDb();
         const snap = await db.doc('content/design').get();
         const data = snap.exists ? snap.data() : {};
-        const parsed = zDesignTokens.safeParse(data ?? {});
+        const parsed = zDesignSettings.safeParse(data ?? {});
         if (parsed.success) {
             if (!parsed.data.brand?.logo?.src) {
                 parsed.data.brand = parsed.data.brand ?? { name: 'Digifly' } as any;
@@ -20,10 +20,8 @@ export async function getDesign(): Promise<DesignSettings> {
         }
         throw new Error('Design settings validation failed');
     } catch(e) {
-        const parsed = zDesignTokens.parse({});
-        parsed.brand = parsed.brand ?? { name: 'Digifly' } as any;
-        parsed.brand.logo = { src: '/logo.svg', alt: parsed.brand.name ?? 'Digifly' };
-        return parsed;
+        console.warn('Falling back to default design settings.', e);
+        return designSettings;
     }
 }
 
@@ -34,9 +32,10 @@ export async function getNavigation(): Promise<Navigation> {
         const data = snap.exists ? snap.data() : {};
         const parsed = zNavigation.safeParse(data ?? {});
         if (parsed.success) return parsed.data;
-        return zNavigation.parse({});
+        throw new Error('Navigation validation failed');
     } catch(e) {
-        return zNavigation.parse({});
+        console.warn('Falling back to default navigation.', e);
+        return defaultNav;
     }
 }
 
@@ -47,9 +46,10 @@ export async function getHomePage(): Promise<HomePage> {
         const data = snap.exists ? snap.data() : {};
         const parsed = zHome.safeParse(data);
         if (parsed.success) return parsed.data;
-        return zHome.parse({});
+        throw new Error('Homepage validation failed');
     } catch (e) {
-        return zHome.parse({});
+        console.warn('Falling back to default homepage data.', e);
+        return defaultHomePage;
     }
 }
 
@@ -59,14 +59,15 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
         const db = getDb();
         const snap = await db.collection('cases').limit(limit).get();
         if (snap.empty) {
-            return [];
+            return defaultCases;
         }
         return snap.docs.map(d => {
             const parsed = zCase.safeParse({ slug: d.id, ...d.data() });
             return parsed.success ? parsed.data : null;
         }).filter((c): c is CaseDoc => c !== null);
     } catch(e) {
-        return [];
+        console.warn('Falling back to default cases data.', e);
+        return defaultCases;
     }
 }
 
@@ -75,7 +76,7 @@ export async function listCaseSlugs(): Promise<string[]> {
         const db = getDb();
         const snap = await db.collection('cases').select('slug').get();
         if (snap.empty) {
-            return [];
+            return defaultCases.map(c => c.slug);
         }
         return snap.docs.map(d => d.get('slug')).filter(Boolean);
     } catch (e) {
@@ -87,12 +88,16 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     try {
         const db = getDb();
         const q = await db.collection('cases').where('slug', '==', slug).limit(1).get();
-        if (q.empty) return null;
+        if (q.empty) {
+            const fallback = defaultCases.find(c => c.slug === slug);
+            return fallback || null;
+        };
         const doc = q.docs[0];
         const parsed = zCase.safeParse({ slug: doc.id, ...doc.data() });
         return parsed.success ? parsed.data : null;
     } catch (e) {
-        return null;
+        const fallback = defaultCases.find(c => c.slug === slug);
+        return fallback || null;
     }
 }
 
@@ -103,9 +108,10 @@ export async function getAboutPage(): Promise<Page<{ body: RichTextContent[] }>>
         const data = snap.exists ? snap.data() : {};
         const parsed = zAboutPage.safeParse(data);
         if (parsed.success) return parsed.data;
-        return zAboutPage.parse({});
+        throw new Error('About page validation failed');
     } catch (e) {
-        return zAboutPage.parse({});
+        console.warn('Falling back to default about page data.', e);
+        return defaultAbout;
     }
 }
 
@@ -116,9 +122,10 @@ export async function getServicesPage(): Promise<Page<{ services: any[] }>> {
         const data = snap.exists ? snap.data() : {};
         const parsed = zServicesPage.safeParse(data);
         if (parsed.success) return parsed.data;
-        return zServicesPage.parse({});
+        throw new Error('Services page validation failed');
     } catch (e) {
-        return zServicesPage.parse({});
+        console.warn('Falling back to default services page data.', e);
+        return defaultServices;
     }
 }
 
@@ -129,9 +136,10 @@ export async function getCasesIndexPage(): Promise<Page<{}>> {
         const data = snap.exists ? snap.data() : {};
         const parsed = zCasesIndexPage.safeParse(data);
         if (parsed.success) return parsed.data;
-        return zCasesIndexPage.parse({});
+        throw new Error('Cases index page validation failed');
     } catch (e) {
-        return zCasesIndexPage.parse({});
+        console.warn('Falling back to default cases index page data.', e);
+        return defaultCasesIndex;
     }
 }
 
@@ -142,9 +150,10 @@ export async function getContactPage(): Promise<Page<{}>> {
         const data = snap.exists ? snap.data() : {};
         const parsed = zContactPage.safeParse(data);
         if (parsed.success) return parsed.data;
-        return zContactPage.parse({});
+        throw new Error('Contact page validation failed');
     } catch (e) {
-        return zContactPage.parse({});
+        console.warn('Falling back to default contact page data.', e);
+        return defaultContact;
     }
 }
 
