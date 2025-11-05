@@ -15,7 +15,7 @@ export default async function SiteLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <Header nav={navigation?.header} logo={logo} />
-      <main className="flex-1" style={{ paddingTop: 'var(--header-height, 64px)' }}>{children}</main>
+      <main className="flex-1" style={{ paddingTop: 'calc(var(--header-height, 64px) + env(safe-area-inset-top))' }}>{children}</main>
       <Footer columns={navigation?.footer?.columns} />
     </div>
   );

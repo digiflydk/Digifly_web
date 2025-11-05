@@ -1,3 +1,4 @@
+
 "use client";
 import Link from "next/link";
 import { Menu } from "lucide-react";
@@ -18,7 +19,6 @@ export default function Header({ nav, logo }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Since this is a client component, we can get the path here
     setPath(window.location.pathname);
   }, []);
   
@@ -29,8 +29,8 @@ export default function Header({ nav, logo }: HeaderProps) {
 
   return (
     <header
-      className="sticky top-0 z-[100] border-b bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/60"
-      style={{ height: 'var(--header-height, 64px)' }}
+      className="fixed inset-x-0 top-0 z-[100] border-b bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/60"
+      style={{ height: 'var(--header-height, 64px)', paddingTop: 'env(safe-area-inset-top)' }}
       aria-label="Site Header"
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-full">
