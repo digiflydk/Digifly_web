@@ -2,12 +2,17 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // By default, make all documents publicly readable,
-    // but only allow writes from the admin server (e.g. via the CMS API).
-    // This allows the front-end to fetch data in real-time, like for design tokens.
-    match /{document=**} {
+    // Allow public read access to all documents under the 'content' collection.
+    // This is necessary for the client-side app to fetch CMS data, including
+    // the real-time design token listener on 'content/settings/design'.
+    match /content/{document=**} {
       allow read: if true;
-      allow write: if false;
+      allow write: if false; // Disallow client-side writes.
+    }
+
+    // Deny all other reads and writes by default for security.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
