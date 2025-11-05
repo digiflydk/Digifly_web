@@ -3,18 +3,21 @@ import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 function parseServiceAccount(): Record<string, any> | null {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if (!raw) return null;
+  if (!raw) {
+    console.warn('[firebase-admin] FIREBASE_SERVICE_ACCOUNT_JSON is not set.');
+    return null;
+  }
 
   try {
-    // Supports plain JSON or base64-encoded JSON
-    const str = raw.trim().startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8');
-    const sa = JSON.parse(str);
-    if (typeof sa.project_id !== 'string' || !sa.project_id) {
-      throw new Error('Service account must include a string "project_id".');
+    // Try parsing as plain JSON first
+    if (raw.trim().startsWith('{')) {
+      return JSON.parse(raw);
     }
-    return sa;
-  } catch (e) {
-    console.warn('[firebase-admin] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', (e as Error).message);
+    // If not plain JSON, assume it's base64 encoded
+    const decoded = Buffer.from(raw, 'base64').toString('utf8');
+    return JSON.parse(decoded);
+  } catch (e: any) {
+    console.warn(`[firebase-admin] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Error: ${e.message}. It might not be a valid JSON or base64 string.`);
     return null;
   }
 }
