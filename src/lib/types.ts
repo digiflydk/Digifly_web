@@ -1,4 +1,4 @@
-export type Media = { src: string; alt: string; hint?: string };
+export type Media = { src: string; alt?: string; hint?: string };
 
 export type Brand = {
   name?: string;
@@ -40,23 +40,21 @@ export type Navigation = {
 };
 
 export type HomePage = {
-  hero: { title: string; subtitle: string; cta: NavLink; image: Media };
+  hero: { title: string; subtitle: string; primaryCta: NavLink; image?: Media };
   intro: {
-    title: string;
-    text: string;
-    image: Media;
+    tagline: string;
+    heading: string;
+    body: string;
+    image?: Media;
   };
-  servicesHeading?: string;
-  services: {
+  servicesPreview: {
     title: string;
-    text: string;
-  }[];
-  cases: {
-    id: string;
-    title: string;
+    bullets: string[];
     href: string;
-    image: Media;
   }[];
+  featuredCases: string[];
+  cta: { text: string; button: NavLink };
+  seo: { title: string; description: string };
 };
 
 export type RichTextContent =

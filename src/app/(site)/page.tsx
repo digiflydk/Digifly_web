@@ -6,7 +6,6 @@ import CtaBanner from '@/components/sections/cta-banner';
 import IntroWhyHowWhat from '@/components/sections/intro-why-how-what';
 import { metaDefaults } from '@/lib/seo';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getHomePage();
@@ -24,12 +23,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const page = await getHomePage();
-
-  if (!page) {
-    // This will render the `not-found.tsx` component if the data is missing.
-    // In a real app, you might want a more specific "CMS content missing" message.
-    notFound();
-  }
 
   return (
     <>

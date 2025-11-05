@@ -2,68 +2,29 @@
 import { z } from 'zod';
 import { zDesignTokens, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/cms-schemas';
 import { getDb } from '@/lib/firebase-admin';
+import type { DesignSettings, HomePage, Navigation, CaseDoc, Page } from '@/lib/types';
+import { RichTextContent } from '../lib/types';
 
-export async function getCmsData(path: string, searchParams: URLSearchParams): Promise<any> {
-    if (!path || path === 'health') {
-        return { ok: true, ts: Date.now() };
-    }
 
+export async function getDesign(): Promise<DesignSettings> {
     const db = getDb();
+    const snap = await db.doc('content/settings/design').get().catch(() => null);
+    const data = snap?.exists ? snap.data() : {};
+    return zDesignTokens.parse(data ?? {});
+}
 
-    try {
-        if (path === 'design') {
-            const snap = await db.doc('content/settings/design').get();
-            return snap.exists ? zDesignTokens.parse(snap.data()) : null;
-        }
+export async function getNavigation(): Promise<Navigation> {
+    const db = getDb();
+    const snap = await db.doc('content/navigation').get().catch(() => null);
+    const data = snap?.exists ? snap.data() : {};
+    return zNavigation.parse(data ?? {});
+}
 
-        if (path === 'navigation') {
-            const snap = await db.doc('content/navigation').get();
-            return snap.exists ? zNavigation.parse(snap.data()) : null;
-        }
-
-        if (path === 'home') {
-            const snap = await db.doc('content/home').get();
-            return snap.exists ? zHome.parse(snap.data()) : null;
-        }
-        
-        if (path === 'cases') {
-            return await listCases(searchParams);
-        }
-        
-        if (path.startsWith('case/')) {
-            const slug = path.split('/')[1];
-            return await getCaseBySlug(slug);
-        }
-        
-        if (path === 'about') {
-            const snap = await db.doc('content/about').get();
-            return snap.exists ? zAboutPage.parse(snap.data()) : null;
-        }
-
-        if (path === 'services') {
-            const snap = await db.doc('content/services').get();
-            return snap.exists ? zServicesPage.parse(snap.data()) : null;
-        }
-
-        if (path === 'cases-index') {
-            const snap = await db.doc('content/cases-index').get();
-            return snap.exists ? zCasesIndexPage.parse(snap.data()) : null;
-        }
-
-        if (path === 'contact') {
-            const snap = await db.doc('content/contact').get();
-            return snap.exists ? zContactPage.parse(snap.data()) : null;
-        }
-    } catch (e) {
-        if (e instanceof z.ZodError) {
-            console.error(`Zod validation error for path: ${path}`, e.errors);
-        } else {
-            console.error(`Error fetching data for path: ${path}`, e);
-        }
-        return null; // Return null on error to prevent crashes
-    }
-
-    return null;
+export async function getHomePage(): Promise<HomePage> {
+    const db = getDb();
+    const snap = await db.doc('content/home').get().catch(() => null);
+    const data = snap?.exists ? snap.data() : {};
+    return zHome.parse(data ?? {});
 }
 
 export async function listCases(searchParams?: URLSearchParams) {
@@ -85,7 +46,7 @@ export async function listCaseSlugs(): Promise<string[]> {
   return snap.docs.map(d => d.get('slug')).filter(Boolean);
 }
 
-export async function getCaseBySlug(slug: string) {
+export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     const db = getDb();
     const q = await db.collection('cases').where('slug', '==', slug).limit(1).get();
     if (q.empty) return null;
@@ -96,4 +57,28 @@ export async function getCaseBySlug(slug: string) {
         console.error(`Zod validation error for case slug: ${slug}`, (e as z.ZodError).errors);
         return null;
     }
+}
+
+export async function getAboutPage(): Promise<Page<{ body: RichTextContent[] }>> {
+    const db = getDb();
+    const snap = await db.doc('content/about').get().catch(() => null);
+    return zAboutPage.parse(snap?.data() ?? {});
+}
+
+export async function getServicesPage(): Promise<Page<{ services: any[] }>> {
+    const db = getDb();
+    const snap = await db.doc('content/services').get().catch(() => null);
+    return zServicesPage.parse(snap?.data() ?? {});
+}
+
+export async function getCasesIndexPage(): Promise<Page<{}>> {
+    const db = getDb();
+    const snap = await db.doc('content/cases-index').get().catch(() => null);
+    return zCasesIndexPage.parse(snap?.data() ?? {});
+}
+
+export async function getContactPage(): Promise<Page<{}>> {
+    const db = getDb();
+    const snap = await db.doc('content/contact').get().catch(() => null);
+    return zContactPage.parse(snap?.data() ?? {});
 }
