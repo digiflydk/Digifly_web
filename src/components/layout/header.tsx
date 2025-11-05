@@ -36,9 +36,11 @@ function HeaderClient({ nav }: { nav: NavProps }) {
   return (
     <header className={`sticky top-0 z-50 border-b transition-all duration-150 ${elevated ? "header-elevated" : "border-transparent"}`}>
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
-        <Link href="/" className="header-brand text-[20px]">
-          Digifly
-        </Link>
+        <div className="flex items-center min-w-[140px]">
+          <Link href="/" className="header-brand text-[20px]">
+            Digifly
+          </Link>
+        </div>
         <nav className="header-nav hidden md:flex items-center gap-6">
           {nav.header.map(link => {
             const isActive = path === link.href;

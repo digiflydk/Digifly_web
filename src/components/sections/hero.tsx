@@ -23,7 +23,7 @@ export default function Hero({ data }: { data: HomePage["hero"] }) {
         </div>
       <div className="container relative flex h-[70vh] min-h-[500px] items-center py-24 md:py-28">
         <div className="max-w-2xl">
-            <h1 className="heading-center font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
+            <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
               {data.title}
             </h1>
             <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">{data.subtitle}</p>

@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Typography & Alignment', () => {
-  test('Hero H1 uses headline font and is centered', async ({ page }) => {
+  test('Hero H1 uses headline font and is left-aligned', async ({ page }) => {
     await page.goto('/');
     const h1 = page.getByRole('heading', { level: 1 });
     await expect(h1).toBeVisible();
 
     // Check alignment
     const textAlign = await h1.evaluate(el => getComputedStyle(el).textAlign);
-    expect(textAlign).toMatch(/center/i);
+    expect(textAlign).toMatch(/left/i);
 
     // Check font-family matches --font-headline
     const rootHeadline = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--font-headline'));

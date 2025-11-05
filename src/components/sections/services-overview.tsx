@@ -1,5 +1,5 @@
-import SectionHeading from "@/components/typography/section-heading";
 import { HomePage } from "@/lib/types";
+import { SectionHeading } from "../ui/section-heading";
 
 export default function ServicesOverview({ items }: { items: HomePage['servicesPreview'] }) {
   return (
