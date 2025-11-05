@@ -6,6 +6,8 @@ import CtaBanner from '@/components/sections/cta-banner';
 import IntroWhyHowWhat from '@/components/sections/intro-why-how-what';
 import { metaDefaults } from '@/lib/seo';
 import type { Metadata } from 'next';
+import { SectionHeading } from '@/components/ui/section-heading';
+import { Container } from '@/components/layout/container';
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getHomePage();
@@ -23,6 +25,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const page = await getHomePage();
+
+  if (!page) {
+    return (
+        <Container className="py-16 text-center">
+            <SectionHeading title="Content Not Found" subtitle="Could not load homepage content from the CMS." />
+        </Container>
+    );
+  }
+
 
   return (
     <>

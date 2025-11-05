@@ -1,17 +1,20 @@
-import { getNavigation } from "@/lib/cms";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+import type { NavLink } from "@/lib/types";
 
-export default async function Footer() {
-  const nav = await getNavigation();
+type FooterColumn = {
+  title: string;
+  links: NavLink[];
+};
 
-  if (!nav?.footer?.columns) {
+export default async function Footer({ columns }: { columns?: FooterColumn[] }) {
+  if (!columns || columns.length === 0) {
     return (
       <footer className="mt-24 border-t">
         <div className="max-w-6xl mx-auto px-6 py-10 text-center text-muted-foreground">
           Footer navigation not configured.
         </div>
-        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.25 • DGF-027</div>
+        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.26 • DGF-028</div>
       </footer>
     );
   }
@@ -23,7 +26,7 @@ export default async function Footer() {
             <Link href="/" className="font-headline text-lg font-bold text-primary">{siteConfig.name}</Link>
             <p className="text-sm mt-2 text-muted-foreground">{siteConfig.description}</p>
         </div>
-        {nav.footer.columns.map(col => (
+        {columns.map(col => (
           <div key={col.title}>
             <div className="font-semibold mb-2">{col.title}</div>
             <ul className="space-y-1">
@@ -34,7 +37,7 @@ export default async function Footer() {
           </div>
         ))}
       </div>
-      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.25 • DGF-027</div>
+      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.26 • DGF-028</div>
     </footer>
   );
 }

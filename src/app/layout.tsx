@@ -4,12 +4,12 @@ import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/config/site';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
+import { getDesign } from '@/lib/cms-server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   try {
-    const res = await fetch(`${base}/api/cms/design`, { next: { revalidate: 60 } });
-    const design = res.ok ? await res.json() : null;
+    const design = await getDesign();
     const favicon = design?.brand?.favicon?.src;
     const icons = favicon ? { icon: [{ url: favicon }] } : { icon: '/favicon.ico' };
 

@@ -17,10 +17,6 @@ export async function getDesign(): Promise<DesignSettings | null> {
   return fetchCms<DesignSettings>('design');
 }
 
-export async function getNavigation(): Promise<Navigation | null> {
-  return fetchCms<Navigation>('navigation');
-}
-
 export async function getHomePage(): Promise<HomePage | null> {
   return fetchCms<HomePage>('home');
 }

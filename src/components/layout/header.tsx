@@ -1,5 +1,4 @@
 "use client";
-import { getNavigation } from "@/lib/cms-client";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -8,14 +7,13 @@ import { siteConfig } from "@/config/site";
 import React, { useEffect, useState } from "react";
 import { NavLink, Brand } from "@/lib/types";
 import Image from "next/image";
-import { getDesign } from "@/lib/cms-client";
 
-type NavProps = {
-  header: NavLink[];
+type HeaderProps = {
+  nav?: NavLink[];
+  logo?: Brand['logo'];
 };
 
-
-function HeaderClient({ nav, logo }: { nav: NavProps, logo?: Brand['logo'] }) {
+export default function Header({ nav, logo }: HeaderProps) {
   const [elevated, setElevated] = useState(false);
   const [path, setPath] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,8 +29,8 @@ function HeaderClient({ nav, logo }: { nav: NavProps, logo?: Brand['logo'] }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   
-  const navLinks = nav?.header ? [
-    ...nav.header,
+  const navLinks = nav ? [
+    ...nav,
     { label: 'Contact', href: '/contact' },
   ] : [{ label: 'Contact', href: '/contact' }];
 
@@ -55,7 +53,7 @@ function HeaderClient({ nav, logo }: { nav: NavProps, logo?: Brand['logo'] }) {
           </Link>
         </div>
         <nav className="header-nav hidden md:flex items-center gap-6">
-          {nav?.header?.map(link => {
+          {nav?.map(link => {
             const isActive = path === link.href;
             return (
               <Link
@@ -106,36 +104,3 @@ function HeaderClient({ nav, logo }: { nav: NavProps, logo?: Brand['logo'] }) {
     </header>
   );
 }
-
-export default function Header() {
-    const [nav, setNav] = useState<NavProps | null>(null);
-    const [logo, setLogo] = useState<Brand['logo'] | undefined>(undefined);
-  
-    useEffect(() => {
-      async function fetchData() {
-        const [navigation, design] = await Promise.all([
-            getNavigation(),
-            getDesign()
-        ]);
-        if (navigation) {
-          setNav(navigation);
-        }
-        if (design?.brand?.logo) {
-            setLogo(design.brand.logo);
-        }
-      }
-      fetchData();
-    }, []);
-  
-    if (!nav) {
-      return (
-        <header className="sticky top-0 z-50 border-b">
-          <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
-            <Link href="/" className="header-brand text-[20px]">{siteConfig.name}</Link>
-          </div>
-        </header>
-      )
-    }
-
-    return <HeaderClient nav={nav} logo={logo} />;
-  }
