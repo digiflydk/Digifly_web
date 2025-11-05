@@ -6,13 +6,25 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import React, { useEffect, useState } from "react";
-import { NavLink } from "@/lib/types";
+import { NavLink, Brand } from "@/lib/types";
+import Image from "next/image";
 
 type NavProps = {
   header: NavLink[];
 };
 
-function HeaderClient({ nav }: { nav: NavProps }) {
+async function getDesign() {
+    const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    try {
+        const res = await fetch(`${base}/api/cms/design`, { next: { revalidate: 60 } });
+        return res.ok ? await res.json() : null;
+    } catch {
+        return null;
+    }
+}
+
+
+function HeaderClient({ nav, logo }: { nav: NavProps, logo?: Brand['logo'] }) {
   const [elevated, setElevated] = useState(false);
   const [path, setPath] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -37,8 +49,18 @@ function HeaderClient({ nav }: { nav: NavProps }) {
     <header className={`sticky top-0 z-50 border-b transition-all duration-150 ${elevated ? "header-elevated" : "border-transparent"}`}>
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
         <div className="flex items-center min-w-[140px]">
-          <Link href="/" className="header-brand text-[20px]">
-            Digifly
+          <Link href="/" className="header-brand text-[20px]" aria-label="Digifly home">
+            {logo?.src ? (
+              <Image
+                src={logo.src}
+                alt={logo.alt || 'Digifly'}
+                width={logo.width || 140}
+                height={logo.height || 24}
+                priority
+              />
+            ) : (
+              <span className="header-brand text-[20px]">Digifly</span>
+            )}
           </Link>
         </div>
         <nav className="header-nav hidden md:flex items-center gap-6">
@@ -96,14 +118,21 @@ function HeaderClient({ nav }: { nav: NavProps }) {
 
 export default function Header() {
     const [nav, setNav] = useState<NavProps>({ header: [] });
+    const [logo, setLogo] = useState<Brand['logo'] | undefined>(undefined);
   
     useEffect(() => {
-      async function fetchNav() {
-        const navigation = await getNavigation();
+      async function fetchData() {
+        const [navigation, design] = await Promise.all([
+            getNavigation(),
+            getDesign()
+        ]);
         setNav(navigation);
+        if (design?.brand?.logo) {
+            setLogo(design.brand.logo);
+        }
       }
-      fetchNav();
+      fetchData();
     }, []);
   
-    return <HeaderClient nav={nav} />;
+    return <HeaderClient nav={nav} logo={logo} />;
   }

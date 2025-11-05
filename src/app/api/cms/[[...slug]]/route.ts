@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { zDesignTokens, zNavigation, zHome } from '@/lib/cms-schemas';
+import { zDesignTokens, zNavigation, zHome, zCase } from '@/lib/cms-schemas';
 import { getDb } from '@/lib/firebase-admin';
 
 export const runtime = 'nodejs';           // ensure Node runtime
@@ -10,11 +10,12 @@ function cacheHeaders() {
   return { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' };
 }
 
-export async function GET(_req: Request, { params }: { params: { slug?: string[] } }) {
+export async function GET(req: Request, { params }: { params: { slug?: string[] } }) {
   const path = (params.slug || []).join('/');
 
   // Lazy-grab Firestore ONLY inside the handler:
   const db = getDb();
+  const { searchParams } = new URL(req.url);
 
   try {
     if (!path || path === 'health') {
@@ -37,6 +38,13 @@ export async function GET(_req: Request, { params }: { params: { slug?: string[]
       const snap = await db.doc('content/home').get();
       const data = zHome.parse(snap.data());
       return NextResponse.json(data, { headers: cacheHeaders() });
+    }
+    
+    if (path === 'cases') {
+        const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit') as string, 10) : 10;
+        const snap = await db.collection('cases').limit(limit).get();
+        const data = zCase.array().parse(snap.docs.map(d => ({ slug: d.id, ...d.data() })));
+        return NextResponse.json(data, { headers: cacheHeaders() });
     }
 
     return NextResponse.json({ error: 'Not Found' }, { status: 404 });
