@@ -72,3 +72,22 @@ h3 { font-size: var(--fs-h3); line-height: 1.3; }
   font-family: var(--font-body);
   font-weight: 500;
 }
+
+/* DGF-009: header polish */
+.header-elevated {
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(8px);
+  transition: box-shadow 150ms ease, background 150ms ease;
+}
+
+/* DGF-009: mobile menu animation */
+.menu-overlay-enter   { opacity: 0; }
+.menu-overlay-enter-active,
+.menu-overlay-exit    { opacity: 1; transition: opacity 150ms ease; }
+.menu-overlay-exit-active { opacity: 0; transition: opacity 150ms ease; }
+
+.menu-panel-enter { transform: translateY(-8px); opacity: 0; }
+.menu-panel-enter-active,
+.menu-panel-exit  { transform: translateY(0); opacity: 1; transition: transform 150ms ease, opacity 150ms ease; }
+.menu-panel-exit-active { transform: translateY(-8px); opacity: 0; transition: transform 150ms ease, opacity 150ms ease; }
