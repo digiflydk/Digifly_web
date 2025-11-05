@@ -41,3 +41,34 @@ img, video { max-width: 100%; height: auto; display: block; }
 * { min-width: 0; }              /* allow flex/grid children to shrink */
 p, li { overflow-wrap: anywhere; }
 .container { max-width: 72rem; margin: 0 auto; padding-left: 1rem; padding-right: 1rem; } /* 1152px + 16px padding */
+
+/* DGF-008: Heading standards & alignment utilities */
+
+/* Always use Bluebook tokens for headings */
+h1, h2, h3 {
+  font-family: var(--font-headline);
+  color: var(--color-graphite);
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* Token-based sizes (final): desktop defaults; components may override with clamp */
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); line-height: 1.25; }
+h3 { font-size: var(--fs-h3); line-height: 1.3; }
+
+/* Alignment utilities for consistency */
+.heading-left   { text-align: left; }
+.heading-center { text-align: center; }
+
+/* Header typography rules */
+.header-brand {
+  font-family: var(--font-headline);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.header-nav a {
+  font-family: var(--font-body);
+  font-weight: 500;
+}

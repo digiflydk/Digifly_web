@@ -4,7 +4,7 @@ import { HomePage } from "@/lib/types";
 export default function ServicesOverview({ items }: { items: HomePage['servicesPreview'] }) {
   return (
     <section className="container py-16 md:py-24">
-      <SectionHeading>Services</SectionHeading>
+      <SectionHeading align="left">Services</SectionHeading>
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((s) => (
           <a key={s.title} href={s.href} className="rounded-2xl border border-[var(--color-platinum)] p-6 hover:shadow-sm transition min-w-0">

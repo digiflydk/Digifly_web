@@ -18,8 +18,10 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b">
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
-        <Link href="/" className="font-semibold">Digifly</Link>
-        <nav className="hidden md:flex items-center gap-6">
+        <Link href="/" className="header-brand text-[20px]">
+          Digifly
+        </Link>
+        <nav className="header-nav hidden md:flex items-center gap-6">
           {nav.header.map(link => {
             const isActive = path === link.href;
             return (
@@ -27,7 +29,7 @@ export default async function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`hover:text-[var(--color-blue)] ${isActive ? "text-[var(--color-blue)]" : "text-[var(--color-graphite)]"}`}
+                className={`text-[var(--color-graphite)] hover:text-[var(--color-blue)] ${isActive ? "text-[var(--color-blue)]" : ""}`}
               >
                 {link.label}
               </Link>
