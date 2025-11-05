@@ -22,6 +22,6 @@ export default defineConfig({
     command: `npx next start -p ${PORT}`,
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: false, // always boot clean in CI
-    timeout: 60_000,
+    timeout: 120_000,
   },
 });
