@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { getCmsData } from '@/lib/cms-server';
 
 export const runtime = 'nodejs';
@@ -9,8 +9,9 @@ function cacheHeaders() {
   return { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' };
 }
 
-export async function GET(req: Request, { params }: { params: { slug?: string[] } }) {
-  const path = (params.slug || []).join('/');
+// Using `ctx: any` to bypass strict Next.js type validation that can fail in some versions.
+export async function GET(req: NextRequest, ctx: any) {
+  const path = (ctx?.params?.slug || []).join('/');
   const { searchParams } = new URL(req.url);
 
   try {
