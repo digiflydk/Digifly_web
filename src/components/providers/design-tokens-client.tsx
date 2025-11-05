@@ -7,7 +7,7 @@ import type { DesignSettings } from "@/lib/types";
 
 export default function DesignTokensClient(){
   useEffect(()=>{
-    const ref = doc(db,"content/settings","design");
+    const ref = doc(db,"settings","design");
     const unsub = onSnapshot(ref,(snap)=>{
       const data = snap.data() as DesignSettings | undefined;
       if(data){
