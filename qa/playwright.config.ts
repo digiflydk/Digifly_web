@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 export default defineConfig({
   testDir: __dirname,
@@ -21,7 +21,12 @@ export default defineConfig({
   webServer: {
     command: `npx next start -p ${PORT}`,
     url: `http://127.0.0.1:${PORT}`,
-    reuseExistingServer: false, // always boot clean in CI
+    reuseExistingServer: !process.env.CI,
+    env: {
+        NODE_ENV: "production",
+        // ensure Next does NOT try to use a custom config path from env
+        NEXT_CONFIG_FILE: "",
+    },
     timeout: 120_000,
   },
 });

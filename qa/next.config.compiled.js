@@ -1,5 +1,7 @@
 // qa/next.config.compiled.js
-// Robust shim for Playwright's webServer. Do NOT depend on adapter temp files.
+// Minimal, robust shim for Playwright's webServer.
+// Do NOT depend on adapter temp files (e.g., next.config.original).
+
 function tryLoad(mod) {
   try {
     // eslint-disable-next-line import/no-dynamic-require, global-require
@@ -10,6 +12,7 @@ function tryLoad(mod) {
   }
 }
 
+// Try common Next config entry points in project root:
 const cfg =
   tryLoad("../next.config.ts") ||
   tryLoad("../next.config.mjs") ||
