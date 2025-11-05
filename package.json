@@ -12,8 +12,7 @@
     "typecheck": "tsc --noEmit",
     "qa:install": "npx playwright install chromium",
     "qa:smoke": "playwright test -c qa/playwright.config.ts --project='Desktop Chrome'",
-    "qa:ci": "npm run qa:install && playwright test -c qa/playwright.config.ts",
-    "qa:cms": "playwright test -c qa/playwright.config.ts qa/cms-api.spec.ts",
+    "qa:ci": "node scripts/run-tests-and-publish.js",
     "ci": "npm run typecheck && npm run build"
   },
   "dependencies": {
@@ -62,6 +61,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@google-cloud/storage": "^7.12.0",
     "@playwright/test": "^1.48.0",
     "@types/node": "^20",
     "@types/react": "^18",

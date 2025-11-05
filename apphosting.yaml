@@ -5,7 +5,7 @@
 build:
   command: "npm run build"
   # After the build, run tests. If tests fail, the deploy is canceled.
-  postbuild: "npm run qa:ci"
+  postbuild: "node scripts/run-tests-and-publish.js"
 
 runConfig:
   # Increase this value if you'd like to automatically spin up
