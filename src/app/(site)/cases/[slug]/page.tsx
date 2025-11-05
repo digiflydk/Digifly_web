@@ -4,13 +4,10 @@ import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { MediaImage } from "@/components/ui/media-image";
 import { RichText } from "@/components/ui/rich-text";
-import { Badge } from "@/components/ui/badge";
 import { metaDefaults } from "@/lib/seo";
 import { Metadata } from "next";
 
-type Props = {
-  params: { slug: string };
-};
+type Params = { slug: string };
 
 export const revalidate = 300; // 5 min
 export const dynamicParams = true;
@@ -23,8 +20,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const caseDoc = await getCaseBySlug(params.slug);
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { slug } = await params;
+  const caseDoc = await getCaseBySlug(slug);
   if (!caseDoc) {
     return metaDefaults({});
   }
@@ -35,8 +33,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function CasePage({ params }: Props) {
-  const caseDoc = await getCaseBySlug(params.slug);
+export default async function CasePage({ params }: { params: Promise<Params> }) {
+  const { slug } = await params;
+  const caseDoc = await getCaseBySlug(slug);
 
   if (!caseDoc) {
     notFound();
