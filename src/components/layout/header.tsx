@@ -1,3 +1,4 @@
+
 "use client";
 import Link from "next/link";
 import { Menu } from "lucide-react";
@@ -35,8 +36,11 @@ export default function Header({ nav, logo }: HeaderProps) {
   ] : [{ label: 'Contact', href: '/contact' }];
 
   return (
-    <header className={`sticky top-0 z-50 border-b transition-all duration-150 ${elevated ? "header-elevated" : "border-transparent"}`}>
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
+    <header
+      className="sticky top-0 z-50 border-b bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/60 transition-all duration-150"
+      style={{ height: 'var(--header-height, 64px)' }}
+    >
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-full">
         <div className="flex items-center min-w-[140px]">
           <Link href="/" className="header-brand text-[20px]" aria-label="Digifly home">
             {logo?.src ? (
@@ -44,8 +48,9 @@ export default function Header({ nav, logo }: HeaderProps) {
                 src={logo.src}
                 alt={logo.alt || 'Digifly'}
                 width={logo.width || 140}
-                height={logo.height || 24}
+                height={logo.height || 28}
                 priority
+                className="h-7 w-auto object-contain"
               />
             ) : (
               <span className="header-brand text-[20px]">{siteConfig.name}</span>
@@ -60,7 +65,7 @@ export default function Header({ nav, logo }: HeaderProps) {
                 key={link.href}
                 href={link.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`text-[var(--color-graphite)] hover:text-[var(--color-blue)] ${isActive ? "text-[var(--color-blue)]" : ""}`}
+                className={`text-sm font-medium text-[var(--color-graphite)] hover:text-[var(--color-blue)] ${isActive ? "text-[var(--color-blue)]" : ""}`}
               >
                 {link.label}
               </Link>

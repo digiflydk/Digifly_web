@@ -1,3 +1,4 @@
+
 'use server';
 import { z } from 'zod';
 import { zDesignTokens, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/cms-schemas';
@@ -11,9 +12,17 @@ export async function getDesign(): Promise<DesignSettings> {
         const db = getDb();
         const snap = await db.doc('content/design').get();
         const data = snap?.exists ? snap.data() : {};
-        return zDesignTokens.parse(data ?? {});
+        const parsed = zDesignTokens.parse(data ?? {});
+        if (!parsed.brand?.logo?.src) {
+            parsed.brand = parsed.brand ?? { name: 'Digifly' } as any;
+            parsed.brand.logo = { src: '/logo.svg', alt: parsed.brand.name ?? 'Digifly' };
+        }
+        return parsed;
     } catch(e) {
-        return zDesignTokens.parse({});
+        const parsed = zDesignTokens.parse({});
+        parsed.brand = parsed.brand ?? { name: 'Digifly' } as any;
+        parsed.brand.logo = { src: '/logo.svg', alt: parsed.brand.name ?? 'Digifly' };
+        return parsed;
     }
 }
 
@@ -41,37 +50,45 @@ export async function getHomePage(): Promise<HomePage | null> {
 }
 
 export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
-    const limit = searchParams?.get('limit') ? parseInt(searchParams.get('limit') as string, 10) : 1000;
-    const db = getDb();
-    const snap = await db.collection('cases').limit(limit).get();
-    if (snap.empty) {
+    try {
+        const limit = searchParams?.get('limit') ? parseInt(searchParams.get('limit') as string, 10) : 1000;
+        const db = getDb();
+        const snap = await db.collection('cases').limit(limit).get();
+        if (snap.empty) {
+            return [];
+        }
+        return snap.docs.map(d => {
+            try {
+                return zCase.parse({ slug: d.id, ...d.data() });
+            } catch (e) {
+                console.error(`Zod validation error for case: ${d.id}`, (e as z.ZodError).errors);
+                return null;
+            }
+        }).filter((c): c is CaseDoc => c !== null);
+    } catch(e) {
         return [];
     }
-    return snap.docs.map(d => {
-        try {
-            return zCase.parse({ slug: d.id, ...d.data() });
-        } catch (e) {
-            console.error(`Zod validation error for case: ${d.id}`, (e as z.ZodError).errors);
-            return null;
-        }
-    }).filter((c): c is CaseDoc => c !== null);
 }
 
 export async function listCaseSlugs(): Promise<string[]> {
-  const db = getDb();
-  const snap = await db.collection('cases').select('slug').get();
-  if (snap.empty) {
-      return [];
-  }
-  return snap.docs.map(d => d.get('slug')).filter(Boolean);
+    try {
+        const db = getDb();
+        const snap = await db.collection('cases').select('slug').get();
+        if (snap.empty) {
+            return [];
+        }
+        return snap.docs.map(d => d.get('slug')).filter(Boolean);
+    } catch (e) {
+        return [];
+    }
 }
 
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
-    const db = getDb();
-    const q = await db.collection('cases').where('slug', '==', slug).limit(1).get();
-    if (q.empty) return null;
-    const doc = q.docs[0];
     try {
+        const db = getDb();
+        const q = await db.collection('cases').where('slug', '==', slug).limit(1).get();
+        if (q.empty) return null;
+        const doc = q.docs[0];
         return zCase.parse({ slug: doc.id, ...doc.data() });
     } catch (e) {
         console.error(`Zod validation error for case slug: ${slug}`, (e as z.ZodError).errors);
