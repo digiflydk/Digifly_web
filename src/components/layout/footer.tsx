@@ -1,31 +1,40 @@
 import { getNavigation } from "@/lib/cms";
 import Link from "next/link";
+import { siteConfig } from "@/config/site";
 
 export default async function Footer() {
   const nav = await getNavigation();
+
+  if (!nav?.footer?.columns) {
+    return (
+      <footer className="mt-24 border-t">
+        <div className="max-w-6xl mx-auto px-6 py-10 text-center text-muted-foreground">
+          Footer navigation not configured.
+        </div>
+        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.24 • DGF-026</div>
+      </footer>
+    );
+  }
+
   return (
     <footer className="mt-24 border-t">
-      <div className="max-w-6xl mx-auto px-6 py-10 grid gap-6 md:grid-cols-3">
-        <div>
-          <div className="font-semibold">Digifly</div>
-          <div className="text-sm mt-2">{nav.footer.company.address}</div>
-          <a href={`mailto:${nav.footer.company.email}`} className="text-sm block">{nav.footer.company.email}</a>
-          <div className="text-sm">{nav.footer.company.phone}</div>
+      <div className="max-w-6xl mx-auto px-6 py-10 grid gap-8 md:grid-cols-4">
+        <div className="md:col-span-2">
+            <Link href="/" className="font-headline text-lg font-bold text-primary">{siteConfig.name}</Link>
+            <p className="text-sm mt-2 text-muted-foreground">{siteConfig.description}</p>
         </div>
-        <div>
-          <div className="font-semibold mb-2">Links</div>
-          <ul className="space-y-1">
-            {nav.footer.links.map(l => <li key={l.href}><Link href={l.href}>{l.label}</Link></li>)}
-          </ul>
-        </div>
-        <div>
-          <div className="font-semibold mb-2">Social</div>
-          <ul className="space-y-1">
-            {nav.footer.social.map(l => <li key={l.href}><a href={l.href} target="_blank" rel="noreferrer">{l.label}</a></li>)}
-          </ul>
-        </div>
+        {nav.footer.columns.map(col => (
+          <div key={col.title}>
+            <div className="font-semibold mb-2">{col.title}</div>
+            <ul className="space-y-1">
+              {col.links.map(l => (
+                <li key={l.href}><Link href={l.href} className="text-muted-foreground hover:text-primary transition-colors">{l.label}</Link></li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
-      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} Digifly</div>
+      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.24 • DGF-026</div>
     </footer>
   );
 }

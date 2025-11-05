@@ -1,4 +1,5 @@
 'use server';
+import { z } from 'zod';
 import { zDesignTokens, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/cms-schemas';
 import { getDb } from '@/lib/firebase-admin';
 
@@ -9,53 +10,90 @@ export async function getCmsData(path: string, searchParams: URLSearchParams): P
 
     const db = getDb();
 
-    if (path === 'design') {
-        const snap = await db.doc('content/settings/design').get();
-        return zDesignTokens.parse(snap.data());
-    }
+    try {
+        if (path === 'design') {
+            const snap = await db.doc('content/settings/design').get();
+            return snap.exists ? zDesignTokens.parse(snap.data()) : null;
+        }
 
-    if (path === 'navigation') {
-        const snap = await db.doc('content/navigation').get();
-        return zNavigation.parse(snap.data());
-    }
+        if (path === 'navigation') {
+            const snap = await db.doc('content/navigation').get();
+            return snap.exists ? zNavigation.parse(snap.data()) : null;
+        }
 
-    if (path === 'home') {
-        const snap = await db.doc('content/home').get();
-        return zHome.parse(snap.data());
-    }
-    
-    if (path === 'cases') {
-        const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit') as string, 10) : 10;
-        const snap = await db.collection('cases').limit(limit).get();
-        return zCase.array().parse(snap.docs.map(d => ({ slug: d.id, ...d.data() })));
-    }
+        if (path === 'home') {
+            const snap = await db.doc('content/home').get();
+            return snap.exists ? zHome.parse(snap.data()) : null;
+        }
+        
+        if (path === 'cases') {
+            return await listCases(searchParams);
+        }
+        
+        if (path.startsWith('case/')) {
+            const slug = path.split('/')[1];
+            return await getCaseBySlug(slug);
+        }
+        
+        if (path === 'about') {
+            const snap = await db.doc('content/about').get();
+            return snap.exists ? zAboutPage.parse(snap.data()) : null;
+        }
 
-    if (path.startsWith('case/')) {
-        const slug = path.split('/')[1];
-        const snap = await db.collection('cases').doc(slug).get();
-        if (!snap.exists) return null;
-        return zCase.parse({ slug: snap.id, ...snap.data() });
-    }
-    
-    if (path === 'about') {
-        const snap = await db.doc('content/about').get();
-        return zAboutPage.parse(snap.data());
-    }
+        if (path === 'services') {
+            const snap = await db.doc('content/services').get();
+            return snap.exists ? zServicesPage.parse(snap.data()) : null;
+        }
 
-    if (path === 'services') {
-        const snap = await db.doc('content/services').get();
-        return zServicesPage.parse(snap.data());
-    }
+        if (path === 'cases-index') {
+            const snap = await db.doc('content/cases-index').get();
+            return snap.exists ? zCasesIndexPage.parse(snap.data()) : null;
+        }
 
-    if (path === 'cases-index') {
-        const snap = await db.doc('content/cases-index').get();
-        return zCasesIndexPage.parse(snap.data());
-    }
-
-    if (path === 'contact') {
-        const snap = await db.doc('content/contact').get();
-        return zContactPage.parse(snap.data());
+        if (path === 'contact') {
+            const snap = await db.doc('content/contact').get();
+            return snap.exists ? zContactPage.parse(snap.data()) : null;
+        }
+    } catch (e) {
+        if (e instanceof z.ZodError) {
+            console.error(`Zod validation error for path: ${path}`, e.errors);
+        } else {
+            console.error(`Error fetching data for path: ${path}`, e);
+        }
+        return null; // Return null on error to prevent crashes
     }
 
     return null;
+}
+
+export async function listCases(searchParams?: URLSearchParams) {
+    const limit = searchParams?.get('limit') ? parseInt(searchParams.get('limit') as string, 10) : 1000;
+    const db = getDb();
+    const snap = await db.collection('cases').limit(limit).get();
+    if (snap.empty) {
+        return [];
+    }
+    return snap.docs.map(d => zCase.parse({ slug: d.id, ...d.data() }));
+}
+
+export async function listCaseSlugs(): Promise<string[]> {
+  const db = getDb();
+  const snap = await db.collection('cases').select('slug').get();
+  if (snap.empty) {
+      return [];
+  }
+  return snap.docs.map(d => d.get('slug')).filter(Boolean);
+}
+
+export async function getCaseBySlug(slug: string) {
+    const db = getDb();
+    const q = await db.collection('cases').where('slug', '==', slug).limit(1).get();
+    if (q.empty) return null;
+    const doc = q.docs[0];
+    try {
+        return zCase.parse({ slug: doc.id, ...doc.data() });
+    } catch (e) {
+        console.error(`Zod validation error for case slug: ${slug}`, (e as z.ZodError).errors);
+        return null;
+    }
 }

@@ -1,4 +1,4 @@
-import { getCaseBySlug, getCases } from "@/lib/cms";
+import { getCaseBySlug, listCaseSlugs } from "@/lib/cms-server";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -12,10 +12,12 @@ type Props = {
   params: { slug: string };
 };
 
+export const revalidate = 300; // 5 min ISR
+
 export async function generateStaticParams() {
-  const cases = await getCases();
-  return cases.map(caseDoc => ({
-    slug: caseDoc.slug,
+  const slugs = await listCaseSlugs();
+  return slugs.map(slug => ({
+    slug,
   }));
 }
 
