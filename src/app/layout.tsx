@@ -11,7 +11,15 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  // TODO: Add other metadata fields
+  metadataBase: new URL(siteConfig.url),
+  openGraph: {
+    title: siteConfig.name,
+    description: siteConfig.description,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    type: "website"
+  },
+  twitter: { card: "summary_large_image" }
 };
 
 export default function RootLayout({

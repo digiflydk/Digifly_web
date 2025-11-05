@@ -1,61 +1,31 @@
-import { getNavigation } from '@/lib/cms';
-import { siteConfig } from '@/config/site';
-import { Container } from '@/components/layout/container';
-import Link from 'next/link';
-import { Linkedin } from 'lucide-react';
+import { getNavigation } from "@/lib/cms";
+import Link from "next/link";
 
 export default async function Footer() {
   const nav = await getNavigation();
   return (
-    <footer className="mt-24 border-t border-border/40 py-10">
-      <Container>
-        <div className="grid gap-10 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <Link href="/" className="font-headline text-lg font-bold text-primary">
-                {siteConfig.name}
-            </Link>
-            <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-                Strategy, Software & Automation with AI.
-            </p>
-          </div>
-          <div>
-            <h3 className="font-semibold text-foreground mb-2">Company</h3>
-            <ul className="space-y-2">
-              {nav.header.map(l => (
-                <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{l.label}</Link>
-                </li>
-              ))}
-               <li>
-                  <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact</Link>
-                </li>
-            </ul>
-          </div>
-          <div>
-          <h3 className="font-semibold text-foreground mb-2">Legal</h3>
-            <ul className="space-y-2">
-              {nav.footer.links.map(l => (
-                <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <footer className="mt-24 border-t">
+      <div className="max-w-6xl mx-auto px-6 py-10 grid gap-6 md:grid-cols-3">
+        <div>
+          <div className="font-semibold">Digifly</div>
+          <div className="text-sm mt-2">{nav.footer.company.address}</div>
+          <a href={`mailto:${nav.footer.company.email}`} className="text-sm block">{nav.footer.company.email}</a>
+          <div className="text-sm">{nav.footer.company.phone}</div>
         </div>
-        <div className="mt-10 pt-6 border-t border-border/40 flex justify-between items-center">
-            <p className="text-xs text-muted-foreground">
-                © {new Date().getFullYear()} {nav.footer.company.name}. All rights reserved.
-            </p>
-            <div className="flex items-center gap-4">
-                {nav.footer.social.map(l => (
-                    <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                        <Linkedin size={18} />
-                        <span className="sr-only">{l.label}</span>
-                    </a>
-                ))}
-            </div>
+        <div>
+          <div className="font-semibold mb-2">Links</div>
+          <ul className="space-y-1">
+            {nav.footer.links.map(l => <li key={l.href}><Link href={l.href}>{l.label}</Link></li>)}
+          </ul>
         </div>
-      </Container>
+        <div>
+          <div className="font-semibold mb-2">Social</div>
+          <ul className="space-y-1">
+            {nav.footer.social.map(l => <li key={l.href}><a href={l.href} target="_blank" rel="noreferrer">{l.label}</a></li>)}
+          </ul>
+        </div>
+      </div>
+      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} Digifly</div>
     </footer>
   );
 }
