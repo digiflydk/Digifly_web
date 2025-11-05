@@ -12,7 +12,9 @@ type Props = {
   params: { slug: string };
 };
 
-export const revalidate = 300; // 5 min ISR
+export const revalidate = 300; // 5 min
+export const dynamicParams = true;
+
 
 export async function generateStaticParams() {
   const slugs = await listCaseSlugs();

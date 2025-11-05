@@ -16,7 +16,7 @@ export const zRichText = z.array(
     z.object({ type: z.literal('p'), text: z.string() }),
     z.object({ type: z.literal('list'), items: z.array(z.string()) }),
   ])
-);
+).default([]);
 
 export const zBrand = z.object({
   name: z.string().default('Digifly'),
@@ -32,11 +32,11 @@ export const zDesignTokens = z.object({
     accent: z.string().default('#6D5EF7'),
     bg: z.string().default('#FFFFFF'),
     muted: z.string().default('#6B7280'),
-  }).default({ primary: '#111111', accent: '#6D5EF7', bg: '#FFFFFF', muted: '#6B7280' }),
+  }).default({}),
   typography: z.object({
     headline: z.string().default('Inter'),
     body: z.string().default('Inter'),
-  }).default({ headline: 'Inter', body: 'Inter' }),
+  }).default({}),
 });
 
 export const zFooterNav = z.object({
@@ -80,13 +80,13 @@ export const zHome = z.object({
       label: z.string().default('Talk to us'),
       href: z.string().default('/#contact')
     }).default({}),
-    image: zMedia.default({ src: '/media/hero-1.jpg', alt: 'Hero' }),
+    image: zMedia.optional(),
   }).default({}),
   intro: z.object({
     tagline: z.string().default("Why • How • What"),
     heading: z.string().default('What we do'),
     body: z.string().default('Strategy & process optimization, software & automation with AI as an enabler.'),
-    image: zMedia.default({ src: '/media/intro-1.jpg', alt: 'Intro' }),
+    image: zMedia.optional(),
   }).default({}),
   servicesPreview: z.array(ServiceItemSchema).default([]),
   featuredCases: z.array(z.string()).default([]),
@@ -103,39 +103,39 @@ export const zHome = z.object({
 const zSeo = z.object({
     title: z.string(),
     description: z.string(),
-});
+}).default({ title: 'Digifly', description: 'Strategy, Software & Automation with AI.' });
 
 export const zAboutPage = z.object({
-    title: z.string(),
-    subtitle: z.string(),
+    title: z.string().default('About Digifly'),
+    subtitle: z.string().default('We build intelligent software that moves the needle.'),
     content: z.object({
         body: zRichText,
-    }),
+    }).default({ body: [] }),
     seo: zSeo,
 });
 
 export const zServicesPage = z.object({
-    title: z.string(),
-    subtitle: z.string(),
+    title: z.string().default('Services'),
+    subtitle: z.string().default('Strategy, software & automation.'),
     content: z.object({
         services: z.array(z.object({
             id: z.string(),
             title: z.string(),
             description: z.string(),
             bullets: z.array(z.string()),
-        })),
-    }),
+        })).default([]),
+    }).default({ services: [] }),
     seo: zSeo,
 });
 
 export const zCasesIndexPage = z.object({
-    title: z.string(),
-    subtitle: z.string(),
+    title: z.string().default('Our Work in Action'),
+    subtitle: z.string().default('Selected projects and outcomes.'),
     seo: zSeo,
 });
 
 export const zContactPage = z.object({
-    title: z.string(),
-    subtitle: z.string(),
+    title: z.string().default('Contact'),
+    subtitle: z.string().default('Let’s build something intelligent.'),
     seo: zSeo,
 });

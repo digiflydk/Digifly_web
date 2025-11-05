@@ -3,21 +3,22 @@
 import { z } from 'zod';
 import { zDesignTokens, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/cms-schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { DesignSettings, HomePage, Navigation, CaseDoc, Page } from '@/lib/types';
-import { RichTextContent } from '../lib/types';
-
+import type { DesignSettings, HomePage, Navigation, CaseDoc, Page, RichTextContent } from '@/lib/types';
 
 export async function getDesign(): Promise<DesignSettings> {
     try {
         const db = getDb();
         const snap = await db.doc('content/design').get();
-        const data = snap?.exists ? snap.data() : {};
-        const parsed = zDesignTokens.parse(data ?? {});
-        if (!parsed.brand?.logo?.src) {
-            parsed.brand = parsed.brand ?? { name: 'Digifly' } as any;
-            parsed.brand.logo = { src: '/logo.svg', alt: parsed.brand.name ?? 'Digifly' };
+        const data = snap.exists ? snap.data() : {};
+        const parsed = zDesignTokens.safeParse(data ?? {});
+        if (parsed.success) {
+            if (!parsed.data.brand?.logo?.src) {
+                parsed.data.brand = parsed.data.brand ?? { name: 'Digifly' } as any;
+                parsed.data.brand.logo = { src: '/logo.svg', alt: parsed.data.brand.name ?? 'Digifly' };
+            }
+            return parsed.data;
         }
-        return parsed;
+        throw new Error('Design settings validation failed');
     } catch(e) {
         const parsed = zDesignTokens.parse({});
         parsed.brand = parsed.brand ?? { name: 'Digifly' } as any;
@@ -30,21 +31,24 @@ export async function getNavigation(): Promise<Navigation> {
     try {
         const db = getDb();
         const snap = await db.doc('content/navigation').get();
-        const data = snap?.exists ? snap.data() : {};
-        return zNavigation.parse(data ?? {});
+        const data = snap.exists ? snap.data() : {};
+        const parsed = zNavigation.safeParse(data ?? {});
+        if (parsed.success) return parsed.data;
+        return zNavigation.parse({});
     } catch(e) {
         return zNavigation.parse({});
     }
 }
 
-export async function getHomePage(): Promise<HomePage | null> {
+export async function getHomePage(): Promise<HomePage> {
     try {
         const db = getDb();
         const snap = await db.doc('content/home').get();
-        if (!snap?.exists) return zHome.parse({});
-        return zHome.parse(snap.data() ?? {});
+        const data = snap.exists ? snap.data() : {};
+        const parsed = zHome.safeParse(data);
+        if (parsed.success) return parsed.data;
+        return zHome.parse({});
     } catch (e) {
-        console.error('Zod validation error for home page:', (e as z.ZodError).errors);
         return zHome.parse({});
     }
 }
@@ -58,12 +62,8 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
             return [];
         }
         return snap.docs.map(d => {
-            try {
-                return zCase.parse({ slug: d.id, ...d.data() });
-            } catch (e) {
-                console.error(`Zod validation error for case: ${d.id}`, (e as z.ZodError).errors);
-                return null;
-            }
+            const parsed = zCase.safeParse({ slug: d.id, ...d.data() });
+            return parsed.success ? parsed.data : null;
         }).filter((c): c is CaseDoc => c !== null);
     } catch(e) {
         return [];
@@ -89,57 +89,61 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
         const q = await db.collection('cases').where('slug', '==', slug).limit(1).get();
         if (q.empty) return null;
         const doc = q.docs[0];
-        return zCase.parse({ slug: doc.id, ...doc.data() });
+        const parsed = zCase.safeParse({ slug: doc.id, ...doc.data() });
+        return parsed.success ? parsed.data : null;
     } catch (e) {
-        console.error(`Zod validation error for case slug: ${slug}`, (e as z.ZodError).errors);
         return null;
     }
 }
 
-export async function getAboutPage(): Promise<Page<{ body: RichTextContent[] }> | null> {
+export async function getAboutPage(): Promise<Page<{ body: RichTextContent[] }>> {
     try {
         const db = getDb();
         const snap = await db.doc('content/about').get();
-        if (!snap?.exists) return zAboutPage.parse({});
-        return zAboutPage.parse(snap?.data() ?? {});
+        const data = snap.exists ? snap.data() : {};
+        const parsed = zAboutPage.safeParse(data);
+        if (parsed.success) return parsed.data;
+        return zAboutPage.parse({});
     } catch (e) {
-        console.error('Zod validation error for about page:', (e as z.ZodError).errors);
         return zAboutPage.parse({});
     }
 }
 
-export async function getServicesPage(): Promise<Page<{ services: any[] }> | null> {
+export async function getServicesPage(): Promise<Page<{ services: any[] }>> {
     try {
         const db = getDb();
         const snap = await db.doc('content/services').get();
-        if (!snap?.exists) return zServicesPage.parse({});
-        return zServicesPage.parse(snap?.data() ?? {});
+        const data = snap.exists ? snap.data() : {};
+        const parsed = zServicesPage.safeParse(data);
+        if (parsed.success) return parsed.data;
+        return zServicesPage.parse({});
     } catch (e) {
-        console.error('Zod validation error for services page:', (e as z.ZodError).errors);
         return zServicesPage.parse({});
     }
 }
 
-export async function getCasesIndexPage(): Promise<Page<{}> | null> {
+export async function getCasesIndexPage(): Promise<Page<{}>> {
     try {
         const db = getDb();
         const snap = await db.doc('content/cases-index').get();
-        if (!snap?.exists) return zCasesIndexPage.parse({});
-        return zCasesIndexPage.parse(snap?.data() ?? {});
+        const data = snap.exists ? snap.data() : {};
+        const parsed = zCasesIndexPage.safeParse(data);
+        if (parsed.success) return parsed.data;
+        return zCasesIndexPage.parse({});
     } catch (e) {
-        console.error('Zod validation error for cases index page:', (e as z.ZodError).errors);
         return zCasesIndexPage.parse({});
     }
 }
 
-export async function getContactPage(): Promise<Page<{}> | null> {
+export async function getContactPage(): Promise<Page<{}>> {
     try {
         const db = getDb();
         const snap = await db.doc('content/contact').get();
-        if (!snap?.exists) return zContactPage.parse({});
-        return zContactPage.parse(snap?.data() ?? {});
+        const data = snap.exists ? snap.data() : {};
+        const parsed = zContactPage.safeParse(data);
+        if (parsed.success) return parsed.data;
+        return zContactPage.parse({});
     } catch (e) {
-        console.error('Zod validation error for contact page:', (e as z.ZodError).errors);
         return zContactPage.parse({});
     }
 }
@@ -160,6 +164,18 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   if (path === 'cases') {
     return listCases(searchParams);
+  }
+   if (path === 'about') {
+    return getAboutPage();
+  }
+    if (path === 'services') {
+    return getServicesPage();
+  }
+    if (path === 'cases-index') {
+    return getCasesIndexPage();
+  }
+    if (path === 'contact') {
+    return getContactPage();
   }
   return null;
 }

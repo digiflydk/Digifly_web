@@ -5,6 +5,8 @@ import { RichText } from "@/components/ui/rich-text";
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getAboutPage();
   return metaDefaults({

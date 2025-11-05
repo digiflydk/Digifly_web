@@ -6,14 +6,17 @@
     "dev": "next dev --turbopack -p 9002",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
+    "prebuild": "node -e \"console.log('prebuild ok')\"",
     "build": "next build",
+    "postbuild": "playwright test --config=qa/playwright.config.ts",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "qa:install": "npx playwright install chromium",
     "qa:smoke": "playwright test -c qa/playwright.config.ts --project='Desktop Chrome'",
     "qa:ci": "node scripts/run-tests-and-publish.js",
-    "ci": "npm run typecheck && npm run build"
+    "ci": "npm run typecheck && npm run build",
+    "cms:seed": "tsx scripts/cms-seed.ts"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.20.0",
@@ -70,6 +73,7 @@
     "playwright": "^1.45.3",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.16.2",
     "typescript": "^5"
   },
   "engines": {

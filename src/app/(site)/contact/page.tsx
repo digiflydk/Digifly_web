@@ -5,6 +5,8 @@ import { ContactForm } from "@/components/sections/contact-form";
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getContactPage();
   return metaDefaults({
