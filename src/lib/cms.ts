@@ -1,55 +1,47 @@
-// This is a mock CMS API. In a real application, this would be replaced
-// with calls to a headless CMS like Firestore, Contentful, etc.
+import type { HomePage, CaseDoc, Page, Navigation } from './types';
 
-import type { DesignSettings, Navigation, HomePage, CaseDoc, Page } from './types';
-import * as data from './cms-data';
+async function fetchCms<T>(path: string, options?: RequestInit): Promise<T> {
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const res = await fetch(`${base}/api/cms/${path}`, options);
 
-const MOCK_API_DELAY = 100; // ms
-
-const simulateDelay = () => new Promise(resolve => setTimeout(resolve, MOCK_API_DELAY));
-
-export async function getDesignSettings(): Promise<DesignSettings> {
-  await simulateDelay();
-  return data.designSettings;
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${path}: ${res.statusText}`);
+  }
+  return res.json();
 }
 
 export async function getNavigation(): Promise<Navigation> {
-  await simulateDelay();
-  return data.navigation;
+  return fetchCms<Navigation>('navigation', { next: { revalidate: 60 } });
 }
 
 export async function getHomePage(): Promise<HomePage> {
-  await simulateDelay();
-  return data.homePage;
+  return fetchCms<HomePage>('home', { next: { revalidate: 60 } });
 }
 
 export async function getCases(): Promise<CaseDoc[]> {
-  await simulateDelay();
-  return data.cases;
+  return fetchCms<CaseDoc[]>('cases?limit=1000', { next: { revalidate: 60 } });
 }
 
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
-  await simulateDelay();
-  const items = await getCases();
-  return items.find(c => c.slug === slug) ?? null;
+    try {
+        return await fetchCms<CaseDoc>(`case/${slug}`, { next: { revalidate: 300 } });
+    } catch {
+        return null;
+    }
 }
 
-export async function getAboutPage() {
-    await simulateDelay();
-    return data.aboutPage;
+export async function getAboutPage(): Promise<Page<{ body: any }>> {
+    return fetchCms<Page<{ body: any }>>('about', { next: { revalidate: 60 } });
 }
 
-export async function getServicesPage() {
-    await simulateDelay();
-    return data.servicesPage;
+export async function getServicesPage(): Promise<Page<{ services: any[] }>> {
+    return fetchCms<Page<{ services: any[] }>>('services', { next: { revalidate: 60 } });
 }
 
-export async function getCasesIndexPage() {
-    await simulateDelay();
-    return data.casesIndexPage;
+export async function getCasesIndexPage(): Promise<Page<{}>> {
+    return fetchCms<Page<{}>>('cases-index', { next: { revalidate: 60 } });
 }
 
-export async function getContactPage() {
-    await simulateDelay();
-    return data.contactPage;
+export async function getContactPage(): Promise<Page<{}>> {
+    return fetchCms<Page<{}>>('contact', { next: { revalidate: 60 } });
 }

@@ -1,52 +1,62 @@
 export type Media = { src: string; alt: string; hint?: string };
 
-export type DesignSettings = {
-  colors: Record<string, string>;
-  typography: {
-    headlineFont: string;
-    bodyFont: string;
-    h1: number;
-    h2: number;
-    h3: number;
-    body: number;
-    caption: number;
-    lineHeight: number;
+export type Brand = {
+  name?: string;
+  logo?: {
+    src: string;
+    width?: number;
+    height?: number;
+    alt?: string;
   };
-  buttons: {
-    shape: 'pill';
-    radius: number;
-    primary: { bg: string; text: string; hoverBg: string };
-    secondary: { border: string; text: string; hoverBg: string };
-    ghost: { text: string; hoverBg: string };
+  favicon?: {
+    src: string;
+  };
+};
+
+export type DesignSettings = {
+  brand?: Brand;
+  colors: {
+    primary: string;
+    accent: string;
+    bg: string;
+    muted: string;
+  };
+  typography: {
+    headline: string;
+    body: string;
   };
 };
 
 export type NavLink = { label: string; href: string };
+
 export type Navigation = {
   header: NavLink[];
   footer: {
-    links: NavLink[];
-    company: { name: string; email: string; phone: string; address: string };
-    social: NavLink[];
+    columns: {
+        title: string;
+        links: NavLink[];
+    }[];
   };
 };
 
 export type HomePage = {
-  hero: { title: string; subtitle: string; primaryCta: NavLink; image: Media };
+  hero: { title: string; subtitle: string; cta: NavLink; image: Media };
   intro: {
-    tagline: string;
-    heading: string;
-    body: string;
+    title: string;
+    text: string;
     image: Media;
   };
-  servicesPreview: {
+  servicesHeading?: string;
+  services: {
     title: string;
-    bullets: string[];
-    href: string;
+    text: string;
   }[];
-  featuredCases: string[];
-  cta: { text: string; button: NavLink };
-  seo: { title: string; description: string };
+  cases: {
+    id: string;
+    title: string;
+    href: string;
+    image: Media;
+  }[];
 };
 
 export type RichTextContent =
@@ -56,11 +66,12 @@ export type RichTextContent =
 export type CaseDoc = {
   slug: string;
   title: string;
-  summary: string;
+  summary?: string;
   cover: Media;
-  body: RichTextContent[];
+  body?: RichTextContent[];
   metrics?: { label: string; value: string }[];
   seo: { title: string; description: string; image?: string };
+  updatedAt?: number;
 };
 
 export type Page<T> = {

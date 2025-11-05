@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { zDesignTokens, zNavigation, zHome, zCase } from '@/lib/cms-schemas';
-import { getDb } from '@/lib/firebase-admin';
+import { getCmsData } from '@/lib/cms-server';
 
-export const runtime = 'nodejs';           // ensure Node runtime
-export const dynamic = 'force-dynamic';    // never prerender this route
-export const revalidate = 0;               // no static caching at build
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 function cacheHeaders() {
   return { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' };
@@ -12,44 +11,15 @@ function cacheHeaders() {
 
 export async function GET(req: Request, { params }: { params: { slug?: string[] } }) {
   const path = (params.slug || []).join('/');
-
-  // Lazy-grab Firestore ONLY inside the handler:
-  const db = getDb();
   const { searchParams } = new URL(req.url);
 
   try {
-    if (!path || path === 'health') {
-      return NextResponse.json({ ok: true, ts: Date.now() }, { headers: cacheHeaders() });
+    const data = await getCmsData(path, searchParams);
+    if (data === null) {
+      return NextResponse.json({ error: 'Not Found' }, { status: 404 });
     }
-
-    if (path === 'design') {
-      const snap = await db.doc('content/settings/design').get();
-      const data = zDesignTokens.parse(snap.data());
-      return NextResponse.json(data, { headers: cacheHeaders() });
-    }
-
-    if (path === 'navigation') {
-      const snap = await db.doc('content/navigation').get();
-      const data = zNavigation.parse(snap.data());
-      return NextResponse.json(data, { headers: cacheHeaders() });
-    }
-
-    if (path === 'home') {
-      const snap = await db.doc('content/home').get();
-      const data = zHome.parse(snap.data());
-      return NextResponse.json(data, { headers: cacheHeaders() });
-    }
-    
-    if (path === 'cases') {
-        const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit') as string, 10) : 10;
-        const snap = await db.collection('cases').limit(limit).get();
-        const data = zCase.array().parse(snap.docs.map(d => ({ slug: d.id, ...d.data() })));
-        return NextResponse.json(data, { headers: cacheHeaders() });
-    }
-
-    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+    return NextResponse.json(data, { headers: cacheHeaders() });
   } catch (e: any) {
-    // Return 400 with a concise error; do not crash the build
     return NextResponse.json({ error: e?.message || 'Bad Request' }, { status: 400 });
   }
 }

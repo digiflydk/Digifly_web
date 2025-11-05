@@ -3,55 +3,39 @@ import { z } from "zod";
 export const zNavLink = z.object({ label: z.string(), href: z.string().url().or(z.string().startsWith("/")) });
 
 export const zBrand = z.object({
+  name: z.string().optional(),
   logo: z.object({
-    src: z.string().url(),
+    src: z.string(),
     width: z.number().optional(),
     height: z.number().optional(),
     alt: z.string().optional()
   }).optional(),
   favicon: z.object({
-    src: z.string().url()
+    src: z.string()
   }).optional()
 });
 
 export const zDesignTokens = z.object({
-  version: z.string(),
+  brand: zBrand.optional(),
   colors: z.object({
     primary: z.string(),
-    electricBlue: z.string(),
-    digitalPurple: z.string(),
-    graphiteGrey: z.string(),
-    platinumGrey: z.string(),
-    softWhite: z  .string(),
-    success: z.string(),
-    error: z.string(),
+    accent: z.string(),
+    bg: z.string(),
+    muted: z.string(),
   }),
-  fonts: z.object({ headline: z.string(), body: z.string() }),
-  radius: z.object({ buttonPill: z.number(), card: z.number() }),
-  typography: z.object({
-    h1: z.number(),
-    h2: z.number(),
-    h3: z.number(),
-    body: z.number(),
-    caption: z.number(),
-    lineHeight: z.number(),
-  }),
-  brand: zBrand.optional()
+  typography: z.object({ headline: z.string(), body: z.string() }),
 });
 
+export const zFooterNav = z.object({
+    columns: z.array(z.object({
+        title: z.string(),
+        links: z.array(zNavLink),
+    }))
+});
 
 export const zNavigation = z.object({
   header: z.array(zNavLink),
-  footer: z.object({
-    links: z.array(zNavLink),
-    company: z.object({
-      name: z.string(),
-      email: z.string(),
-      phone: z.string(),
-      address: z.string(),
-    }),
-    social: z.array(zNavLink),
-  }),
+  footer: zFooterNav,
 });
 
 export const zMedia = z.object({
@@ -70,9 +54,9 @@ export const zRichText = z.array(
 export const zCase = z.object({
   slug: z.string(),
   title: z.string(),
-  summary: z.string(),
+  summary: z.string().optional(),
   cover: zMedia,
-  body: zRichText,
+  body: zRichText.optional(),
   metrics: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
   seo: z.object({
     title: z.string(),
@@ -87,29 +71,67 @@ export const zHome = z.object({
   hero: z.object({
     title: z.string(),
     subtitle: z.string(),
-    primaryCta: zNavLink,
+    cta: zNavLink,
     image: zMedia,
   }),
   intro: z.object({
-    tagline: z.string(),
-    heading: z.string(),
-    body: z.string(),
+    title: z.string(),
+    text: z.string(),
     image: zMedia,
   }),
-  servicesPreview: z.array(
+  servicesHeading: z.string().optional(),
+  services: z.array(
     z.object({
       title: z.string(),
-      bullets: z.array(z.string()),
-      href: z.string(),
+      text: z.string(),
     })
   ),
-  featuredCases: z.array(z.string()),
-  cta: z.object({
-    text: z.string(),
-    button: zNavLink,
-  }),
-  seo: z.object({
+  cases: z.array(
+    z.object({
+        id: z.string(),
+        title: z.string(),
+        href: z.string(),
+        image: zMedia,
+    })
+  )
+});
+
+const zSeo = z.object({
     title: z.string(),
     description: z.string(),
-  }),
+});
+
+export const zAboutPage = z.object({
+    title: z.string(),
+    subtitle: z.string(),
+    content: z.object({
+        body: zRichText,
+    }),
+    seo: zSeo,
+});
+
+export const zServicesPage = z.object({
+    title: z.string(),
+    subtitle: z.string(),
+    content: z.object({
+        services: z.array(z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            bullets: z.array(z.string()),
+        })),
+    }),
+    seo: zSeo,
+});
+
+export const zCasesIndexPage = z.object({
+    title: z.string(),
+    subtitle: z.string(),
+    seo: zSeo,
+});
+
+export const zContactPage = z.object({
+    title: z.string(),
+    subtitle: z.string(),
+    seo: zSeo,
 });
