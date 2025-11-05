@@ -1,4 +1,4 @@
-export type Media = { src: string; alt: string; hint?: string };
+export type Media = { src: string; alt: string; focal?: string };
 
 export type DesignSettings = {
   colors: Record<string, string>;
@@ -60,12 +60,12 @@ export type CaseDoc = {
   cover: Media;
   body: RichTextContent[];
   metrics?: { label: string; value: string }[];
-  seo: { title: string; description: string };
+  seo: { title: string; description: string; image?: string };
 };
 
 export type Page<T> = {
   title: string;
   subtitle?: string;
   content: T;
-  seo: { title: string; description: string };
+  seo: { title: string; description: string; image?: string };
 }

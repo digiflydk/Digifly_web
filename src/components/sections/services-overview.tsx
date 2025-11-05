@@ -17,7 +17,7 @@ export default function ServicesOverview({ items }: { items: HomePage['servicesP
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {items.map((s) => (
             <Link key={s.title} href={s.href} className="group">
-              <Card className="h-full border-2 border-transparent bg-background shadow-md transition-all hover:border-primary hover:shadow-xl">
+              <Card className="h-full border-2 border-transparent bg-background shadow-md transition-all hover:border-primary hover:shadow-xl rounded-2xl">
                 <CardHeader>
                   <CardTitle className="font-headline text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
                     {s.title}

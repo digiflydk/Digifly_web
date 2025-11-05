@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 
 export default function NotFound() {
   return (
@@ -9,9 +8,7 @@ export default function NotFound() {
         <p className="mt-3 text-sm text-muted-foreground">
           The resource you’re looking for does not exist.
         </p>
-        <Button asChild variant="link" className="mt-8">
-            <Link href="/">Go home</Link>
-        </Button>
+        <Link href="/" className="inline-block mt-8 text-primary underline">Go home</Link>
       </div>
     </main>
   );

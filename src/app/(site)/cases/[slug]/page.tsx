@@ -27,6 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return metaDefaults({
     title: caseDoc.seo.title,
     description: caseDoc.seo.description,
+    image: caseDoc.cover.src
   });
 }
 
@@ -53,7 +54,6 @@ export default async function CasePage({ params }: Props) {
             <MediaImage
                 src={caseDoc.cover.src}
                 alt={caseDoc.cover.alt}
-                hint={caseDoc.cover.hint}
                 width={1200}
                 height={600}
                 className="w-full h-full object-cover"

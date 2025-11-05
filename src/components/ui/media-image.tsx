@@ -1,24 +1,12 @@
-'use client';
-import Image, { type ImageProps } from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Image, { type ImageProps } from "next/image";
 
-type MediaImageProps = Omit<ImageProps, 'src'> & {
+type MediaImageProps = Omit<ImageProps, 'src' | 'alt'> & {
   src: string;
-  hint?: string;
+  alt: string;
+  className?: string;
 };
 
-export function MediaImage({ src, hint, alt, ...props }: MediaImageProps) {
-  const placeholder = PlaceHolderImages.find(p => p.id === src);
-  
-  const imageUrl = placeholder ? placeholder.imageUrl : `/fallback.jpg`;
-  const imageHint = hint || placeholder?.imageHint;
-
-  return (
-    <Image
-      src={imageUrl}
-      alt={alt}
-      {...props}
-      data-ai-hint={imageHint}
-    />
-  );
+export function MediaImage({ src, alt, className="", ...props }: MediaImageProps) {
+  const finalSrc = src.startsWith('http') ? src : `/media/${src}`;
+  return <Image src={finalSrc} alt={alt || "Image"} className={`object-cover ${className}`} {...props} />;
 }

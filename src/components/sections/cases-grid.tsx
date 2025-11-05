@@ -20,13 +20,12 @@ export default async function CasesGrid({ ids, title, subtitle, showAllLink = fa
         <div className="mt-12 grid gap-8 md:grid-cols-2">
           {cases.map((caseDoc) => (
             <Link key={caseDoc.slug} href={`/cases/${caseDoc.slug}`} className="group">
-              <Card className="h-full overflow-hidden shadow-md transition-all hover:shadow-xl hover:-translate-y-1">
+              <Card className="h-full overflow-hidden shadow-md transition-all hover:shadow-xl hover:-translate-y-1 rounded-2xl">
                 <CardHeader className="p-0">
                   <div className="aspect-[3/2] overflow-hidden">
                     <MediaImage
                       src={caseDoc.cover.src}
                       alt={caseDoc.cover.alt}
-                      hint={caseDoc.cover.hint}
                       width={600}
                       height={400}
                       className="h-full w-full object-cover transition-transform group-hover:scale-105"
