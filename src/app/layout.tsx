@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/config/site';
+import DesignTokensClient from '@/components/providers/design-tokens-client';
 
 export const metadata: Metadata = {
   title: {
@@ -27,7 +29,8 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased text-[var(--color-graphite)] bg-white">
+        <DesignTokensClient />
         {children}
         <Toaster />
       </body>

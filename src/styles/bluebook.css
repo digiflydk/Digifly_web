@@ -1,0 +1,36 @@
+/* Digifly token defaults (overridden at runtime by CMS) */
+:root{
+  /* Colors */
+  --color-black:#000000;
+  --color-blue:#1E90FF;           /* Electric Blue */
+  --color-purple:#6A5ACD;         /* Digital Purple */
+  --color-graphite:#2B2B2B;
+  --color-platinum:#E5E5E5;
+  --color-softwhite:#F9F9F9;
+  --color-success:#00B894;
+  --color-error:#FF4D4D;
+
+  /* Typography */
+  --font-headline:"Space Grotesk",ui-sans-serif,system-ui,-apple-system;
+  --font-body:"Inter",ui-sans-serif,system-ui,-apple-system;
+
+  --fs-h1:56px; --fs-h2:40px; --fs-h3:28px; --fs-body:16px; --fs-caption:13px;
+  --lh-base:1.4;
+
+  /* Buttons (pill) */
+  --btn-radius:50px;
+
+  --btn-primary-bg:var(--color-blue);
+  --btn-primary-text:#FFFFFF;
+  --btn-primary-hover-bg:var(--color-purple);
+
+  --btn-secondary-border:var(--color-blue);
+  --btn-secondary-text:var(--color-blue);
+  --btn-secondary-hover-bg:#E5F1FF;
+
+  --btn-ghost-text:var(--color-graphite);
+  --btn-ghost-hover-bg:var(--color-platinum);
+}
+
+/* Accessibility focus */
+:focus-visible{outline:2px solid var(--color-blue);outline-offset:2px}
