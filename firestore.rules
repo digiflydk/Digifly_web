@@ -3,11 +3,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Allow public read access to all documents under the 'content' collection.
-    // This is necessary for the client-side app to fetch CMS data, including
-    // the real-time design token listener on 'content/settings/design'.
+    // This is necessary for the client-side app to fetch CMS data.
     match /content/{document=**} {
       allow read: if true;
       allow write: if false; // Disallow client-side writes.
+    }
+
+    // Allow public read access to the design settings for the real-time listener.
+    match /settings/{document=**} {
+      allow read: if true;
+      allow write: if false;
     }
 
     // Deny all other reads and writes by default for security.
