@@ -1,10 +1,10 @@
 import { HomePage } from "@/lib/types";
-import { SectionHeading } from "../ui/section-heading";
+import { SectionHeading } from "@/components/ui/section-heading";
 
 export default function ServicesOverview({ items }: { items: HomePage['servicesPreview'] }) {
   return (
     <section className="container py-16 md:py-24">
-      <SectionHeading align="left">Services</SectionHeading>
+      <SectionHeading title="Services" textCenter={false} />
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((s) => (
           <a key={s.title} href={s.href} className="rounded-2xl border border-[var(--color-platinum)] p-6 hover:shadow-sm transition min-w-0">

@@ -13,7 +13,7 @@ export default function IntroWhyHowWhat({ data }: { data: HomePage['intro'] }) {
           />
           <p className="text-muted-foreground text-lg">{data.body}</p>
         </div>
-        <div>
+        <div className="overflow-hidden rounded-2xl" style={{ maxHeight: 'var(--intro-image-max-h, 520px)' }}>
           {data.image?.src && (
             <MediaImage
               src={data.image.src}
@@ -21,7 +21,7 @@ export default function IntroWhyHowWhat({ data }: { data: HomePage['intro'] }) {
               hint={data.image.hint}
               width={800}
               height={600}
-              className="rounded-2xl object-cover shadow-lg"
+              className="object-cover shadow-lg w-full h-full"
             />
           )}
         </div>

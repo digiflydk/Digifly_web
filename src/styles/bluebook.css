@@ -30,6 +30,17 @@
 
   --btn-ghost-text:var(--color-graphite);
   --btn-ghost-hover-bg:var(--color-platinum);
+
+  /* Layout */
+  --hero-desktop-min-h: 70vh;
+  --intro-image-max-h: calc(520px * 0.75);
+}
+
+/* Desktop adjustments */
+@media (min-width: 1024px) {
+  :root {
+    --hero-desktop-min-h: calc(70vh * 1.15);
+  }
 }
 
 /* Accessibility focus */
