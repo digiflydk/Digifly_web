@@ -1,12 +1,11 @@
 import { HomePage } from '@/lib/types';
-import { Container } from '@/components/layout/container';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { MediaImage } from '@/components/ui/media-image';
 
 export default function IntroWhyHowWhat({ data }: { data: HomePage['intro'] }) {
   return (
-    <section className="py-16 md:py-24">
-      <Container className="grid md:grid-cols-2 gap-12 items-center">
+    <section className="container py-16 md:py-24">
+      <div className="grid md:grid-cols-2 gap-12 items-center">
         <div className="space-y-6">
           <SectionHeading
             tagline={data.tagline}
@@ -26,7 +25,7 @@ export default function IntroWhyHowWhat({ data }: { data: HomePage['intro'] }) {
             />
           )}
         </div>
-      </Container>
+      </div>
     </section>
   );
 }

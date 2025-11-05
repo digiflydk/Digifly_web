@@ -14,13 +14,12 @@ export default async function CasesGrid({ ids, title, subtitle, showAllLink = fa
     : allCases;
 
   return (
-    <section className="py-16 md:py-24">
-      <Container>
-        <SectionHeading textCenter title={title} subtitle={subtitle} />
-        <div className="mt-12 grid gap-8 md:grid-cols-2">
+    <section className="container py-16 md:py-24">
+      <SectionHeading textCenter title={title} subtitle={subtitle} />
+      <div className="mt-12 grid gap-8 md:grid-cols-2">
           {cases.map((caseDoc) => (
             <Link key={caseDoc.slug} href={`/cases/${caseDoc.slug}`} className="group">
-              <Card className="h-full overflow-hidden shadow-md transition-all hover:shadow-xl hover:-translate-y-1 rounded-2xl">
+              <Card className="h-full overflow-hidden shadow-md transition-all hover:shadow-xl hover:-translate-y-1 rounded-2xl min-w-0">
                 <CardHeader className="p-0">
                   <div className="aspect-[3/2] overflow-hidden">
                     <MediaImage
@@ -33,10 +32,10 @@ export default async function CasesGrid({ ids, title, subtitle, showAllLink = fa
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <h3 className="font-headline text-xl font-semibold text-foreground">
+                  <h3 className="font-headline text-xl font-semibold text-foreground truncate md:whitespace-normal">
                     {caseDoc.title}
                   </h3>
-                  <p className="mt-2 text-muted-foreground text-sm">
+                  <p className="mt-2 text-muted-foreground text-sm break-words">
                     {caseDoc.summary}
                   </p>
                 </CardContent>
@@ -61,7 +60,6 @@ export default async function CasesGrid({ ids, title, subtitle, showAllLink = fa
                 </Link>
             </div>
         )}
-      </Container>
     </section>
   );
 }

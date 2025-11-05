@@ -41,7 +41,7 @@ export default async function Header() {
         <div className="md:hidden">
             <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" className="h-10 w-10 p-0">
+                    <Button variant="ghost" className="h-10 w-10 p-0" aria-label="Open menu">
                         <Menu />
                         <span className="sr-only">Open menu</span>
                     </Button>

@@ -1,12 +1,10 @@
 import { NavLink } from '@/lib/types';
-import { Container } from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export default function CtaBanner({ text, button }: { text: string; button: NavLink }) {
   return (
-    <section className="py-16 md:py-24">
-      <Container>
+    <section className="container py-16 md:py-24">
         <div className="rounded-2xl bg-primary p-10 md:p-16 shadow-xl">
           <div className="mx-auto max-w-xl text-center">
             <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary-foreground">
@@ -19,7 +17,6 @@ export default function CtaBanner({ text, button }: { text: string; button: NavL
             </div>
           </div>
         </div>
-      </Container>
     </section>
   );
 }

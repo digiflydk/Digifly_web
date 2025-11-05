@@ -34,3 +34,10 @@
 
 /* Accessibility focus */
 :focus-visible{outline:2px solid var(--color-blue);outline-offset:2px}
+
+/* DGF-007: responsive hardening */
+html, body { overflow-x: hidden; }
+img, video { max-width: 100%; height: auto; display: block; }
+* { min-width: 0; }              /* allow flex/grid children to shrink */
+p, li { overflow-wrap: anywhere; }
+.container { max-width: 72rem; margin: 0 auto; padding-left: 1rem; padding-right: 1rem; } /* 1152px + 16px padding */
