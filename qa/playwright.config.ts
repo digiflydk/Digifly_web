@@ -1,18 +1,12 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './',
-  timeout: 60_000,
-  retries: 0,
-  use: {
-    baseURL: process.env.SITE_URL || 'https://studio--studio-9863436583-e36f9.us-central1.hosted.app',
-    headless: true,
-    screenshot: 'only-on-failure',
-    video: 'off',
+  use: { baseURL: 'http://127.0.0.1:3000' },
+  webServer: {
+    command: 'npx next start -p 3000',
+    port: 3000,
+    timeout: 120_000,
+    reuseExistingServer: false
   },
-  projects: [
-    { name: 'Desktop Chrome', use: { ...devices['Desktop Chrome'] } },
-    { name: 'Mobile Safari',  use: { ...devices['iPhone 13'] } },
-  ],
-  reporter: [['list'], ['html', { outputFolder: 'qa-report', open: 'never' }]],
+  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]]
 });
