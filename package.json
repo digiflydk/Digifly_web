@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack -p 9002",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "NODE_ENV=production next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -14,7 +14,8 @@
     "qa:install": "npx playwright install",
     "qa:smoke": "playwright test -c qa/playwright.config.ts --project='Desktop Chrome'",
     "qa:ci": "playwright test -c qa/playwright.config.ts",
-    "qa:cms": "playwright test -c qa/playwright.config.ts qa/cms-api.spec.ts"
+    "qa:cms": "playwright test -c qa/playwright.config.ts qa/cms-api.spec.ts",
+    "ci": "npm run typecheck && npm run build"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.20.0",
@@ -71,5 +72,8 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }
