@@ -1,4 +1,15 @@
-import type { DesignSettings, Navigation, HomePage, CaseDoc, Page } from './types';
+import type { DesignSettings, Navigation, HomePage, CaseDoc, Page, RichTextContent } from './types';
+import { PlaceHolderImages } from './placeholder-images';
+
+function getImage(id: string) {
+  const image = PlaceHolderImages.find(img => img.id === id);
+  return {
+    src: image?.imageUrl || `https://picsum.photos/seed/${id}/800/600`,
+    alt: image?.description || 'Placeholder image',
+    hint: image?.imageHint,
+  };
+}
+
 
 export const designSettings: DesignSettings = {
   colors: {
@@ -56,13 +67,13 @@ export const homePage: HomePage = {
     title: 'From Idea to Intelligent Solution',
     subtitle: 'Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.',
     primaryCta: { label: 'Start Your Project', href: '/contact' },
-    image: { src: 'hero-1.jpg', alt: 'Abstract tech background', hint: "abstract technology" },
+    image: getImage('hero-1.jpg'),
   },
   intro: {
     tagline: 'Why • How • What',
     heading: 'We turn complexity into clarity.',
     body: "We combine analytical strength with deep technological expertise to create elegant, effective solutions. Our process is transparent, collaborative, and always focused on delivering measurable results for your business.",
-    image: { src: 'intro-1.jpg', alt: 'Team collaboration', hint: 'team collaboration' },
+    image: getImage('intro-1.jpg'),
   },
   servicesPreview: [
     {
@@ -97,7 +108,7 @@ export const cases: CaseDoc[] = [
     slug: 'case-001',
     title: 'Smart Onboarding Platform',
     summary: 'Reduced manual steps by 62% with automation + AI assistants.',
-    cover: { src: 'case-001.jpg', alt: 'Dashboard preview', hint: 'software dashboard' },
+    cover: getImage('case-001.jpg'),
     body: [
       { type: 'p', text: 'The challenge was a highly manual and error-prone client onboarding process that took days to complete. Our approach was to build a central platform that automated data collection, verification, and system setup.' },
       { type: 'list', items: ['Automated data validation against external APIs.', 'AI-powered document analysis to extract key information.', 'Generated user-friendly summaries and flagged exceptions for manual review.'] },
@@ -113,7 +124,7 @@ export const cases: CaseDoc[] = [
     slug: 'case-002',
     title: 'Real-Time Logistics Dashboard',
     summary: 'Centralized supply chain visibility, improving delivery estimates by 45%.',
-    cover: { src: 'case-002.jpg', alt: 'Illustrated workflow diagram', hint: "workflow diagram" },
+    cover: getImage('case-002.jpg'),
     body: [
         { type: 'p', text: 'A major logistics provider lacked a unified view of their shipments, leading to inefficiencies and poor customer communication. We developed a real-time dashboard to track assets across multiple carriers and systems.' },
         { type: 'list', items: ['Integrated multiple data sources via APIs into a single data stream.', 'Developed a map-based visualization with real-time location updates.', 'Implemented predictive analytics for more accurate delivery time estimates.'] },
@@ -128,7 +139,7 @@ export const cases: CaseDoc[] = [
     slug: 'case-003',
     title: 'Customer Service AI Assistant',
     summary: 'Resolved 78% of tier-1 support tickets instantly.',
-    cover: { src: 'case-003.jpg', alt: 'Person interacting with a mobile application', hint: 'mobile app' },
+    cover: getImage('case-003.jpg'),
     body: [
       { type: 'p', text: 'A fast-growing e-commerce brand was struggling with a high volume of repetitive customer support queries. We built and integrated an AI assistant into their help center and chat widget.' },
       { type: 'list', items: ['Trained on historical support tickets and company documentation.', 'Integrated with their e-commerce platform to provide order-specific information.', 'Provided instant answers to common questions about shipping, returns, and product details.'] },

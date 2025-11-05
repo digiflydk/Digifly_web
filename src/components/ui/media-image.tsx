@@ -4,9 +4,23 @@ type MediaImageProps = Omit<ImageProps, 'src' | 'alt'> & {
   src: string;
   alt: string;
   className?: string;
+  hint?: string;
 };
 
-export function MediaImage({ src, alt, className="", ...props }: MediaImageProps) {
+export function MediaImage({ src, alt, className="", hint, ...props }: MediaImageProps) {
   const finalSrc = src.startsWith('http') ? src : `/media/${src}`;
-  return <Image src={finalSrc} alt={alt || "Image"} className={`object-cover ${className}`} {...props} />;
+  
+  const imageProps: ImageProps = {
+    src: finalSrc,
+    alt: alt || "Image",
+    className: `object-cover ${className}`,
+    ...props
+  };
+
+  if (hint) {
+    // @ts-ignore
+    imageProps['data-ai-hint'] = hint;
+  }
+  
+  return <Image {...imageProps} />;
 }
