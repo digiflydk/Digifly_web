@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "qa:install": "npx playwright install chromium",
     "qa:smoke": "playwright test -c qa/playwright.config.ts --project='Desktop Chrome'",
-    "qa:ci": "node scripts/run-tests-and-publish.js",
+    "qa:ci": "playwright test --config=qa/playwright.config.ts",
     "ci": "npm run typecheck && npm run build",
     "cms:seed": "tsx scripts/cms-seed.ts"
   },

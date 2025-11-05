@@ -15,7 +15,7 @@ export default function Footer({ columns }: { columns?: FooterColumn[] }) {
         <div className="max-w-6xl mx-auto px-6 py-10 text-center text-muted-foreground">
           Footer navigation not configured.
         </div>
-        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.34 • DGF-036</div>
+        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.35 • DGF-037</div>
       </footer>
     );
   }
@@ -38,7 +38,7 @@ export default function Footer({ columns }: { columns?: FooterColumn[] }) {
           </div>
         ))}
       </div>
-      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.34 • DGF-036</div>
+      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.1.35 • DGF-037</div>
     </footer>
   );
 }

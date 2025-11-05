@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { expect200 } from '../helpers/expect200';
+import { expect200 } from './helpers/expect200';
 
 test('manifest.webmanifest exists', async ({ request, baseURL }) => {
     const r = await request.get(`${baseURL}/manifest.webmanifest`);

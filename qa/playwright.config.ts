@@ -1,12 +1,27 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
+
+const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
 
 export default defineConfig({
-  use: { baseURL: 'http://127.0.0.1:3000' },
-  webServer: {
-    command: 'npx next start -p 3000',
-    port: 3000,
-    timeout: 120_000,
-    reuseExistingServer: false
+  testDir: __dirname,
+  timeout: 30_000,
+  retries: 0,
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: 'public/qa-report', open: 'never' }]
+  ],
+  use: {
+    baseURL: `http://127.0.0.1:${PORT}`,
+    trace: 'off',
   },
-  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]]
+  projects: [
+    { name: 'Desktop Chrome', use: { ...devices['Desktop Chrome'] } },
+    { name: 'Mobile Safari',  use: { ...devices['Mobile Safari'] } },
+  ],
+  webServer: {
+    command: `npx next start -p ${PORT}`,
+    url: `http://127.0.0.1:${PORT}`,
+    reuseExistingServer: false, // always boot clean in CI
+    timeout: 60_000,
+  },
 });
