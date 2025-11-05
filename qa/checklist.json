@@ -1,0 +1,12 @@
+{
+  "version": "1.1.5",
+  "checks": [
+    "Buttons use pill component across all pages",
+    "All headings/body use Bluebook token sizes & fonts",
+    "All text/links/images come from CMS (no hardcoded UI copy)",
+    "Design tokens stream from /content/settings/design (CSS vars applied)",
+    "SEO meta present: lang=en, OG/Twitter, canonical",
+    "Security hardening: scanners return 404/403",
+    "Lighthouse desktop & mobile ≥ 90 across categories"
+  ]
+}

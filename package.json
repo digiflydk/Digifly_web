@@ -10,7 +10,10 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:smoke": "playwright test"
+    "test:smoke": "playwright test",
+    "qa:install": "npx playwright install --with-deps",
+    "qa:smoke": "playwright test -c qa/playwright.config.ts --project='Desktop Chrome'",
+    "qa:ci": "playwright test -c qa/playwright.config.ts"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.20.0",
@@ -57,7 +60,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.45.3",
+    "@playwright/test": "^1.48.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
