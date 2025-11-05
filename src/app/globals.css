@@ -24,6 +24,7 @@
     --input: 216 34% 86%;
     --ring: 211 100% 56%;
     --radius: 50px;
+    --header-height: 64px;
   }
 
   .dark {
@@ -59,5 +60,11 @@
   :focus-visible {
     outline: 2px solid hsl(var(--primary));
     outline-offset: 2px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --header-height: 56px;
   }
 }

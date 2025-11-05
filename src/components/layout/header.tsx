@@ -1,4 +1,3 @@
-
 "use client";
 import Link from "next/link";
 import { Menu } from "lucide-react";
@@ -15,19 +14,12 @@ type HeaderProps = {
 };
 
 export default function Header({ nav, logo }: HeaderProps) {
-  const [elevated, setElevated] = useState(false);
   const [path, setPath] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setElevated(window.scrollY > 8);
-    onScroll(); // run on mount
-    window.addEventListener("scroll", onScroll, { passive: true });
-
     // Since this is a client component, we can get the path here
     setPath(window.location.pathname);
-
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
   
   const navLinks = nav ? [
@@ -37,8 +29,9 @@ export default function Header({ nav, logo }: HeaderProps) {
 
   return (
     <header
-      className="sticky top-0 z-50 border-b bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/60 transition-all duration-150"
+      className="sticky top-0 z-[100] border-b bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/60"
       style={{ height: 'var(--header-height, 64px)' }}
+      aria-label="Site Header"
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-full">
         <div className="flex items-center min-w-[140px]">
