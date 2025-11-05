@@ -8,7 +8,7 @@ import { RichTextContent } from '../lib/types';
 
 export async function getDesign(): Promise<DesignSettings> {
     const db = getDb();
-    const snap = await db.doc('content/settings/design').get().catch(() => null);
+    const snap = await db.doc('content/design').get().catch(() => null);
     const data = snap?.exists ? snap.data() : {};
     return zDesignTokens.parse(data ?? {});
 }
