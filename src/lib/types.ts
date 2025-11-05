@@ -1,4 +1,4 @@
-export type Media = { src: string; alt: string; focal?: string };
+export type Media = { src: string; alt: string; hint?: string };
 
 export type DesignSettings = {
   colors: Record<string, string>;

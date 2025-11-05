@@ -1,0 +1,207 @@
+openapi: 3.1.0
+info:
+  title: Digifly CMS API
+  version: 1.0.0
+  description: A public, read-only API for fetching content for the Digifly website.
+servers:
+  - url: /api/cms
+    description: Local development server
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: A simple health check to confirm the API is running.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  ts:
+                    type: number
+                    example: 1672531200000
+
+  /design:
+    get:
+      summary: Get Design Tokens
+      description: Returns the global design tokens for styling the application.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesignTokens'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /navigation:
+    get:
+      summary: Get Navigation
+      description: Returns the header and footer navigation structures.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigationDoc'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /home:
+    get:
+      summary: Get Home Page Content
+      description: Returns all content required for the homepage.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeDoc'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    NavLink:
+      type: object
+      properties:
+        label:
+          type: string
+          example: 'About Us'
+        href:
+          type: string
+          example: '/about'
+
+    DesignTokens:
+      type: object
+      properties:
+        version:
+          type: string
+          example: '1.2.0'
+        colors:
+          type: object
+          properties:
+            black: { type: string, example: '#000000' }
+            graphite: { type: string, example: '#2B2B2B' }
+            electricBlue: { type: string, example: '#1E90FF' }
+        fonts:
+          type: object
+          properties:
+            headline: { type: string, example: 'Space Grotesk' }
+            body: { type: string, example: 'Inter' }
+        radius:
+          type: object
+          properties:
+            buttonPill: { type: number, example: 50 }
+            card: { type: number, example: 16 }
+        typography:
+          type: object
+          properties:
+            h1: { type: string, example: '56px' }
+            h2: { type: string, example: '40px' }
+
+    NavigationDoc:
+      type: object
+      properties:
+        header:
+          type: array
+          items:
+            $ref: '#/components/schemas/NavLink'
+        footer:
+          type: object
+          properties:
+            columns:
+              type: array
+              items:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    example: 'Company'
+                  links:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NavLink'
+
+    HomeDoc:
+      type: object
+      properties:
+        hero:
+          type: object
+          properties:
+            title: { type: string, example: 'From Idea to Intelligent Solution' }
+            subtitle: { type: string }
+            cta:
+              type: object
+              properties:
+                label: { type: string, example: 'Start Your Project' }
+                href: { type: string, example: '/contact' }
+        intro:
+          type: object
+          properties:
+            heading: { type: string }
+            body: { type: string }
+        services:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              bullets: { type: array, items: { type: string } }
+              href: { type: string }
+        cases:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              excerpt: { type: string }
+              image:
+                type: object
+                properties:
+                  src: { type: string, format: 'uri' }
+                  alt: { type: string }
+              href: { type: string }
+        cta:
+          type: object
+          properties:
+            heading: { type: string }
+            label: { type: string }
+            href: { type: string }
+
+  responses:
+    NotFound:
+      description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Not Found
+    BadRequest:
+      description: The request was malformed or failed validation.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Bad Request
