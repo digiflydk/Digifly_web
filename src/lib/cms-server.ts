@@ -7,28 +7,36 @@ import { RichTextContent } from '../lib/types';
 
 
 export async function getDesign(): Promise<DesignSettings> {
-    const db = getDb();
-    const snap = await db.doc('content/design').get().catch(() => null);
-    const data = snap?.exists ? snap.data() : {};
-    return zDesignTokens.parse(data ?? {});
+    try {
+        const db = getDb();
+        const snap = await db.doc('content/design').get();
+        const data = snap?.exists ? snap.data() : {};
+        return zDesignTokens.parse(data ?? {});
+    } catch(e) {
+        return zDesignTokens.parse({});
+    }
 }
 
 export async function getNavigation(): Promise<Navigation> {
-    const db = getDb();
-    const snap = await db.doc('content/navigation').get().catch(() => null);
-    const data = snap?.exists ? snap.data() : {};
-    return zNavigation.parse(data ?? {});
+    try {
+        const db = getDb();
+        const snap = await db.doc('content/navigation').get();
+        const data = snap?.exists ? snap.data() : {};
+        return zNavigation.parse(data ?? {});
+    } catch(e) {
+        return zNavigation.parse({});
+    }
 }
 
 export async function getHomePage(): Promise<HomePage | null> {
-    const db = getDb();
-    const snap = await db.doc('content/home').get().catch(() => null);
-    if (!snap?.exists) return null;
     try {
+        const db = getDb();
+        const snap = await db.doc('content/home').get();
+        if (!snap?.exists) return zHome.parse({});
         return zHome.parse(snap.data() ?? {});
     } catch (e) {
         console.error('Zod validation error for home page:', (e as z.ZodError).errors);
-        return null;
+        return zHome.parse({});
     }
 }
 
@@ -72,50 +80,50 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
 }
 
 export async function getAboutPage(): Promise<Page<{ body: RichTextContent[] }> | null> {
-    const db = getDb();
-    const snap = await db.doc('content/about').get().catch(() => null);
-    if (!snap?.exists) return null;
     try {
+        const db = getDb();
+        const snap = await db.doc('content/about').get();
+        if (!snap?.exists) return zAboutPage.parse({});
         return zAboutPage.parse(snap?.data() ?? {});
     } catch (e) {
         console.error('Zod validation error for about page:', (e as z.ZodError).errors);
-        return null;
+        return zAboutPage.parse({});
     }
 }
 
 export async function getServicesPage(): Promise<Page<{ services: any[] }> | null> {
-    const db = getDb();
-    const snap = await db.doc('content/services').get().catch(() => null);
-    if (!snap?.exists) return null;
     try {
+        const db = getDb();
+        const snap = await db.doc('content/services').get();
+        if (!snap?.exists) return zServicesPage.parse({});
         return zServicesPage.parse(snap?.data() ?? {});
     } catch (e) {
         console.error('Zod validation error for services page:', (e as z.ZodError).errors);
-        return null;
+        return zServicesPage.parse({});
     }
 }
 
 export async function getCasesIndexPage(): Promise<Page<{}> | null> {
-    const db = getDb();
-    const snap = await db.doc('content/cases-index').get().catch(() => null);
-    if (!snap?.exists) return null;
     try {
+        const db = getDb();
+        const snap = await db.doc('content/cases-index').get();
+        if (!snap?.exists) return zCasesIndexPage.parse({});
         return zCasesIndexPage.parse(snap?.data() ?? {});
     } catch (e) {
         console.error('Zod validation error for cases index page:', (e as z.ZodError).errors);
-        return null;
+        return zCasesIndexPage.parse({});
     }
 }
 
 export async function getContactPage(): Promise<Page<{}> | null> {
-    const db = getDb();
-    const snap = await db.doc('content/contact').get().catch(() => null);
-    if (!snap?.exists) return null;
     try {
+        const db = getDb();
+        const snap = await db.doc('content/contact').get();
+        if (!snap?.exists) return zContactPage.parse({});
         return zContactPage.parse(snap?.data() ?? {});
     } catch (e) {
         console.error('Zod validation error for contact page:', (e as z.ZodError).errors);
-        return null;
+        return zContactPage.parse({});
     }
 }
 
