@@ -19,7 +19,7 @@ The base URL for the CMS API is configured via the `NEXT_PUBLIC_CMS_BASE_URL` en
 
 | Firestore Path (Collection/Doc) | API Endpoint (`GET`)  | Description                                 |
 | ------------------------------- | --------------------- | ------------------------------------------- |
-| `content/settings/design`       | `/api/cms/design`     | Global design tokens (colors, fonts, etc.). |
+| `content/design`                | `/api/cms/design`     | Global design tokens (colors, fonts, etc.). |
 | `content/navigation`            | `/api/cms/navigation` | Header and footer navigation links.         |
 | `content/home`                  | `/api/cms/home`       | All content for the homepage.               |
 | `services/{serviceId}`          | `/api/cms/services`   | A list of all services.                     |
