@@ -34,7 +34,7 @@ export default async function AboutPage() {
                     className="mb-12"
                 />
                 <div className="max-w-3xl mx-auto">
-                    <RichText content={page.body} />
+                    <RichText content={page.content?.body ?? []} />
                 </div>
             </Container>
         </div>

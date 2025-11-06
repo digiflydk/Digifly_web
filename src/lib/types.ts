@@ -1,7 +1,14 @@
 
 
 import { z } from "zod";
-import { HomepageSchema, CaseSchema, DesignSettingsSchema, NavigationSchema, SiteSettingsSchema } from "./schemas";
+import { 
+    HomepageSchema, 
+    CaseSchema, 
+    DesignSettingsSchema, 
+    NavigationSchema, 
+    SiteSettingsSchema,
+    zBasePage as BasePageSchema
+} from "./schemas";
 
 
 export type Media = { src: string; alt?: string; hint?: string };
@@ -33,11 +40,8 @@ export type RichTextContent =
 
 export type CaseDoc = z.infer<typeof CaseSchema>;
 
-export type Page<T> = {
-  title: string;
-  subtitle?: string;
+export type Page<T> = Omit<z.infer<typeof BasePageSchema>, "content"> & {
   content: T;
-  seo: { title: string; description: string; image?: string };
-}
+};
 
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;

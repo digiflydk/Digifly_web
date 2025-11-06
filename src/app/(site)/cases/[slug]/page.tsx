@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
   return metaDefaults({
     title: safeStr(doc.seo?.title, doc.title),
-    description: safeStr(doc.seo?.description, doc.summary),
+    description: safeStr(doc.summary, ""),
     image: doc.cover.src
   });
 }
@@ -71,7 +71,7 @@ export default async function CasePage({ params }: { params: Promise<Params> }) 
 
         <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
             <div className="md:col-span-2">
-                <RichText content={doc.body} />
+                <RichText content={doc.content.body} />
             </div>
             <aside>
                 {doc.metrics && doc.metrics.length > 0 && (

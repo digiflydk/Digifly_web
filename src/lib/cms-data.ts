@@ -117,11 +117,13 @@ export const cases: CaseDoc[] = [
     summary: 'Reduced manual ops by 60%, improved SLAs.',
     seo: { title: "Case — Automation", description: "How we removed manual work with AI agents." },
     cover: getImage('case-001.jpg'),
-    body: [
-      { type: 'p', text: 'The challenge was a highly manual and error-prone client onboarding process that took days to complete. Our approach was to build a central platform that automated data collection, verification, and system setup.' },
-      { type: 'list', items: ['Automated data validation against external APIs.', 'AI-powered document analysis to extract key information.', 'Generated user-friendly summaries and flagged exceptions for manual review.'] },
-      { type: 'p', text: 'The result was a drastic reduction in onboarding time, improved data accuracy, and a significantly better experience for new clients.' },
-    ],
+    content: {
+      body: [
+        { type: 'p', text: 'The challenge was a highly manual and error-prone client onboarding process that took days to complete. Our approach was to build a central platform that automated data collection, verification, and system setup.' },
+        { type: 'list', items: ['Automated data validation against external APIs.', 'AI-powered document analysis to extract key information.', 'Generated user-friendly summaries and flagged exceptions for manual review.'] },
+        { type: 'p', text: 'The result was a drastic reduction in onboarding time, improved data accuracy, and a significantly better experience for new clients.' },
+      ]
+    },
     metrics: [{ label: 'Ops time', value: '-60%' }, { label: "SLA", value: "↑ 35%" }],
   },
   {
@@ -130,10 +132,12 @@ export const cases: CaseDoc[] = [
     summary: 'Centralized supply chain visibility, improving delivery estimates by 45%.',
     seo: { title: "Case — Logistics Dashboard", description: "Centralized supply chain visibility improved estimates by 45%." },
     cover: getImage('case-002.jpg'),
-    body: [
-        { type: 'p', text: 'A major logistics provider lacked a unified view of their shipments, leading to inefficiencies and poor customer communication. We developed a real-time dashboard to track assets across multiple carriers and systems.' },
-        { type: 'list', items: ['Integrated multiple data sources via APIs into a single data stream.', 'Developed a map-based visualization with real-time location updates.', 'Implemented predictive analytics for more accurate delivery time estimates.'] },
-    ],
+    content: {
+      body: [
+          { type: 'p', text: 'A major logistics provider lacked a unified view of their shipments, leading to inefficiencies and poor customer communication. We developed a real-time dashboard to track assets across multiple carriers and systems.' },
+          { type: 'list', items: ['Integrated multiple data sources via APIs into a single data stream.', 'Developed a map-based visualization with real-time location updates.', 'Implemented predictive analytics for more accurate delivery time estimates.'] },
+      ]
+    },
     metrics: [{ label: 'Delivery estimate accuracy', value: '+45%' }, { label: "Customer support queries", value: "-30%" }],
   },
   {
@@ -142,10 +146,12 @@ export const cases: CaseDoc[] = [
     summary: 'Resolved 78% of tier-1 support tickets instantly.',
     cover: getImage('case-003.jpg'),
     seo: { title: "Case — AI Assistant", description: "Resolved 78% of tier-1 support tickets instantly." },
-    body: [
-      { type: 'p', text: 'A fast-growing e-commerce brand was struggling with a high volume of repetitive customer support queries. We built and integrated an AI assistant into their help center and chat widget.' },
-      { type: 'list', items: ['Trained on historical support tickets and company documentation.', 'Integrated with their e-commerce platform to provide order-specific information.', 'Provided instant answers to common questions about shipping, returns, and product details.'] },
-    ],
+    content: {
+      body: [
+        { type: 'p', text: 'A fast-growing e-commerce brand was struggling with a high volume of repetitive customer support queries. We built and integrated an AI assistant into their help center and chat widget.' },
+        { type: 'list', items: ['Trained on historical support tickets and company documentation.', 'Integrated with their e-commerce platform to provide order-specific information.', 'Provided instant answers to common questions about shipping, returns, and product details.'] },
+      ]
+    },
     metrics: [{ label: 'Instant resolution rate', value: '78%' }, { label: "Agent response time", value: "-50%" }],
   },
 ];

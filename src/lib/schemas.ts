@@ -81,6 +81,11 @@ export const NavigationSchema = z.object({
 });
 export const zNavigation = NavigationSchema;
 
+const PageContentSchema = z.object({
+  body: RichTextSchema,
+});
+export const zPageContent = PageContentSchema;
+
 export const CaseSchema = z.object({
   slug: z.string(),
   title: z.string(),
@@ -91,7 +96,7 @@ export const CaseSchema = z.object({
     alt: z.string().default(""),
     hint: z.string().optional(),
   }),
-  body: z.array(z.any()).default([]),
+  content: PageContentSchema.default({ body: [] }),
   metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
   updatedAt: z.number().optional(),
 });
@@ -141,13 +146,18 @@ export const HomepageSchema = z.object({
 export const zHome = HomepageSchema;
 export const zHomepage = HomepageSchema;
 
-export const AboutPageSchema = z.object({
+const BasePageSchema = z.object({
   title: z.string(),
-  subtitle: z.string().default(""),
+  subtitle: z.string().optional().default(""),
+  seo: SeoSchema,
+  content: PageContentSchema,
+});
+export const zBasePage = BasePageSchema;
+
+export const AboutPageSchema = BasePageSchema.extend({
+  title: z.string().default('About Digifly'),
   seo: SeoSchema.default(makeSeo("About", "")),
-  content: z.object({
-    body: zRichText.default([]),
-  }),
+  content: PageContentSchema.default({ body: [] }),
 });
 export const zAboutPage = AboutPageSchema;
 
@@ -183,8 +193,8 @@ export const zContactPage = ContactPageSchema;
 export const SiteSettingsSchema = z.object({
   siteTitle: z.string().min(1),
   tagline: z.string().optional(),
-  logoUrl: z.string().url().optional(),
-  faviconUrl: z.string().url().optional(),
+  logoUrl: z.string().url().optional().or(z.literal('')),
+  faviconUrl: z.string().url().optional().or(z.literal('')),
   defaultDescription: z.string().optional(),
 });
 export const zSiteSettings = SiteSettingsSchema;
