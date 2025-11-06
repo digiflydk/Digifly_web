@@ -1,6 +1,5 @@
-import type { DesignSettings } from "@/lib/types";
 
-const px = (n: number | string) => (typeof n === "number" ? `${n}px` : String(n));
+import type { DesignSettings } from "@/lib/types";
 
 export function tokensFromSettings(s: DesignSettings){
   const out: Record<string,string> = {};
@@ -13,12 +12,6 @@ export function tokensFromSettings(s: DesignSettings){
     if (s.colors.bg)      out["--color-bg"]      = s.colors.bg;
     if (s.colors.muted)   out["--color-muted"]   = s.colors.muted;
 
-    // Optional legacy keys (ignore if not present)
-    const legacy = s.colors as unknown as Record<string, string | undefined>;
-    if (legacy["electricBlue"])  out["--color-blue"]     = legacy["electricBlue"]!;
-    if (legacy["digitalPurple"]) out["--color-purple"]   = legacy["digitalPurple"]!;
-    if (legacy["graphiteGrey"])  out["--color-graphite"] = legacy["graphiteGrey"]!;
-    if (legacy["platinumGrey"])  out["--color-platinum"] = legacy["platinumGrey"]!;
   }
 
   // Typography
