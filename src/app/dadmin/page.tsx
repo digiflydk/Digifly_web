@@ -1,7 +1,7 @@
 
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
-import { getCaseCount } from "@/lib/cms";
+import { getCaseCount, getPageCount, getNavigationMenuCount } from "@/lib/cms-server";
 import { StatCard } from "./_components/StatCard";
 
 export function generateMetadata(): Metadata {
@@ -11,14 +11,10 @@ export function generateMetadata(): Metadata {
     });
 }
 
-// Dummy functions to satisfy dashboard
-async function getPages(opts: {limit: number}) { return { count: 4 }; }
-async function getNavigationMenuCount() { return { count: 2 }; }
-
 export default async function DadminPage() {
     const [{ count: caseCount }, { count: pageCount }, { count: menuCount }] = await Promise.all([
       getCaseCount(),
-      getPages({ limit: 0 }),
+      getPageCount(),
       getNavigationMenuCount(),
     ]);
 

@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 // tiny helper for defaults
@@ -70,8 +71,13 @@ export const FooterNavSchema = z.object({
 export const zFooterNav = FooterNavSchema;
 
 export const NavigationSchema = z.object({
-  primary: z.array(zNavLink).default([]),
-  footer: z.array(zNavLink).default([]),
+  header: z.array(zNavLink).default([]),
+  footer: z.object({
+      columns: z.array(z.object({
+        title: z.string(),
+        links: z.array(zNavLink)
+      })).default([])
+  })
 });
 export const zNavigation = NavigationSchema;
 
@@ -139,7 +145,9 @@ export const AboutPageSchema = z.object({
   title: z.string(),
   subtitle: z.string().default(""),
   seo: SeoSchema.default(makeSeo("About", "")),
-  body: z.array(z.any()).default([]),
+  content: z.object({
+    body: zRichText.default([]),
+  }),
 });
 export const zAboutPage = AboutPageSchema;
 
@@ -167,7 +175,7 @@ export const zCasesIndexPage = CasesIndexSchema;
 
 export const ContactPageSchema = z.object({
   title: z.string(),
-subtitle: z.string().default(""),
+  subtitle: z.string().default(""),
   seo: SeoSchema.default(makeSeo("Contact", "")),
 });
 export const zContactPage = ContactPageSchema;

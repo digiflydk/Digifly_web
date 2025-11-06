@@ -1,5 +1,20 @@
+
 import type { HomePage, CaseDoc, Page, Navigation } from './types';
-import { getHomePage as getHomePageData, listCases as getCasesData, getCaseBySlug as getCaseBySlugData, getAboutPage as getAboutPageData, getServicesPage as getServicesPageData, getCasesIndexPage as getCasesIndexPageData, getContactPage as getContactPageData, getNavigation as getNavigationData, getSiteSeo as getSiteSeoData, updateSiteSeo as updateSiteSeoData, updateNavigation as updateNavigationData, updateHomepage as updateHomepageData } from './cms-server';
+import { 
+    getHomePage as getHomePageData, 
+    listCases as getCasesData, 
+    getCaseBySlug as getCaseBySlugData, 
+    getAboutPage as getAboutPageData, 
+    getServicesPage as getServicesPageData, 
+    getCasesIndexPage as getCasesIndexPageData, 
+    getContactPage as getContactPageData, 
+    getNavigation as getNavigationData, 
+    getSiteSeo as getSiteSeoData, 
+    updateSiteSeo as updateSiteSeoData, 
+    updateNavigation as updateNavigationData, 
+    updateHomepage as updateHomepageData,
+    getCaseCount as getCaseCountData
+} from './cms-server';
 
 export async function getNavigation(): Promise<Navigation> {
   return await getNavigationData();
@@ -10,14 +25,11 @@ export async function getHomePage(): Promise<HomePage> {
 }
 
 export async function getCases(options?: {limit?: number}): Promise<CaseDoc[]> {
-  // Directly return the array of cases.
-  // The grid component needs the full objects.
   return await getCasesData(new URLSearchParams(options?.limit ? `limit=${options.limit}` : ''));
 }
 
 export async function getCaseCount(): Promise<{ count: number }> {
-    const cases = await getCasesData();
-    return { count: cases.length };
+    return getCaseCountData();
 }
 
 

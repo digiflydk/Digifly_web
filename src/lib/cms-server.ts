@@ -1,11 +1,30 @@
 
+
 'use server';
 import { z } from 'zod';
-import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage, SiteSchema } from './schemas';
+import { 
+  SiteSchema, 
+  NavigationSchema, 
+  HomepageSchema, 
+  CaseSchema, 
+  AboutPageSchema, 
+  ServicesPageSchema, 
+  CasesIndexSchema, 
+  ContactPageSchema,
+  parseCase 
+} from './schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { DesignSettings, HomePage, Navigation, CaseDoc } from '@/lib/types';
-import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';
-
+import type { HomePage, Navigation, CaseDoc, Page } from '@/lib/types';
+import { 
+  designSettings as defaultDesign,
+  navigation as defaultNav, 
+  homePage as defaultHomePage, 
+  cases as defaultCases, 
+  aboutPage as defaultAbout, 
+  servicesPage as defaultServices, 
+  casesIndexPage as defaultCasesIndex, 
+  contactPage as defaultContact 
+} from '@/lib/cms-data';
 
 const HOME_DEFAULTS: Partial<HomePage> = {
   intro: { tagline: 'Why', heading: "Who we are", body: "We help you plan, build and scale digital products." },
@@ -14,42 +33,49 @@ const HOME_DEFAULTS: Partial<HomePage> = {
   cta: { text: "Ready to talk?", button: { label: "Contact us", href: "/contact"} },
 };
 
-export async function getDesign(): Promise<DesignSettings> {
+export async function getDesign(): Promise<any> {
     try {
         const db = getDb();
-        const snap = await db.doc('content/design').get();
+        const snap = await db.doc('site/settings').get();
         const data = snap.exists ? snap.data() : {};
-        const parsed = zDesignSettings.safeParse(data);
+        const parsed = SiteSchema.partial().safeParse(data);
         if (parsed.success) return parsed.data;
         throw new Error('Design settings validation failed');
     } catch(e) {
         console.warn('Falling back to default design settings.', e);
-        return designSettings;
+        return defaultDesign;
     }
 }
 
 export async function getNavigation(): Promise<Navigation> {
     try {
         const db = getDb();
-        const snap = await db.doc('content/navigation').get();
-        const data = snap.exists ? snap.data() : {};
-        const parsed = zNavigation.safeParse(data ?? {});
-        if (parsed.success) return parsed.data;
-        throw new Error('Navigation validation failed');
+        const mainSnap = await db.doc('navigation/main').get();
+        const footerSnap = await db.doc('navigation/footer').get();
+        
+        const mainData = mainSnap.exists ? mainSnap.data() : {};
+        const footerData = footerSnap.exists ? footerSnap.data() : {};
+
+        // This is a bit manual, but safer than one big schema if structures diverge.
+        const header = NavigationSchema.shape.primary.parse(mainData?.items || []);
+        const footer = NavigationSchema.shape.footer.parse(footerData?.items || []);
+        
+        return { header, footer: { columns: [{ title: "Links", links: footer }] } };
+
     } catch(e) {
         console.warn('Falling back to default navigation.', e);
-        return { primary: [], footer: [] };
+        return defaultNav;
     }
 }
 
 export async function getHomePage(): Promise<HomePage> {
     try {
         const db = getDb();
-        const snap = await db.doc('content/home').get();
+        const snap = await db.doc('pages/home').get();
         const data = snap.exists ? snap.data() : {};
-        const parsed = zHome.safeParse(data);
+        const parsed = HomepageSchema.safeParse(data);
         if (parsed.success) {
-            return {
+             return {
                 ...HOME_DEFAULTS,
                 ...parsed.data,
             } as HomePage;
@@ -70,7 +96,7 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
             return defaultCases as CaseDoc[];
         }
         const items = snap.docs.map(d => {
-            const parsed = zCase.safeParse({ slug: d.id, ...d.data() });
+            const parsed = z.Case.safeParse({ slug: d.id, ...d.data() });
             return parsed.success ? (parsed.data as CaseDoc) : null;
         }).filter((c): c is CaseDoc => c !== null);
         return items;
@@ -96,12 +122,11 @@ export async function listCaseSlugs(): Promise<string[]> {
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     try {
         const db = getDb();
-        const q = await db.collection('cases').where('slug', '==', slug).limit(1).get();
-        if (q.empty) {
-            const fallback = defaultCases.find(c => c.slug === slug);
+        const doc = await db.collection('cases').doc(slug).get();
+        if (!doc.exists) {
+             const fallback = defaultCases.find(c => c.slug === slug);
             return (fallback as CaseDoc) || null;
-        };
-        const doc = q.docs[0];
+        }
         const rawData = { slug: doc.id, ...doc.data() };
         return rawData as CaseDoc;
     } catch (e) {
@@ -110,12 +135,34 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     }
 }
 
+export async function getCaseCount(): Promise<{ count: number }> {
+    try {
+        const db = getDb();
+        const snap = await db.collection('cases').count().get();
+        return { count: snap.data().count };
+    } catch {
+        return { count: defaultCases.length };
+    }
+}
+export async function getPageCount(): Promise<{ count: number }> {
+    try {
+        const db = getDb();
+        const snap = await db.collection('pages').count().get();
+        return { count: snap.data().count };
+    } catch {
+        return { count: 4 }; // home, about, services, contact
+    }
+}
+export async function getNavigationMenuCount(): Promise<{ count: number }> {
+    return { count: 2 };
+}
+
 export async function getAboutPage(): Promise<any> {
     try {
         const db = getDb();
-        const snap = await db.doc('content/about').get();
+        const snap = await db.doc('pages/about').get();
         const data = snap.exists ? snap.data() : {};
-        const parsed = zAboutPage.safeParse(data);
+        const parsed = AboutPageSchema.safeParse(data);
         if (parsed.success) return parsed.data;
         throw new Error('About page validation failed');
     } catch (e) {
@@ -127,9 +174,9 @@ export async function getAboutPage(): Promise<any> {
 export async function getServicesPage(): Promise<any> {
     try {
         const db = getDb();
-        const snap = await db.doc('content/services').get();
+        const snap = await db.doc('pages/services').get();
         const data = snap.exists ? snap.data() : {};
-        const parsed = zServicesPage.safeParse(data);
+        const parsed = ServicesPageSchema.safeParse(data);
         if (parsed.success) return parsed.data;
         throw new Error('Services page validation failed');
     } catch (e) {
@@ -141,9 +188,9 @@ export async function getServicesPage(): Promise<any> {
 export async function getCasesIndexPage(): Promise<any> {
     try {
         const db = getDb();
-        const snap = await db.doc('content/cases-index').get();
+        const snap = await db.doc('pages/cases-index').get();
         const data = snap.exists ? snap.data() : {};
-        const parsed = zCasesIndexPage.safeParse(data);
+        const parsed = CasesIndexSchema.safeParse(data);
         if (parsed.success) return parsed.data;
         throw new Error('Cases index page validation failed');
     } catch (e) {
@@ -155,9 +202,9 @@ export async function getCasesIndexPage(): Promise<any> {
 export async function getContactPage(): Promise<any> {
     try {
         const db = getDb();
-        const snap = await db.doc('content/contact').get();
+        const snap = await db.doc('pages/contact').get();
         const data = snap.exists ? snap.data() : {};
-        const parsed = zContactPage.safeParse(data);
+        const parsed = ContactPageSchema.safeParse(data);
         if (parsed.success) return parsed.data;
         throw new Error('Contact page validation failed');
     } catch (e) {
@@ -169,29 +216,31 @@ export async function getContactPage(): Promise<any> {
 export async function getSiteSeo() {
     try {
         const db = getDb();
-        const snap = await db.doc('site/config').get();
+        const snap = await db.doc('site/settings').get();
         const data = snap.exists ? snap.data() : {};
         const parsed = SiteSchema.safeParse(data);
         if (parsed.success) return parsed.data;
-        return { siteTitle: '', tagline: '', logo: { src: '' }, favicon: { src: '' } };
+        return defaultDesign;
     } catch {
-        return { siteTitle: '', tagline: '', logo: { src: '' }, favicon: { src: '' } };
+        return defaultDesign;
     }
 }
 
 export async function updateSiteSeo(data: z.infer<typeof SiteSchema>) {
     const db = getDb();
-    await db.doc('site/config').set(data, { merge: true });
+    await db.doc('site/settings').set(data, { merge: true });
 }
 
 export async function updateNavigation(data: Navigation) {
     const db = getDb();
-    await db.doc('content/navigation').set(data, { merge: true });
+    await db.doc('navigation/main').set({ items: data.header }, { merge: true });
+    const footerLinks = data.footer.columns.flatMap(c => c.links);
+    await db.doc('navigation/footer').set({ items: footerLinks }, { merge: true });
 }
 
 export async function updateHomepage(data: HomePage) {
     const db = getDb();
-    await db.doc('content/home').set(data, { merge: true });
+    await db.doc('pages/home').set(data, { merge: true });
 }
 
 export async function getCmsData(path: string, searchParams?: URLSearchParams) {

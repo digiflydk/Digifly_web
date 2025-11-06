@@ -1,7 +1,7 @@
 
-import { z } from "zod";
-import { CaseSchema, HomepageSchema } from "./schemas";
 
+import { z } from "zod";
+import { HomepageSchema, CaseSchema, DesignSettingsSchema, NavigationSchema } from "./schemas";
 
 export type Media = { src: string; alt?: string; hint?: string };
 
@@ -18,31 +18,11 @@ export type Brand = {
   };
 };
 
-export type DesignSettings = {
-  brand?: Brand;
-  colors: {
-    primary: string;
-    accent: string;
-    bg: string;
-    muted: string;
-  };
-  typography: {
-    headline: string;
-    body: string;
-  };
-};
+export type DesignSettings = z.infer<typeof DesignSettingsSchema>;
 
 export type NavLink = { label: string; href: string };
 
-export type Navigation = {
-  header: NavLink[];
-  footer: {
-    columns: {
-        title: string;
-        links: NavLink[];
-    }[];
-  };
-};
+export type Navigation = z.infer<typeof NavigationSchema>;
 
 export type HomePage = z.infer<typeof HomepageSchema>;
 

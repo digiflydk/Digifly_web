@@ -1,24 +1,26 @@
 
-import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
-import { homePage, navigation, designSettings, aboutPage, servicesPage, casesIndexPage, contactPage, cases } from '@/lib/cms-data';
+import { 
+  homePage, 
+  navigation, 
+  designSettings, 
+  aboutPage, 
+  servicesPage, 
+  contactPage, 
+  casesIndexPage, 
+  cases 
+} from '@/lib/cms-data';
 
-async function upsert(db: any, path: string, data: any) {
+// This function is idempotent. It will create or overwrite documents.
+async function upsert(db: any, path: string, data: any, merge = true) {
   const ref = db.doc(path);
-  const snap = await ref.get();
-  if (!snap.exists) {
-    console.log(`Seeding: ${path}`);
-    await ref.set(data, { merge: true });
-  } else {
-    // For this project, we'll overwrite to ensure defaults are applied
-    console.log(`Overwriting: ${path}`);
-    await ref.set(data, { merge: true });
-  }
+  console.log(`Upserting: ${path}`);
+  await ref.set(data, { merge });
 }
 
 async function run() {
-  console.log('Starting CMS seed...');
+  console.log('Starting CMS data migration...');
 
   try {
     getAdminApp();
@@ -28,40 +30,31 @@ async function run() {
     return;
   }
 
-  if (!getApps().length) {
-    console.warn("[cms-seed] Firebase app not initialized. Skipping Firestore seeding.");
-    return;
-  }
-
   const db = getFirestore();
 
-  // Upsert single-instance docs
-  await upsert(db, 'content/design', designSettings);
-  await upsert(db, 'content/navigation', navigation);
-  await upsert(db, 'content/home', homePage);
-  await upsert(db, 'content/about', aboutPage);
-  await upsert(db, 'content/services', servicesPage);
-  await upsert(db, 'content/contact', contactPage);
-  await upsert(db, 'content/cases-index', casesIndexPage);
+  // Site Settings
+  await upsert(db, 'site/settings', designSettings);
+  
+  // Navigation
+  await upsert(db, 'navigation/main', { items: navigation.header });
+  await upsert(db, 'navigation/footer', { items: navigation.footer.columns.flatMap(c => c.links) });
+  
+  // Singleton Pages
+  await upsert(db, 'pages/home', homePage);
+  await upsert(db, 'pages/about', aboutPage);
+  await upsert(db, 'pages/services', servicesPage);
+  await upsert(db, 'pages/contact', contactPage);
+  await upsert(db, 'pages/cases-index', casesIndexPage);
 
-  // Upsert collection docs (cases)
+  // Collection: Cases
   for (const caseDoc of cases) {
-    const caseRef = db.collection('cases').doc(caseDoc.slug);
-    const snap = await caseRef.get();
-    if (!snap.exists) {
-        console.log(`Seeding case: ${caseDoc.slug}`);
-        await caseRef.set(caseDoc);
-    } else {
-        console.log(`Overwriting case: ${caseDoc.slug}`);
-        await caseRef.set(caseDoc, { merge: true });
-    }
+    await upsert(db, `cases/${caseDoc.slug}`, caseDoc);
   }
 
-
-  console.log('Seed complete ✅');
+  console.log('CMS data migration complete ✅');
 }
 
 run().catch(err => {
-  console.error('Seed script failed:', err);
-  process.exit(0);
+  console.error('Migration script failed:', err);
+  process.exit(1);
 });
