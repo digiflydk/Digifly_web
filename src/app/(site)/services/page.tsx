@@ -36,7 +36,7 @@ export default async function ServicesPage() {
                 />
                 <div className="space-y-12 max-w-4xl mx-auto">
                     {page.content.services.map(service => (
-                        <Card key={service.title} id={service.title.toLowerCase().replace(/\s/g, '-')} className="scroll-mt-24 shadow-lg border-2">
+                        <Card key={service.title} id={service.id} className="scroll-mt-24 shadow-lg border-2">
                             <CardHeader>
                                 <CardTitle className="font-headline text-2xl">{service.title}</CardTitle>
                             </CardHeader>

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CaseSchema } from "@/lib/schemas";
+import { CaseSchema } from "./schemas";
 
 
 export type Media = { src: string; alt?: string; hint?: string };

@@ -25,6 +25,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
   const raw = await getCaseBySlug(slug);
+  if (!raw) {
+    return metaDefaults({ title: 'Case Study Not Found' });
+  }
   const doc = parseCase(raw);
 
   return metaDefaults({

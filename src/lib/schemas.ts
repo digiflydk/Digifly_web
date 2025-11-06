@@ -1,6 +1,4 @@
-
 import { z } from "zod";
-import type { RichTextContent } from './types';
 
 // tiny helper for defaults
 const makeSeo = (title: string, description: string = "") => ({
@@ -71,10 +69,11 @@ const SeoSchema = z.object({
   image: z.string().optional(),
 });
 
-export const zCase = z.object({
+export const CaseSchema = z.object({
   slug: z.string(),
   title: z.string(),
   summary: z.string().default(""),
+  seo: SeoSchema.default(makeSeo("Untitled Case", "")),
   cover: z.object({
     src: z.string(),
     alt: z.string().default(""),
@@ -82,9 +81,9 @@ export const zCase = z.object({
   }),
   body: z.array(z.any()).default([]),
   metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
-  seo: SeoSchema.default(makeSeo("Untitled Case", "")),
   updatedAt: z.number().optional(),
 });
+export const zCase = CaseSchema;
 
 
 const ServiceItemSchema = z.object({
@@ -118,14 +117,15 @@ export const zHome = z.object({
    seo: SeoSchema.default(makeSeo('Digifly', 'Strategy, Software & Automation with AI.'))
 });
 
-export const zAboutPage = z.object({
+export const AboutPageSchema = z.object({
   title: z.string(),
   subtitle: z.string().default(""),
   seo: SeoSchema.default(makeSeo("About", "")),
   body: z.array(z.any()).default([]),
 });
+export const zAboutPage = AboutPageSchema;
 
-export const zServicesPage = z.object({
+export const ServicesPageSchema = z.object({
   title: z.string(),
   subtitle: z.string().default(""),
   seo: SeoSchema.default(makeSeo("Services", "")),
@@ -138,26 +138,22 @@ export const zServicesPage = z.object({
       })),
   }),
 });
+export const zServicesPage = ServicesPageSchema;
 
-
-export const zCasesIndexPage = z.object({
+export const CasesIndexSchema = z.object({
   title: z.string(),
   subtitle: z.string().default(""),
   seo: SeoSchema.default(makeSeo("Cases", "")),
 });
+export const zCasesIndexPage = CasesIndexSchema;
 
-export const zContactPage = z.object({
+export const ContactPageSchema = z.object({
   title: z.string(),
   subtitle: z.string().default(""),
   seo: SeoSchema.default(makeSeo("Contact", "")),
 });
+export const zContactPage = ContactPageSchema;
 
-// Re-exports to match page imports
-export { zAboutPage as AboutPageSchema };
-export { zServicesPage as ServicesPageSchema };
-export { zCasesIndexPage as CasesIndexSchema };
-export { zContactPage as ContactPageSchema };
-export { zCase as CaseSchema };
-export type CaseDoc = z.infer<typeof zCase>;
+export type CaseDoc = z.infer<typeof CaseSchema>;
 
-export const parseCase = (data: unknown) => zCase.parse(data);
+export const parseCase = (data: unknown) => CaseSchema.parse(data);

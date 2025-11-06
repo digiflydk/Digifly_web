@@ -1,9 +1,9 @@
 
 'use server';
 import { z } from 'zod';
-import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/schemas';
+import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { DesignSettings, HomePage, Navigation, CaseDoc, Page, RichTextContent } from '@/lib/types';
+import type { DesignSettings, HomePage, Navigation, CaseDoc } from '@/lib/types';
 import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';
 
 export async function getDesign(): Promise<DesignSettings> {
@@ -54,7 +54,7 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
         const db = getDb();
         const snap = await db.collection('cases').limit(limit).get();
         if (snap.empty) {
-            return defaultCases;
+            return defaultCases as CaseDoc[];
         }
         const items = snap.docs.map(d => {
             const parsed = zCase.safeParse({ slug: d.id, ...d.data() });
@@ -63,7 +63,7 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
         return items;
     } catch(e) {
         console.warn('Falling back to default cases data.', e);
-        return defaultCases;
+        return defaultCases as CaseDoc[];
     }
 }
 
@@ -86,14 +86,14 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
         const q = await db.collection('cases').where('slug', '==', slug).limit(1).get();
         if (q.empty) {
             const fallback = defaultCases.find(c => c.slug === slug);
-            return fallback || null;
+            return (fallback as CaseDoc) || null;
         };
         const doc = q.docs[0];
         const rawData = { slug: doc.id, ...doc.data() };
         return rawData as CaseDoc;
     } catch (e) {
         const fallback = defaultCases.find(c => c.slug === slug);
-        return fallback || null;
+        return (fallback as CaseDoc) || null;
     }
 }
 
