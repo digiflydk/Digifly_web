@@ -1,8 +1,9 @@
 
+
 import type { HomePage, CaseDoc, Page, Navigation } from './types';
 import { 
     getHomePage as getHomePageData, 
-    listCases as getCasesData, 
+    listCases, 
     getCaseBySlug as getCaseBySlugData, 
     getAboutPage as getAboutPageData, 
     getServicesPage as getServicesPageData, 
@@ -18,7 +19,7 @@ import {
     getNavigationMenuCount as getNavigationMenuCountData
 } from './cms-server';
 import { z } from 'zod';
-import { NavigationSchema } from './schemas';
+import { NavigationSchema, SiteSchema } from './schemas';
 
 export async function getNavigation(): Promise<Navigation> {
   return await getNavigationData();
@@ -29,7 +30,11 @@ export async function getHomePage(): Promise<HomePage> {
 }
 
 export async function getCases(options?: {limit?: number}): Promise<CaseDoc[]> {
-  return await getCasesData(new URLSearchParams(options?.limit ? `limit=${options.limit}` : ''));
+  const params = new URLSearchParams();
+  if (options?.limit) {
+      params.set('limit', String(options.limit));
+  }
+  return await listCases(params);
 }
 
 export async function getCaseCount(): Promise<{ count: number }> {
@@ -69,7 +74,7 @@ export async function getSiteSeo() {
     return getSiteSeoData();
 }
 
-export async function updateSiteSeo(data: any) {
+export async function updateSiteSeo(data: z.infer<typeof SiteSchema>) {
     return updateSiteSeoData(data);
 }
 

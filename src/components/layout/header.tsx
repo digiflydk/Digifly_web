@@ -6,15 +6,16 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import React, { useEffect, useState } from "react";
-import { NavLink, Brand } from "@/lib/types";
+import { NavLink } from "@/lib/types";
 import Image from "next/image";
 
 type HeaderProps = {
   nav?: NavLink[];
-  logo?: Brand['logo'];
+  logoUrl?: string;
+  siteTitle?: string;
 };
 
-export default function Header({ nav, logo }: HeaderProps) {
+export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
   const [path, setPath] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -35,18 +36,18 @@ export default function Header({ nav, logo }: HeaderProps) {
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-full">
         <div className="flex items-center min-w-[140px]">
-          <Link href="/" className="header-brand text-[20px]" aria-label="Digifly home">
-            {logo?.src ? (
+          <Link href="/" className="header-brand text-[20px]" aria-label={`${siteTitle} home`}>
+            {logoUrl ? (
               <Image
-                src={logo.src}
-                alt={logo.alt || 'Digifly'}
-                width={logo.width || 140}
-                height={logo.height || 28}
+                src={logoUrl}
+                alt={siteTitle || siteConfig.name}
+                width={140}
+                height={28}
                 priority
                 className="h-7 w-auto object-contain"
               />
             ) : (
-              <span className="header-brand text-[20px]">{siteConfig.name}</span>
+              <span className="header-brand text-[20px]">{siteTitle || siteConfig.name}</span>
             )}
           </Link>
         </div>

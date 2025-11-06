@@ -25,6 +25,7 @@ import {
   casesIndexPage as defaultCasesIndex, 
   contactPage as defaultContact 
 } from '@/lib/cms-data';
+import { revalidateTag } from 'next/cache';
 
 const HOME_DEFAULTS: Partial<HomePage> = {
   intro: { tagline: 'Why', heading: "Who we are", body: "We help you plan, build and scale digital products." },
@@ -232,6 +233,7 @@ export async function getSiteSeo() {
 export async function updateSiteSeo(data: z.infer<typeof SiteSchema>) {
     const db = getDb();
     await db.doc('site/settings').set(data, { merge: true });
+    revalidateTag('site');
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
