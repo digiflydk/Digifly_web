@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { HomePage } from "@/lib/types";
 import { MediaImage } from "../ui/media-image";
+import Link from 'next/link';
 
 export default function Hero({ data }: { data: HomePage["hero"] }) {
   return (
@@ -30,9 +31,11 @@ export default function Hero({ data }: { data: HomePage["hero"] }) {
             </h1>
             <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">{data.subtitle}</p>
             <div className="mt-8">
-                <Button href={data.primaryCta?.href}>
-                    {data.primaryCta?.label}
-                </Button>
+                {data.primaryCta?.href && data.primaryCta?.label && (
+                  <Link href={data.primaryCta.href}>
+                    <Button>{data.primaryCta.label}</Button>
+                  </Link>
+                )}
             </div>
         </div>
       </div>
