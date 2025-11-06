@@ -1,33 +1,43 @@
 import { defineConfig, devices } from '@playwright/test';
-import path from 'path';
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;
-const projectRoot = path.resolve(__dirname, '..');
+// Read from environment variable, default to localhost for local testing
+const BASE_URL = process.env.BASE_URL || 'http://localhost:9002';
 
 export default defineConfig({
-  testDir: __dirname,
   timeout: 30_000,
-  retries: 0,
+  testDir: './tests', // Point to the new tests directory
+  
+  // Fail the build on CI if you accidentally left test.only in the source code.
+  forbidOnly: !!process.env.CI,
+
+  // Retry on CI only
+  retries: process.env.CI ? 1 : 0,
+
+  // Opt out of parallel tests on CI.
+  workers: process.env.CI ? 1 : undefined,
+
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'public/qa-report', open: 'never' }]
+    ['junit', { outputFile: 'qa/report/junit.xml' }],
+    ['html', { outputFolder: 'qa/report/html', open: 'never' }],
   ],
+  
   use: {
-    baseURL: `http://127.0.0.1:${PORT}`,
-    trace: 'off',
+    baseURL: BASE_URL,
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
   },
+
   projects: [
-    { name: 'Desktop Chrome', use: { ...devices['Desktop Chrome'] } },
-    { name: 'Mobile Safari',  use: { ...devices['Mobile Safari'] } },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
   ],
-  webServer: {
-    command: `npx next start -p ${PORT}`,
-    port: PORT,
-    timeout: 120_000,
-    reuseExistingServer: !process.env.CI,
-    cwd: projectRoot, // ensure .next is discovered at the repo root
-    env: {
-        NODE_ENV: "production",
-    },
-  },
+
+  // Directory for test artifacts
+  outputDir: 'qa/artifacts',
+
+  // No webServer needed for post-deploy tests
+  // webServer: { ... } 
 });

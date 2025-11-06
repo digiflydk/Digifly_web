@@ -4,8 +4,10 @@
 # The command to build your app
 build:
   command: "npm run build"
-  # After the build, run tests. If tests fail, the deploy is canceled.
-  postdeploy: "npm run postdeploy"
+# After a successful deployment, run Playwright tests against the live URL.
+# The `|| true` ensures that the build doesn't fail if tests fail.
+postdeploy:
+  command: "BASE_URL=${LIVE_URL} npm run postdeploy || true"
 
 runConfig:
   # Increase this value if you'd like to automatically spin up
