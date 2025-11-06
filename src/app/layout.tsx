@@ -1,32 +1,33 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/config/site';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
-import { getDesign } from '@/lib/cms-server';
+import { getSiteSeo } from "@/lib/cms-server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   try {
-    const design = await getDesign();
-    const favicon = design?.brand?.favicon?.src;
+    const site = await getSiteSeo();
+    const favicon = site.favicon?.src;
     const icons = favicon ? { icon: [{ url: favicon }] } : { icon: '/favicon.ico' };
 
     return {
       metadataBase: new URL(base),
       title: {
-        default: siteConfig.name,
-        template: `%s | ${siteConfig.name}`,
+        default: site.siteTitle || siteConfig.name,
+        template: `%s | ${site.siteTitle || siteConfig.name}`,
       },
-      description: siteConfig.description,
-      openGraph: { 
-        title: siteConfig.name,
-        description: siteConfig.description,
+      description: site.tagline || siteConfig.description,
+      openGraph: {
+        title: site.siteTitle || siteConfig.name,
+        description: site.tagline || siteConfig.description,
         url: siteConfig.url,
-        siteName: siteConfig.name,
+        siteName: site.siteTitle || siteConfig.name,
         type: "website",
-        images: ['/og-default.jpg'] 
+        images: ['/og-default.jpg']
       },
       manifest: '/manifest.webmanifest',
       icons
