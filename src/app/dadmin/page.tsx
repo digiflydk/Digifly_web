@@ -1,11 +1,8 @@
-
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
-import { SectionHeading } from "@/components/ui/section-heading";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Newspaper, Link2 } from "lucide-react";
-import Link from "next/link";
-import { getCases } from "@/lib/cms";
+import { getCaseCount } from "@/lib/cms";
+import AdminShell from "./_components/AdminShell";
+import { StatCard } from "./_components/StatCard";
 
 export function generateMetadata(): Metadata {
     return metaDefaults({
@@ -14,50 +11,25 @@ export function generateMetadata(): Metadata {
     });
 }
 
+// Dummy functions to satisfy dashboard
+async function getPages(opts: {limit: number}) { return { count: 4 }; }
+async function getNavigationMenuCount() { return { count: 2 }; }
+
+
 export default async function DadminPage() {
-    const cases = await getCases();
+    const [{ count: caseCount }, { count: pageCount }, { count: menuCount }] = await Promise.all([
+      getCaseCount(),
+      getPages({ limit: 0 }),
+      getNavigationMenuCount(),
+    ]);
+
     return (
-        <div>
-            <SectionHeading title="Dashboard" subtitle="Overview of your site's content." />
-            
-            <div className="mt-8 grid gap-6 md:grid-cols-3">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Briefcase className="h-5 w-5 text-muted-foreground" />
-                            Case Studies
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-3xl font-bold">{cases.length}</p>
-                        <Link href="/dadmin/cases" className="text-sm text-primary hover:underline">Manage cases</Link>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Newspaper className="h-5 w-5 text-muted-foreground" />
-                            Pages
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-3xl font-bold">4</p>
-                        <span className="text-sm text-muted-foreground">Home, About, Services, Contact</span>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Link2 className="h-5 w-5 text-muted-foreground" />
-                            Navigation
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-3xl font-bold">2</p>
-                        <Link href="/dadmin/navigation" className="text-sm text-primary hover:underline">Manage menus</Link>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+        <AdminShell title="Dashboard" subtitle="Overview of your site's content.">
+          <div className="grid gap-4 md:grid-cols-3">
+            <StatCard title="Case Studies" value={caseCount} href="/dadmin/cases" icon="Briefcase" cta="Manage cases" />
+            <StatCard title="Pages" value={pageCount} href="/dadmin/pages" icon="Newspaper" cta="Manage pages" />
+            <StatCard title="Navigation" value={menuCount} href="/dadmin/navigation" icon="Link2" cta="Manage menus" />
+          </div>
+        </AdminShell>
     );
 }

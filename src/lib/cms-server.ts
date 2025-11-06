@@ -2,7 +2,7 @@
 
 'use server';
 import { z } from 'zod';
-import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from './schemas';
+import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage, SiteSchema } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { DesignSettings, HomePage, Navigation, CaseDoc } from '@/lib/types';
 import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';
@@ -154,6 +154,33 @@ export async function getContactPage(): Promise<any> {
     }
 }
 
+export async function getSiteSeo() {
+    try {
+        const db = getDb();
+        const snap = await db.doc('site/config').get();
+        const data = snap.exists ? snap.data() : {};
+        const parsed = SiteSchema.safeParse(data);
+        if (parsed.success) return parsed.data;
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+export async function updateSiteSeo(data: z.infer<typeof SiteSchema>) {
+    const db = getDb();
+    await db.doc('site/config').set(data, { merge: true });
+}
+
+export async function updateNavigation(data: Navigation) {
+    const db = getDb();
+    await db.doc('content/navigation').set(data, { merge: true });
+}
+
+export async function updateHomepage(data: HomePage) {
+    const db = getDb();
+    await db.doc('content/home').set(data, { merge: true });
+}
 
 export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'health') {

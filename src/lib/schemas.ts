@@ -6,6 +6,11 @@ const makeSeo = (title: string, description: string = "") => ({
   description,
 });
 
+export const SeoSchema = z.object({
+  title: z.string().optional().default(''),
+  description: z.string().optional().default(''),
+});
+
 export const zNavLink = z.object({
   label: z.string(),
   href: z.string().url().or(z.string().startsWith("/")),
@@ -63,12 +68,6 @@ export const zNavigation = z.object({
   footer: zFooterNav.default({ columns: [] }),
 });
 
-const SeoSchema = z.object({
-  title: z.string().min(1),
-  description: z.string().min(1),
-  image: z.string().optional(),
-});
-
 export const CaseSchema = z.object({
   slug: z.string(),
   title: z.string(),
@@ -92,30 +91,27 @@ const ServiceItemSchema = z.object({
   href: z.string().default('#'),
 });
 
-export const zHome = z.object({
+export const HomeSchema = z.object({
   hero: z.object({
-    title: z.string().default('We build software, SaaS and automation that ship'),
-    subtitle: z.string().default('We combine analytical strength with technology to create concrete solutions.'),
-    primaryCta: z.object({
-      label: z.string().default('Talk to us'),
-      href: z.string().default('/#contact')
-    }).default({}),
+    headline: z.string().min(1),
+    subcopy: z.string().optional().default(''),
+    ctaLabel: z.string().optional().default(''),
+    ctaHref: z.string().optional().default(''),
     image: zMedia.optional(),
-  }).default({}),
-  intro: z.object({
-    tagline: z.string().default("Why • How • What"),
-    heading: z.string().default('What we do'),
-    body: z.string().default('Strategy & process optimization, software & automation with AI as an enabler.'),
-    image: zMedia.optional(),
-  }).default({}),
-  servicesPreview: z.array(ServiceItemSchema).default([]),
-  featuredCases: z.array(z.string()).default([]),
-  cta: z.object({
-    text: z.string().default("Let's build something intelligent together."),
-    button: zNavLink.default({label: "Book a Call", href: "/contact"})
-  }).default({}),
-   seo: SeoSchema.default(makeSeo('Digifly', 'Strategy, Software & Automation with AI.'))
+  }),
+  features: z.array(z.object({
+    title: z.string().min(1),
+    text: z.string().optional().default(''),
+    icon: zMedia.optional(),
+  })).default([]),
+  clients: z.array(z.object({
+    name: z.string().min(1),
+    logo: zMedia,
+    href: z.string().optional(),
+  })).default([]),
+  seo: SeoSchema.optional(),
 });
+export const zHome = HomeSchema;
 
 export const AboutPageSchema = z.object({
   title: z.string(),
@@ -149,10 +145,58 @@ export const zCasesIndexPage = CasesIndexSchema;
 
 export const ContactPageSchema = z.object({
   title: z.string(),
-  subtitle: z.string().default(""),
+subtitle: z.string().default(""),
   seo: SeoSchema.default(makeSeo("Contact", "")),
 });
 export const zContactPage = ContactPageSchema;
+
+export const SiteSchema = z.object({
+  siteTitle: z.string().min(1),
+  tagline: z.string().optional().default(''),
+  logo: zMedia,
+  favicon: zMedia,
+  defaultSeo: SeoSchema.optional(),
+  social: z.object({
+    twitter: z.string().url().optional(),
+    linkedin: z.string().url().optional(),
+    github: z.string().url().optional(),
+    facebook: z.string().url().optional(),
+  }).partial().default({}),
+});
+
+export const NavItemSchema = z.object({
+  id: z.string().optional(),
+  label: z.string().min(1),
+  href: z.string().min(1),
+  external: z.boolean().optional().default(false),
+  visible: z.boolean().optional().default(true),
+  order: z.number().int().default(0),
+});
+
+export const NavigationSchema = z.object({
+  primary: z.array(NavItemSchema).default([]),
+  footer: z.array(NavItemSchema).default([]),
+});
+
+export const HomepageSchema = z.object({
+  hero: z.object({
+    headline: z.string().min(1),
+    subcopy: z.string().optional().default(''),
+    ctaLabel: z.string().optional().default(''),
+    ctaHref: z.string().optional().default(''),
+    image: zMedia.optional(),
+  }),
+  features: z.array(z.object({
+    title: z.string().min(1),
+    text: z.string().optional().default(''),
+  })).default([]),
+  caseSpotlight: z.string().optional(),
+  newsletter: z.object({
+    enabled: z.boolean().default(false),
+    listId: z.string().optional().default(''),
+  }).default({}),
+});
+
 
 export type CaseDoc = z.infer<typeof CaseSchema>;
 
