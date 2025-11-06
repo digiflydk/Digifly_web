@@ -28,3 +28,22 @@ if (!fs.existsSync(rootJsStub) && !fs.existsSync(rootTsStub)) {
 delete process.env.NEXT_CONFIG_FILE;
 
 console.log('[QA] next.config.compiled.js + next.config.original stub ready; env scrubbed.');
+
+// Ensure root stub exists (already created earlier in this script)
+const rootStub = path.join(process.cwd(), 'next.config.original.js');
+
+// Also place a copy inside /qa for environments that resolve relative to /qa
+const qaDir = path.join(process.cwd(), 'qa');
+const qaStub = path.join(qaDir, 'next.config.original.js');
+
+try {
+  if (fs.existsSync(rootStub)) {
+    if (!fs.existsSync(qaDir)) fs.mkdirSync(qaDir);
+    fs.copyFileSync(rootStub, qaStub);
+    console.log('[QA] Copied next.config.original.js into /qa for webServer resolution.');
+  } else {
+    console.warn('[QA] root next.config.original was not found; webServer may fail.');
+  }
+} catch (e) {
+  console.warn('[QA] Could not copy next.config.original.js into /qa:', e.message);
+}

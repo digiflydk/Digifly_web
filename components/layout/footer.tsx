@@ -1,6 +1,5 @@
 
 
-
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import type { NavLink } from "@/lib/types";
@@ -17,7 +16,7 @@ export default function Footer({ columns }: { columns?: FooterColumn[] }) {
         <div className="max-w-6xl mx-auto px-6 py-10 text-center text-muted-foreground">
           Footer navigation not configured.
         </div>
-        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.0.21 • DGF-068</div>
+        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.0.22 • DGF-069</div>
       </footer>
     );
   }
@@ -40,7 +39,7 @@ export default function Footer({ columns }: { columns?: FooterColumn[] }) {
           </div>
         ))}
       </div>
-      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.0.21 • DGF-068</div>
+      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.0.22 • DGF-069</div>
     </footer>
   );
 }
