@@ -11,8 +11,8 @@ import Image from "next/image";
 
 type HeaderProps = {
   nav?: NavLink[];
-  logoUrl?: string;
-  siteTitle?: string;
+  logoUrl?: string | null;
+  siteTitle?: string | null;
 };
 
 export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
@@ -36,7 +36,7 @@ export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-full">
         <div className="flex items-center min-w-[140px]">
-          <Link href="/" className="header-brand text-[20px]" aria-label={`${siteTitle} home`}>
+          <Link href="/" className="header-brand text-[20px]" aria-label={`${siteTitle || siteConfig.name} home`}>
             {logoUrl ? (
               <Image
                 src={logoUrl}
@@ -83,7 +83,7 @@ export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
                 <SheetContent side="right">
                     <div className="flex flex-col gap-6 pt-12">
                         <Link href="/" className="font-headline text-lg font-bold text-primary" onClick={() => setMobileMenuOpen(false)}>
-                            {siteConfig.name}
+                            {siteTitle || siteConfig.name}
                         </Link>
                         <nav className="flex flex-col gap-4">
                             {navLinks.map(link => (

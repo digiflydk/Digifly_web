@@ -1,6 +1,7 @@
 
+
 import { z } from "zod";
-import { CaseSchema } from "./schemas";
+import { HomepageSchema, CaseSchema, DesignSettingsSchema, NavigationSchema, SiteSettingsSchema } from "./schemas";
 
 
 export type Media = { src: string; alt?: string; hint?: string };
@@ -18,49 +19,13 @@ export type Brand = {
   };
 };
 
-export type DesignSettings = {
-  brand?: Brand;
-  colors: {
-    primary: string;
-    accent: string;
-    bg: string;
-    muted: string;
-  };
-  typography: {
-    headline: string;
-    body: string;
-  };
-};
+export type DesignSettings = z.infer<typeof DesignSettingsSchema>;
 
 export type NavLink = { label: string; href: string };
 
-export type Navigation = {
-  header: NavLink[];
-  footer: {
-    columns: {
-        title: string;
-        links: NavLink[];
-    }[];
-  };
-};
+export type Navigation = z.infer<typeof NavigationSchema>;
 
-export type HomePage = {
-  hero: { title: string; subtitle: string; primaryCta: NavLink; image?: Media };
-  intro: {
-    tagline: string;
-    heading: string;
-    body: string;
-    image?: Media;
-  };
-  servicesPreview: {
-    title: string;
-    bullets: string[];
-    href: string;
-  }[];
-  featuredCases: string[];
-  cta: { text: string; button: NavLink };
-  seo: { title: string; description: string };
-};
+export type HomePage = z.infer<typeof HomepageSchema>;
 
 export type RichTextContent =
   | { type: 'p'; text: string }
@@ -74,3 +39,5 @@ export type Page<T> = {
   content: T;
   seo: { title: string; description: string; image?: string };
 }
+
+export type SiteSettings = z.infer<typeof SiteSettingsSchema>;

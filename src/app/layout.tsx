@@ -5,46 +5,11 @@ import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
 import { siteConfig } from '@/config/site';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
-import { getSiteSeo } from "@/lib/cms-server";
+import { getSiteSettings } from "@/lib/cms-server";
+import { buildSiteMetadata } from '@/lib/seo';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  try {
-    const site = await getSiteSeo();
-    const favicon = site.favicon?.src;
-    const icons = favicon ? { icon: [{ url: favicon }] } : { icon: '/favicon.ico' };
-
-    return {
-      metadataBase: new URL(base),
-      title: {
-        default: site.siteTitle || siteConfig.name,
-        template: `%s | ${site.siteTitle || siteConfig.name}`,
-      },
-      description: site.tagline || siteConfig.description,
-      openGraph: {
-        title: site.siteTitle || siteConfig.name,
-        description: site.tagline || siteConfig.description,
-        url: siteConfig.url,
-        siteName: site.siteTitle || siteConfig.name,
-        type: "website",
-        images: ['/og-default.jpg']
-      },
-      manifest: '/manifest.webmanifest',
-      icons
-    };
-  } catch {
-    return {
-      metadataBase: new URL(base),
-      title: {
-        default: siteConfig.name,
-        template: `%s | ${siteConfig.name}`,
-      },
-      description: siteConfig.description,
-      openGraph: { images: ['/og-default.jpg'] },
-      manifest: '/manifest.webmanifest',
-      icons: { icon: '/favicon.ico' }
-    };
-  }
+  return await buildSiteMetadata();
 }
 
 

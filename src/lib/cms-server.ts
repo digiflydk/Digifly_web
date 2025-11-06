@@ -1,52 +1,63 @@
 
-
 'use server';
 import { z } from 'zod';
-import { 
-  SiteSchema, 
-  NavigationSchema, 
-  HomepageSchema, 
-  CaseSchema, 
-  AboutPageSchema, 
-  ServicesPageSchema, 
-  CasesIndexSchema, 
+import {
+  SiteSettingsSchema,
+  NavigationSchema,
+  HomepageSchema,
+  CaseSchema,
+  AboutPageSchema,
+  ServicesPageSchema,
+  CasesIndexSchema,
   ContactPageSchema,
-  parseCase 
 } from './schemas';
-import { getDb } from '@/lib/firebase-admin';
-import type { HomePage, Navigation, CaseDoc, Page } from '@/lib/types';
-import { 
-  designSettings as defaultDesign,
-  navigation as defaultNav, 
-  homePage as defaultHomePage, 
-  cases as defaultCases, 
-  aboutPage as defaultAbout, 
-  servicesPage as defaultServices, 
-  casesIndexPage as defaultCasesIndex, 
-  contactPage as defaultContact 
+import { getAdminApp, getDb } from '@/lib/firebase-admin';
+import type { SiteSettings, HomePage, Navigation, CaseDoc, Page } from '@/lib/types';
+import {
+  navigation as defaultNav,
+  homePage as defaultHomePage,
+  cases as defaultCases,
+  aboutPage as defaultAbout,
+  servicesPage as defaultServices,
+  casesIndexPage as defaultCasesIndex,
+  contactPage as defaultContact,
 } from '@/lib/cms-data';
 import { revalidateTag } from 'next/cache';
+import { unstable_cache as nextCache } from 'next/cache';
 
-const HOME_DEFAULTS: Partial<HomePage> = {
-  intro: { tagline: 'Why', heading: "Who we are", body: "We help you plan, build and scale digital products." },
-  servicesPreview: [],
-  featuredCases: [],
-  cta: { text: "Ready to talk?", button: { label: "Contact us", href: "/contact"} },
+const SITE_TAG = "cms:site";
+
+const siteDefaults: SiteSettings = {
+  siteTitle: "Digifly",
+  tagline: "Digital solutions.",
+  defaultDescription: "Digifly builds measurable digital results.",
+  logoUrl: "",
+  faviconUrl: "",
 };
 
-export async function getDesign(): Promise<any> {
-    try {
-        const db = getDb();
-        const snap = await db.doc('site/settings').get();
-        const data = snap.exists ? snap.data() : {};
-        const parsed = SiteSchema.partial().safeParse(data);
-        if (parsed.success) return parsed.data;
-        throw new Error('Design settings validation failed');
-    } catch(e) {
-        console.warn('Falling back to default design settings.', e);
-        return defaultDesign;
+
+async function getSiteSettingsRaw(): Promise<SiteSettings> {
+  try {
+    getAdminApp();
+    const db = getDb();
+    const snap = await db.collection('design').doc('site').get();
+    const data = snap.exists ? snap.data() : {};
+    const parsed = SiteSettingsSchema.safeParse(data);
+    if (!parsed.success) {
+      console.warn('Site settings validation failed, using defaults.', parsed.error);
+      return siteDefaults;
     }
+    return { ...siteDefaults, ...parsed.data };
+  } catch (e) {
+    console.warn('Falling back to default site settings.', e);
+    return siteDefaults;
+  }
 }
+
+export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key'], {
+  tags: [SITE_TAG],
+});
+
 
 export async function getNavigation(): Promise<Navigation> {
     try {
@@ -57,7 +68,6 @@ export async function getNavigation(): Promise<Navigation> {
         const mainData = mainSnap.exists ? mainSnap.data() : {};
         const footerData = footerSnap.exists ? footerSnap.data() : {};
 
-        // This is a bit manual, but safer than one big schema if structures diverge.
         const header = NavigationSchema.shape.header.parse(mainData?.items || []);
         const footerLinks = (footerData?.items || []).map((item: any) => ({
           label: item.label,
@@ -72,6 +82,13 @@ export async function getNavigation(): Promise<Navigation> {
     }
 }
 
+const HOME_DEFAULTS: Partial<HomePage> = {
+  intro: { tagline: 'Why', heading: "Who we are", body: "We help you plan, build and scale digital products." },
+  servicesPreview: [],
+  featuredCases: [],
+  cta: { text: "Ready to talk?", button: { label: "Contact us", href: "/contact"} },
+};
+
 export async function getHomePage(): Promise<HomePage> {
     try {
         const db = getDb();
@@ -84,7 +101,8 @@ export async function getHomePage(): Promise<HomePage> {
                 ...parsed.data,
             } as HomePage;
         };
-        throw new Error('Homepage validation failed');
+        console.warn("Homepage validation failed", parsed.error);
+        return defaultHomePage;
     } catch (e) {
         console.warn('Falling back to default homepage data.', e);
         return defaultHomePage;
@@ -218,22 +236,13 @@ export async function getContactPage(): Promise<any> {
 }
 
 export async function getSiteSeo() {
-    try {
-        const db = getDb();
-        const snap = await db.doc('site/settings').get();
-        const data = snap.exists ? snap.data() : {};
-        const parsed = SiteSchema.safeParse(data);
-        if (parsed.success) return parsed.data;
-        return defaultDesign;
-    } catch {
-        return defaultDesign;
-    }
+    return getSiteSettings();
 }
 
-export async function updateSiteSeo(data: z.infer<typeof SiteSchema>) {
+export async function updateSiteSeo(data: z.infer<typeof SiteSettingsSchema>) {
     const db = getDb();
-    await db.doc('site/settings').set(data, { merge: true });
-    revalidateTag('site');
+    await db.doc('design/site').set(data, { merge: true });
+    revalidateTag('site-settings');
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
@@ -253,7 +262,7 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
     return { ok: true, ts: Date.now() };
   }
   if (path === 'design') {
-    return getDesign();
+    return getSiteSettings();
   }
   if (path === 'navigation') {
     return getNavigation();

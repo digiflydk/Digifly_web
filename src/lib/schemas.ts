@@ -180,19 +180,15 @@ export const ContactPageSchema = z.object({
 });
 export const zContactPage = ContactPageSchema;
 
-export const SiteSchema = z.object({
+export const SiteSettingsSchema = z.object({
   siteTitle: z.string().min(1),
-  tagline: z.string().optional().default(''),
-  logo: zMedia,
-  favicon: zMedia,
-  defaultSeo: SeoSchema.optional(),
-  social: z.object({
-    twitter: z.string().url().optional(),
-    linkedin: z.string().url().optional(),
-    github: z.string().url().optional(),
-    facebook: z.string().url().optional(),
-  }).partial().default({}),
+  tagline: z.string().optional(),
+  logoUrl: z.string().url().optional(),
+  faviconUrl: z.string().url().optional(),
+  defaultDescription: z.string().optional(),
 });
+export const zSiteSettings = SiteSettingsSchema;
+
 
 export const NavItemSchema = z.object({
   id: z.string().optional(),

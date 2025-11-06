@@ -1,6 +1,7 @@
 
+"use server"
 
-import type { HomePage, CaseDoc, Page, Navigation } from './types';
+import type { HomePage, CaseDoc, Page, Navigation, SiteSettings } from './types';
 import { 
     getHomePage as getHomePageData, 
     listCases, 
@@ -10,8 +11,8 @@ import {
     getCasesIndexPage as getCasesIndexPageData, 
     getContactPage as getContactPageData, 
     getNavigation as getNavigationData, 
-    getSiteSeo as getSiteSeoData, 
-    updateSiteSeo as updateSiteSeoData, 
+    getSiteSettings as getSiteSettingsData,
+    updateSiteSeo as updateSiteSettingsData, 
     updateNavigation as updateNavigationData, 
     updateHomepage as updateHomepageData,
     getCaseCount as getCaseCountData,
@@ -19,7 +20,7 @@ import {
     getNavigationMenuCount as getNavigationMenuCountData
 } from './cms-server';
 import { z } from 'zod';
-import { NavigationSchema, SiteSchema } from './schemas';
+import { NavigationSchema, SiteSettingsSchema } from './schemas';
 
 export async function getNavigation(): Promise<Navigation> {
   return await getNavigationData();
@@ -70,12 +71,12 @@ export async function getContactPage(): Promise<Page<{}> | null> {
     return getContactPageData();
 }
 
-export async function getSiteSeo() {
-    return getSiteSeoData();
+export async function getSiteSettings() {
+    return getSiteSettingsData();
 }
 
-export async function updateSiteSeo(data: z.infer<typeof SiteSchema>) {
-    return updateSiteSeoData(data);
+export async function saveSiteSettings(data: z.infer<typeof SiteSettingsSchema>) {
+    return updateSiteSettingsData(data);
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {

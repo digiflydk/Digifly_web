@@ -1,35 +1,44 @@
+
 import { siteConfig } from "@/config/site";
 import { Metadata } from "next";
+import { getSiteSettings } from "./cms-server";
 
 type Og = { title: string; description?: string; url?: string; images?: string[] };
 
-export function buildMeta({title, description, url, og}: { title: string; description?: string; url?: string; og?: Partial<Og> }): Metadata {
-  const seoImage = og?.images?.length ? og.images[0] : `${siteConfig.url}/og-default.jpg`;
+export async function buildSiteMetadata(): Promise<Metadata> {
+  const s = await getSiteSettings();
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   return {
-    title,
-    description,
+    metadataBase: new URL(baseUrl),
+    title: {
+      default: s.siteTitle || 'Digifly',
+      template: `%s | ${s.siteTitle || 'Digifly'}`,
+    },
+    description: s.defaultDescription || s.tagline || 'Digital solutions.',
     openGraph: {
-      title,
-      description,
-      images: seoImage ? [{url: seoImage}] : [],
-      url: url || siteConfig.url,
-      siteName: siteConfig.name,
-      type: "website",
+      title: s.siteTitle || 'Digifly',
+      description: s.defaultDescription || s.tagline || 'Digital solutions.',
+      url: baseUrl,
+      siteName: s.siteTitle || 'Digifly',
+      images: ['/og-default.jpg'],
+      type: 'website',
     },
     twitter: {
-      card:"summary_large_image",
-      title,
-      description,
-      images: seoImage ? [seoImage] : [],
-      creator: "@shadcn",
+      card: 'summary_large_image',
+      title: s.siteTitle || 'Digifly',
+      description: s.defaultDescription || s.tagline || 'Digital solutions.',
+      images: [`${baseUrl}/og-default.jpg`],
     },
     alternates: {
-      canonical: url || siteConfig.url,
-    }
+      canonical: baseUrl,
+    },
+    icons: s.faviconUrl ? { icon: [{ url: s.faviconUrl }] } : { icon: '/favicon.ico' },
+    manifest: '/manifest.webmanifest',
   };
 }
 
-export function metaDefaults({
+
+export async function metaDefaults({
   title,
   description,
   image,
@@ -37,10 +46,26 @@ export function metaDefaults({
   title?: string;
   description?: string;
   image?: string;
-}) {
-  return buildMeta({
-    title: title ?? siteConfig.name,
-    description: description ?? siteConfig.description,
-    og: { images: image ? [image] : [] },
-  })
+}): Promise<Metadata> {
+  const baseMeta = await buildSiteMetadata();
+  const pageTitle = title ?? baseMeta.title?.default as string;
+  const pageDesc = description ?? baseMeta.description as string;
+  
+  return {
+    ...baseMeta,
+    title: pageTitle,
+    description: pageDesc,
+    openGraph: {
+      ...baseMeta.openGraph,
+      title: pageTitle,
+      description: pageDesc,
+      images: image ? [image] : baseMeta.openGraph?.images,
+    },
+    twitter: {
+        ...baseMeta.twitter,
+        title: pageTitle,
+        description: pageDesc,
+        images: image ? [image] : baseMeta.twitter?.images,
+    }
+  };
 }

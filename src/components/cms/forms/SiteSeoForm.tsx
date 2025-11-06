@@ -1,29 +1,35 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SiteSchema } from "@/lib/schemas";
-import { updateSiteSeo } from "@/lib/cms";
+import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
 
-export function SiteSeoForm({ data }: { data: any }) {
+export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   const [isSaving, setIsSaving] = useState(false);
-  const form = useForm<z.infer<typeof SiteSchema>>({
-    resolver: zodResolver(SiteSchema),
-    defaultValues: data || {},
+  const form = useForm<SiteSettings>({
+    resolver: zodResolver(SiteSettingsSchema),
+    defaultValues: initialData,
   });
 
-  async function onSubmit(values: z.infer<typeof SiteSchema>) {
+  async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-      await updateSiteSeo(values);
-      toast({ title: "Success", description: "Site settings saved." });
+      const res = await fetch('/api/admin/site/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) throw new Error('Failed to save settings');
+      
+      toast({ title: "Success", description: "Site settings saved and live." });
     } catch (e) {
       toast({ title: "Error", description: "Could not save settings.", variant: "destructive" });
     } finally {
@@ -56,14 +62,14 @@ export function SiteSeoForm({ data }: { data: any }) {
         <Card>
           <CardHeader><CardTitle>Branding</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <FormField control={form.control} name="logo.src" render={({ field }) => (
+            <FormField control={form.control} name="logoUrl" render={({ field }) => (
               <FormItem>
                 <FormLabel>Logo URL</FormLabel>
                 <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField control={form.control} name="favicon.src" render={({ field }) => (
+            <FormField control={form.control} name="faviconUrl" render={({ field }) => (
               <FormItem>
                 <FormLabel>Favicon URL</FormLabel>
                 <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
@@ -72,10 +78,22 @@ export function SiteSeoForm({ data }: { data: any }) {
             )} />
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader><CardTitle>Default SEO</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <FormField control={form.control} name="defaultDescription" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Default Meta Description</FormLabel>
+                <FormControl><Textarea {...field} value={field.value ?? ""} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </CardContent>
+        </Card>
 
         <div className="sticky bottom-0 bg-slate-50/90 py-4">
           <Button type="submit" disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save"}
+            {isSaving ? "Saving..." : "Save Settings"}
           </Button>
         </div>
       </form>

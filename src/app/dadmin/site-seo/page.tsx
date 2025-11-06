@@ -2,42 +2,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getSiteSeo } from "@/lib/cms";
+import { getSiteSettings } from "@/lib/cms-server";
 import { SiteSeoForm } from "@/components/cms/forms/SiteSeoForm";
-import { SiteSchema } from "@/lib/schemas";
-import { z } from "zod";
+import { SiteSettings } from "@/lib/types";
 
-type SiteSeoData = z.infer<typeof SiteSchema>;
+// This is a server component that fetches initial data
+export default function SiteSeoPageWrapper() {
+  const [initialData, setInitialData] = useState<SiteSettings | null>(null);
 
-const defaultData: SiteSeoData = {
-  siteTitle: "",
-  tagline: "",
-  logo: { src: "", alt: "" },
-  favicon: { src: "" },
-};
+  useEffect(() => {
+    getSiteSettings().then(data => {
+      setInitialData(data);
+    });
+  }, []);
 
-export default function SiteSeoPage() {
-    const [data, setData] = useState<SiteSeoData | null>(null);
+  if (!initialData) {
+    return <div>Loading form...</div>;
+  }
 
-    useEffect(() => {
-        getSiteSeo().then(serverData => {
-            const parsedData = SiteSchema.parse({
-              ...defaultData,
-              ...serverData,
-              logo: { ...defaultData.logo, ...serverData?.logo },
-              favicon: { ...defaultData.favicon, ...serverData?.favicon },
-            });
-            setData(parsedData);
-        });
-    }, []);
-
-    if (!data) {
-        return <div>Loading...</div>;
-    }
-
-    return (
-      <>
-        <SiteSeoForm data={data} />
-      </>
-    );
+  return (
+    <>
+      <header className="mb-6">
+        <h1 className="text-xl font-semibold">Site &amp; SEO</h1>
+        <p className="text-sm text-slate-500">Manage global site identity and default SEO.</p>
+      </header>
+      <SiteSeoForm initialData={initialData} />
+    </>
+  );
 }
