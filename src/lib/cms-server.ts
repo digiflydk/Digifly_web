@@ -1,4 +1,5 @@
 
+
 'use server';
 import { z } from 'zod';
 import {
@@ -24,17 +25,36 @@ import {
 } from '@/lib/cms-data';
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache } from 'next/cache';
-import { getSiteSettings as getSiteSettingsFromFile, saveSiteSettings as saveSiteSettingsToFile } from '@/lib/cms/site';
+import { saveSiteSettings as saveSiteSettingsToFile } from '@/lib/cms/site';
 
 
 const SITE_TAG = "site-settings";
 
-export const getSiteSettings = nextCache(getSiteSettingsFromFile, ['site-settings:key'], {
+async function getSiteSettingsRaw(): Promise<SiteSettings> {
+  const db = getDb();
+  const snap = await db.collection('config').doc('site').get();
+  const data = snap.exists ? snap.data() : {};
+  const parsed = SiteSettingsSchema.safeParse(data);
+  if (!parsed.success) {
+    // safe fallbacks so metadata never crashes build
+    return {
+      siteTitle: 'Digifly',
+      tagline: 'Digital solutions.',
+      defaultDescription: 'Digifly builds measurable digital results.',
+      logoUrl: undefined,
+      faviconUrl: undefined,
+    };
+  }
+  return parsed.data;
+}
+
+export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key'], {
   tags: [SITE_TAG],
 });
 
 export async function saveSiteSettings(data: SiteSettings) {
-  await saveSiteSettingsToFile(data);
+  const db = getDb();
+  await db.collection("config").doc("site").set(data, { merge: true });
   revalidateTag(SITE_TAG);
 }
 
@@ -220,7 +240,8 @@ export async function getSiteSeo() {
 }
 
 export async function updateSiteSeo(data: z.infer<typeof SiteSettingsSchema>) {
-    return saveSiteSettings(data);
+  revalidateTag(SITE_TAG);
+  return saveSiteSettings(data);
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
