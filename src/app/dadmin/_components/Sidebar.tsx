@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const menuItems = [
   { href: "/dadmin", label: "Dashboard", icon: Home },
@@ -61,6 +61,9 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen:
         {/* Mobile */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetContent side="left" className="w-64 p-0 bg-white md:hidden">
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Admin Menu</SheetTitle>
+                </SheetHeader>
                 <NavContent />
             </SheetContent>
         </Sheet>
