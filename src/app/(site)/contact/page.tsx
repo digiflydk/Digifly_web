@@ -4,14 +4,14 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { ContactForm } from "@/components/sections/contact-form";
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
-import { zContactPage } from "@/lib/schemas";
+import { ContactPageSchema } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const rawPage = await getContactPage();
-  const page = zContactPage.parse(rawPage || {});
+  const page = ContactPageSchema.parse(rawPage || {});
 
   return metaDefaults({
     title: safeStr(page.seo?.title, page.title),
@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ContactPage() {
     const rawPage = await getContactPage();
-    const page = zContactPage.parse(rawPage || {});
+    const page = ContactPageSchema.parse(rawPage || {});
 
     return (
         <div className="py-16 md:py-24">

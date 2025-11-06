@@ -4,14 +4,14 @@ import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Container } from "@/components/layout/container";
-import { zCasesIndexPage } from "@/lib/schemas";
+import { CasesIndexSchema } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const rawPage = await getCasesIndexPage();
-  const page = zCasesIndexPage.parse(rawPage || {});
+  const page = CasesIndexSchema.parse(rawPage || {});
 
   return metaDefaults({
     title: safeStr(page.seo.title, page.title),
@@ -21,13 +21,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CasesPage() {
     const rawPage = await getCasesIndexPage();
-    const page = zCasesIndexPage.parse(rawPage || {});
+    const page = CasesIndexSchema.parse(rawPage || {});
     
     return (
         <>
             <CasesGrid 
                 title={page.title}
-                subtitle={page.subtitle}
+                subtitle={page.subtitle ?? ""}
             />
         </>
     )

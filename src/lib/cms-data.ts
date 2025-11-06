@@ -11,34 +11,29 @@ function getImage(id: string) {
 }
 
 
-export const designSettings: DesignSettings = {
+export const designSettings = {
   colors: {
-    primary: '#000000',
-    electricBlue: '#1E90FF',
-    digitalPurple: '#6A5ACD',
-    graphiteGrey: '#2B2B2B',
-    platinumGrey: '#E5E5E5',
-    softWhite: '#F9F9F9',
-    success: '#00B894',
-    error: '#FF4D4D',
+    primary: '#1E90FF',
+    accent: '#6A5ACD',
+    bg: '#F9F9F9',
+    muted: '#E5E5E5',
   },
   typography: {
-    headlineFont: 'Space Grotesk',
-    bodyFont: 'Inter',
-    h1: 56,
-    h2: 40,
-    h3: 28,
-    body: 16,
-    caption: 13,
-    lineHeight: 1.4,
+    headline: 'Space Grotesk',
+    body: 'Inter',
   },
-  buttons: {
-    shape: 'pill',
-    radius: 50,
-    primary: { bg: '#1E90FF', text: '#FFFFFF', hoverBg: '#6A5ACD' },
-    secondary: { border: '#1E90FF', text: '#1E90FF', hoverBg: '#E5F1FF' },
-    ghost: { text: '#2B2B2B', hoverBg: '#E5E5E5' },
-  },
+  brand: {
+    name: 'Digifly',
+    logo: {
+      src: '/logo.svg',
+      width: 140,
+      height: 28,
+      alt: 'Digifly Logo'
+    },
+    favicon: {
+      src: '/favicon.ico'
+    }
+  }
 };
 
 export const navigation: Navigation = {
@@ -48,17 +43,28 @@ export const navigation: Navigation = {
     { label: 'Cases', href: '/cases' },
   ],
   footer: {
-    links: [
-      { label: 'Privacy', href: '/privacy' },
-      { label: 'Cookies', href: '/cookies' },
-    ],
-    company: {
-      name: 'Digifly',
-      email: 'hello@digifly.dk',
-      phone: '+45 12 34 56 78',
-      address: 'Copenhagen, Denmark',
-    },
-    social: [{ label: 'LinkedIn', href: 'https://linkedin.com/company/digifly' }],
+    columns: [
+        {
+            title: "Company",
+            links: [
+                { label: 'About', href: '/about' },
+                { label: 'Services', href: '/services' },
+            ]
+        },
+        {
+            title: "Work",
+            links: [
+                { label: 'Case Studies', href: '/cases' },
+            ]
+        },
+        {
+            title: "Legal",
+            links: [
+                { label: 'Privacy Policy', href: '/privacy' },
+                { label: 'Cookie Policy', href: '/cookies' },
+            ]
+        }
+    ]
   },
 };
 
@@ -106,55 +112,46 @@ export const homePage: HomePage = {
 export const cases: CaseDoc[] = [
   {
     slug: 'case-001',
-    title: 'Smart Onboarding Platform',
-    summary: 'Reduced manual steps by 62% with automation + AI assistants.',
+    title: 'Automation that saves hours daily',
+    summary: 'Reduced manual ops by 60%, improved SLAs.',
+    seo: { title: "Case — Automation", description: "How we removed manual work with AI agents." },
     cover: getImage('case-001.jpg'),
     body: [
       { type: 'p', text: 'The challenge was a highly manual and error-prone client onboarding process that took days to complete. Our approach was to build a central platform that automated data collection, verification, and system setup.' },
       { type: 'list', items: ['Automated data validation against external APIs.', 'AI-powered document analysis to extract key information.', 'Generated user-friendly summaries and flagged exceptions for manual review.'] },
       { type: 'p', text: 'The result was a drastic reduction in onboarding time, improved data accuracy, and a significantly better experience for new clients.' },
     ],
-    metrics: [{ label: 'Time saved per onboarding', value: '62%' }, { label: "Data entry errors", value: "-95%" }],
-    seo: {
-      title: 'Case – Smart Onboarding Platform',
-      description: 'Automation + AI assistants cut manual work by 62%.',
-    },
+    metrics: [{ label: 'Ops time', value: '-60%' }, { label: "SLA", value: "↑ 35%" }],
   },
   {
     slug: 'case-002',
     title: 'Real-Time Logistics Dashboard',
     summary: 'Centralized supply chain visibility, improving delivery estimates by 45%.',
+    seo: { title: "Case — Logistics Dashboard", description: "Centralized supply chain visibility improved estimates by 45%." },
     cover: getImage('case-002.jpg'),
     body: [
         { type: 'p', text: 'A major logistics provider lacked a unified view of their shipments, leading to inefficiencies and poor customer communication. We developed a real-time dashboard to track assets across multiple carriers and systems.' },
         { type: 'list', items: ['Integrated multiple data sources via APIs into a single data stream.', 'Developed a map-based visualization with real-time location updates.', 'Implemented predictive analytics for more accurate delivery time estimates.'] },
     ],
     metrics: [{ label: 'Delivery estimate accuracy', value: '+45%' }, { label: "Customer support queries", value: "-30%" }],
-    seo: {
-      title: 'Case – Real-Time Logistics Dashboard',
-      description: 'Centralized supply chain visibility, improving delivery estimates by 45%.',
-    },
   },
   {
     slug: 'case-003',
     title: 'Customer Service AI Assistant',
     summary: 'Resolved 78% of tier-1 support tickets instantly.',
     cover: getImage('case-003.jpg'),
+    seo: { title: "Case — AI Assistant", description: "Resolved 78% of tier-1 support tickets instantly." },
     body: [
       { type: 'p', text: 'A fast-growing e-commerce brand was struggling with a high volume of repetitive customer support queries. We built and integrated an AI assistant into their help center and chat widget.' },
       { type: 'list', items: ['Trained on historical support tickets and company documentation.', 'Integrated with their e-commerce platform to provide order-specific information.', 'Provided instant answers to common questions about shipping, returns, and product details.'] },
     ],
     metrics: [{ label: 'Instant resolution rate', value: '78%' }, { label: "Agent response time", value: "-50%" }],
-    seo: {
-      title: 'Case – Customer Service AI Assistant',
-      description: 'Resolved 78% of tier-1 support tickets instantly.',
-    },
   },
 ];
 
 export const aboutPage: Page<{ body: RichTextContent[] }> = {
-    title: "About Digifly",
-    subtitle: "We are a collective of strategists, designers, and engineers dedicated to building the future of digital interaction.",
+    title: "We design growth with AI + product thinking",
+    subtitle: "Strategy, build and operations – one team.",
     content: {
         body: [
             { type: 'p', text: 'Founded on the principle that technology should be a powerful enabler, not a complex barrier, Digifly was created to help businesses navigate the digital landscape with confidence. We believe in building partnerships, not just projects.' },
@@ -163,58 +160,58 @@ export const aboutPage: Page<{ body: RichTextContent[] }> = {
         ]
     },
     seo: {
-        title: "About Digifly",
-        description: "Learn about our mission to bridge strategy, technology, and AI."
+        title: "About — Digifly",
+        description: "Who we are and how we build outcomes."
     }
 }
 
 export const servicesPage: Page<{ services: {id: string, title: string, description: string, bullets: string[]}[] }> = {
-    title: "Our Services",
-    subtitle: "We offer end-to-end services to take your digital product from concept to launch and beyond.",
+    title: "Services",
+    subtitle: "From discovery to delivery",
     content: {
         services: [
             {
                 id: "strategy",
-                title: 'Strategy & Process Optimization',
-                description: "Before writing a line of code, we work with you to understand your business goals, map existing processes, and identify the highest-impact opportunities for technology and automation.",
-                bullets: ['Business process mapping', 'Technical feasibility studies', 'Product roadmapping & prioritization', 'Linking business goals to technology requirements'],
+                title: 'AI Automation',
+                description: "Workflow automation, agents, data pipelines.",
+                bullets: [],
             },
             {
                 id: "software",
-                title: 'Software & Platform Development',
-                description: "Our core is building robust, scalable, and maintainable software. We specialize in modern web applications, SaaS platforms, and the complex integrations that power them.",
-                bullets: ['Custom SaaS and web application development', 'Real-time and event-driven architectures', 'Third-party API integration', 'Scalable cloud infrastructure (GCP, AWS)'],
+                title: 'Product & Web',
+                description: "Next.js apps, CMS, e-commerce, analytics.",
+                bullets: [],
             },
             {
                 id: "automation",
-                title: 'Automation & AI',
-                description: "We leverage automation and artificial intelligence to make your systems smarter and your teams more efficient. From simple workflows to complex machine learning models, we build intelligent features.",
-                bullets: ['Internal tool & workflow automation', 'Custom AI assistants and chatbots', 'Integrating ML models and AI services (e.g., Gemini, OpenAI)', 'Data processing and analysis pipelines'],
+                title: 'Growth Ops',
+                description: "Funnels, CRM, lifecycle, reporting.",
+                bullets: [],
             }
         ]
     },
     seo: {
-        title: "Our Services | Digifly",
-        description: "Explore our services: Strategy, Software Development, and AI & Automation."
+        title: "Services — Digifly",
+        description: "AI automation, product, and go-to-market."
     }
 }
 
 export const casesIndexPage: Page<{}> = {
-    title: "Our Work",
-    subtitle: "We partner with ambitious companies to solve complex challenges with technology. Here are a few of our stories.",
+    title: "Selected work",
+    subtitle: "A few outcomes we’re proud of",
     content: {},
     seo: {
-        title: "Case Studies | Digifly",
-        description: "See how we've helped businesses achieve measurable results."
+        title: "Cases — Digifly",
+        description: "Case studies and results."
     }
 }
 
 export const contactPage: Page<{}> = {
-    title: "Contact Us",
-    subtitle: "Have a project in mind? We'd love to hear about it.",
+    title: "Contact",
+    subtitle: "Let’s build something useful",
     content: {},
     seo: {
-        title: "Contact | Digifly",
-        description: "Get in touch with the Digifly team to discuss your project."
+        title: "Contact — Digifly",
+        description: "Get in touch with Digifly."
     }
 }

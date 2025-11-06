@@ -4,14 +4,15 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { RichText } from "@/components/ui/rich-text";
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
-import { zAboutPage } from "@/lib/schemas";
+import { AboutPageSchema } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
+import SafeImage from "@/components/media/SafeImage";
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const rawPage = await getAboutPage();
-  const page = zAboutPage.parse(rawPage || {});
+  const page = AboutPageSchema.parse(rawPage || {});
   
   return metaDefaults({
     title: safeStr(page.seo?.title, page.title),
@@ -21,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AboutPage() {
     const rawPage = await getAboutPage();
-    const page = zAboutPage.parse(rawPage || {});
+    const page = AboutPageSchema.parse(rawPage || {});
 
     return (
         <div className="py-16 md:py-24">
@@ -33,7 +34,7 @@ export default async function AboutPage() {
                     className="mb-12"
                 />
                 <div className="max-w-3xl mx-auto">
-                    <RichText content={page.content.body} />
+                    <RichText content={page.body} />
                 </div>
             </Container>
         </div>

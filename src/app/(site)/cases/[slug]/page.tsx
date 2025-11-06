@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import RichText from "@/components/ui/rich-text";
 import { metaDefaults } from "@/lib/seo";
 import { Metadata } from "next";
-import { parseCase } from "@/lib/schemas";
+import { CaseSchema, parseCase } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
 import SafeImage from "@/components/media/SafeImage";
 
@@ -68,7 +68,7 @@ export default async function CasePage({ params }: { params: Promise<Params> }) 
 
         <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
             <div className="md:col-span-2">
-                <RichText content={doc.body ?? []} />
+                <RichText content={doc.body} />
             </div>
             <aside>
                 {doc.metrics && doc.metrics.length > 0 && (

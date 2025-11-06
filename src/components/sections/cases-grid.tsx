@@ -37,15 +37,24 @@ function CaseCard({ item }: { item: { slug: string; title: string; image: { src:
     );
   }
 
-export default async function CasesGrid({ ids, title, subtitle, showAllLink = false }: { ids?: string[], title: string, subtitle: string, showAllLink?: boolean }) {
+type CasesGridProps = {
+    ids?: string[],
+    title: string,
+    subtitle?: string | null,
+    showAllLink?: boolean
+}
+
+export default async function CasesGrid({ ids, title, subtitle, showAllLink = false }: CasesGridProps) {
   let allCases = await getCases();
   const cases = ids
     ? allCases.filter(c => ids.includes(c.slug))
     : allCases;
 
+  const safeSubtitle = subtitle ?? "";
+
   return (
     <section className="container py-16 md:py-24">
-      <SectionHeading textCenter title={title} subtitle={subtitle} />
+      <SectionHeading textCenter title={title} subtitle={safeSubtitle} />
       <div className="mt-12 grid gap-8 md:grid-cols-2">
           {cases.map((caseDoc) => (
             <CaseCard key={caseDoc.slug} item={{...caseDoc, image: caseDoc.cover}} />
