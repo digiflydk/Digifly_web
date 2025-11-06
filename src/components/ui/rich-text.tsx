@@ -2,14 +2,15 @@ import { RichTextContent } from "@/lib/types";
 import { Check } from "lucide-react";
 
 type RichTextProps = {
-    content: RichTextContent[];
+    content?: RichTextContent[] | null;
     className?: string;
 }
 
 export function RichText({ content, className }: RichTextProps) {
+    const nodes = content ?? [];
     return (
         <div className={`prose prose-lg max-w-none text-foreground/90 leading-relaxed ${className}`}>
-            {content.map((block, index) => {
+            {nodes.map((block, index) => {
                 switch (block.type) {
                     case 'p':
                         return <p key={index}>{block.text}</p>;
