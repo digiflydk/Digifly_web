@@ -20,7 +20,7 @@ async function loadSiteSettings(): Promise<SiteSettings> {
   const timeoutId = setTimeout(() => ctrl.abort(), 8000); // 8-second hard timeout
 
   try {
-    const res = await fetch('/api/cms/site', {
+    const res = await fetch('/api/admin/site', {
       method: 'GET',
       cache: 'no-store',
       next: { revalidate: 0 },
@@ -46,7 +46,7 @@ async function loadSiteSettings(): Promise<SiteSettings> {
       const msg = data?.error
         ? `${res.status} • ${data.error}${data.detail ? ` • ${JSON.stringify(data.detail)}` : ''}`
         : `${res.status} • ${res.statusText || 'Unknown error'}`;
-      throw new Error(`Load failed (/api/cms/site): ${msg}`);
+      throw new Error(`Load failed (/api/admin/site): ${msg}`);
     }
     return data.site;
   } catch (e: any) {
@@ -121,7 +121,7 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-      const url = "/api/cms/site";
+      const url = "/api/admin/site";
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
