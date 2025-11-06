@@ -76,7 +76,7 @@ export const NavigationSchema = z.object({
       columns: z.array(z.object({
         title: z.string(),
         links: z.array(zNavLink)
-      })).default([])
+      })).default([{ title: 'Links', links: [] }])
   })
 });
 export const zNavigation = NavigationSchema;

@@ -57,10 +57,13 @@ export async function getNavigation(): Promise<Navigation> {
         const footerData = footerSnap.exists ? footerSnap.data() : {};
 
         // This is a bit manual, but safer than one big schema if structures diverge.
-        const header = NavigationSchema.shape.primary.parse(mainData?.items || []);
-        const footer = NavigationSchema.shape.footer.parse(footerData?.items || []);
+        const header = NavigationSchema.shape.header.parse(mainData?.items || []);
+        const footerLinks = (footerData?.items || []).map((item: any) => ({
+          label: item.label,
+          href: item.href,
+        }));
         
-        return { header, footer: { columns: [{ title: "Links", links: footer }] } };
+        return { header, footer: { columns: [{ title: "Links", links: footerLinks }] } };
 
     } catch(e) {
         console.warn('Falling back to default navigation.', e);
@@ -96,7 +99,7 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
             return defaultCases as CaseDoc[];
         }
         const items = snap.docs.map(d => {
-            const parsed = z.Case.safeParse({ slug: d.id, ...d.data() });
+            const parsed = CaseSchema.safeParse({ slug: d.id, ...d.data() });
             return parsed.success ? (parsed.data as CaseDoc) : null;
         }).filter((c): c is CaseDoc => c !== null);
         return items;
@@ -231,7 +234,7 @@ export async function updateSiteSeo(data: z.infer<typeof SiteSchema>) {
     await db.doc('site/settings').set(data, { merge: true });
 }
 
-export async function updateNavigation(data: Navigation) {
+export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
     const db = getDb();
     await db.doc('navigation/main').set({ items: data.header }, { merge: true });
     const footerLinks = data.footer.columns.flatMap(c => c.links);

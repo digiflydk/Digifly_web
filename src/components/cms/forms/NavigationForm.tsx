@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function NavItems({ control, name }: { control: any, name: "primary" | "footer" }) {
+function NavItems({ control, name }: { control: any, name: "header" | "footer.columns.0.links" }) {
   const { fields, append, remove } = useFieldArray({
     control,
     name,
@@ -96,7 +96,7 @@ export function NavigationForm({ data }: { data: any }) {
                 <Card className="mt-4">
                   <CardHeader><CardTitle>Primary Navigation</CardTitle></CardHeader>
                   <CardContent>
-                    <NavItems control={form.control} name="primary" />
+                    <NavItems control={form.control} name="header" />
                   </CardContent>
                 </Card>
             </TabsContent>
@@ -104,7 +104,7 @@ export function NavigationForm({ data }: { data: any }) {
                 <Card className="mt-4">
                   <CardHeader><CardTitle>Footer Navigation</CardTitle></CardHeader>
                   <CardContent>
-                    <NavItems control={form.control} name="footer" />
+                    <NavItems control={form.control} name="footer.columns.0.links" />
                   </CardContent>
                 </Card>
             </TabsContent>
