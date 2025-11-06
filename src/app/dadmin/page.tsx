@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Newspaper, Link2 } from "lucide-react";
 import Link from "next/link";
-import { listCases } from "@/lib/cms";
+import { getCases } from "@/lib/cms";
 
 export function generateMetadata(): Metadata {
     return metaDefaults({
@@ -15,7 +15,7 @@ export function generateMetadata(): Metadata {
 }
 
 export default async function DadminPage() {
-    const cases = await listCases();
+    const cases = await getCases();
     return (
         <div>
             <SectionHeading title="Dashboard" subtitle="Overview of your site's content." />
