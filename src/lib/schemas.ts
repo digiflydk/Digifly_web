@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 import type { RichTextContent } from './types';
 
 export const SeoSchema = z.object({
@@ -28,6 +28,12 @@ export const PageBaseSchema = z.object({
   subtitle: z.string().default(""),
   seo: SeoSchema.default({}),
 });
+
+export const zNavLink = z.object({
+  label: z.string(),
+  href: z.string().url().or(z.string().startsWith("/")),
+});
+
 
 export const AboutPageSchema = PageBaseSchema.extend({
   body: RichBodySchema,
@@ -81,3 +87,82 @@ export function parseCase(input: unknown): CaseDoc {
   const v = parsed.data;
   return { ...v, body: v.body ?? [] };
 }
+
+/** NEW: Navigation schema */
+const NavigationItemSchema = z.object({
+  label: z.string(),
+  href: z.string().default("#"),
+});
+const NavigationSchema = z.object({
+  header: z.array(zNavLink).default([]),
+  footer: z.object({
+      columns: z.array(z.object({
+          title: z.string(),
+          links: z.array(zNavLink),
+      })).default([])
+  }).default({ columns: [] }),
+});
+
+/** NEW: Design settings schema */
+const DesignSettingsSchema = z.object({
+  brand: z.object({
+    name: z.string().default('Digifly'),
+    logo: CoverSchema.partial().default({}),
+    favicon: z.object({ src: z.string().default("/favicon.ico") }).default({}),
+  }).default({}),
+  colors: z.object({
+    primary: z.string().default('#6C3CF6'),
+    accent: z.string().default('#22C55E'),
+    bg: z.string().default('#F6F7FB'),
+    muted: z.string().default('#E5E7EB'),
+  }).default({}),
+  typography: z.object({
+    headline: z.string().default('Inter'),
+    body: z.string().default('Inter'),
+  }).default({})
+});
+
+/** NEW: Home page schema */
+const ServiceItemSchema = z.object({
+  title: z.string().default('Service'),
+  bullets: z.array(z.string()).default([]),
+  href: z.string().default('#'),
+});
+const HomePageSchema = z.object({
+  hero: z.object({
+    title: z.string().default('We build software, SaaS and automation that ship'),
+    subtitle: z.string().default('We combine analytical strength with technology to create concrete solutions.'),
+    primaryCta: z.object({
+      label: z.string().default('Talk to us'),
+      href: z.string().default('/#contact')
+    }).default({}),
+    image: CoverSchema.optional(),
+  }).default({}),
+  intro: z.object({
+    tagline: z.string().default("Why • How • What"),
+    heading: z.string().default('What we do'),
+    body: z.string().default('Strategy & process optimization, software & automation with AI as an enabler.'),
+    image: CoverSchema.optional(),
+  }).default({}),
+  servicesPreview: z.array(ServiceItemSchema).default([]),
+  featuredCases: z.array(z.string()).default([]),
+  cta: z.object({
+    text: z.string().default("Let's build something intelligent together."),
+    button: zNavLink.default({label: "Book a Call", href: "/contact"})
+  }).default({}),
+   seo: z.object({
+    title: z.string().default('Digifly'),
+    description: z.string().default('Strategy, Software & Automation with AI.')
+  }).default({})
+});
+
+
+/** IMPORTANT: Export under the exact names cms-server expects */
+export const zNavigation = NavigationSchema;
+export const zDesignSettings = DesignSettingsSchema;
+export const zHome = HomePageSchema;
+export const zCase = CaseSchema;
+export const zAboutPage = AboutPageSchema;
+export const zServicesPage = ServicesPageSchema;
+export const zCasesIndexPage = CasesIndexSchema;
+export const zContactPage = ContactPageSchema;

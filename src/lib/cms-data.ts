@@ -11,17 +11,7 @@ function getImage(id: string) {
 }
 
 
-export const designSettings = {
-  colors: {
-    primary: '#1E90FF',
-    accent: '#6A5ACD',
-    bg: '#F9F9F9',
-    muted: '#E5E5E5',
-  },
-  typography: {
-    headline: 'Space Grotesk',
-    body: 'Inter',
-  },
+export const designSettings: DesignSettings = {
   brand: {
     name: 'Digifly',
     logo: {
@@ -33,6 +23,16 @@ export const designSettings = {
     favicon: {
       src: '/favicon.ico'
     }
+  },
+  colors: {
+    primary: '#6C3CF6',
+    accent: '#22C55E',
+    bg: '#F6F7FB',
+    muted: '#E5E7EB',
+  },
+  typography: {
+    headline: 'Inter',
+    body: 'Inter',
   }
 };
 
@@ -208,7 +208,7 @@ export const casesIndexPage: Page<{}> = {
 
 export const contactPage: Page<{}> = {
     title: "Contact",
-    subtitle: "Let’s build something useful",
+    subtitle: "Let’s build something intelligent",
     content: {},
     seo: {
         title: "Contact — Digifly",

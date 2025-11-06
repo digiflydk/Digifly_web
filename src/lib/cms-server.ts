@@ -1,25 +1,26 @@
 
 'use server';
 import { z } from 'zod';
-import { zDesignSettings, zNavigation, zHome, CaseSchema as zCase, AboutPageSchema as zAboutPage, ServicesPageSchema as zServicesPage, CasesIndexSchema as zCasesIndexPage, ContactPageSchema as zContactPage } from '@/lib/schemas';
+import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { DesignSettings, HomePage, Navigation, CaseDoc, Page, RichTextContent } from '@/lib/types';
 import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';
 
-export async function getDesign(): Promise<DesignSettings | null> {
+export async function getDesign(): Promise<DesignSettings> {
     try {
         const db = getDb();
         const snap = await db.doc('content/design').get();
         const data = snap.exists ? snap.data() : {};
-        // Note: zDesignSettings is not used here for now as it does not match the final structure
-        return (data as DesignSettings) ?? designSettings;
+        const parsed = zDesignSettings.safeParse(data);
+        if (parsed.success) return parsed.data;
+        throw new Error('Design settings validation failed');
     } catch(e) {
         console.warn('Falling back to default design settings.', e);
         return designSettings;
     }
 }
 
-export async function getNavigation(): Promise<Navigation | null> {
+export async function getNavigation(): Promise<Navigation> {
     try {
         const db = getDb();
         const snap = await db.doc('content/navigation').get();
@@ -33,7 +34,7 @@ export async function getNavigation(): Promise<Navigation | null> {
     }
 }
 
-export async function getHomePage(): Promise<HomePage | null> {
+export async function getHomePage(): Promise<HomePage> {
     try {
         const db = getDb();
         const snap = await db.doc('content/home').get();
@@ -95,7 +96,7 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     }
 }
 
-export async function getAboutPage(): Promise<any | null> {
+export async function getAboutPage(): Promise<any> {
     try {
         const db = getDb();
         const snap = await db.doc('content/about').get();
@@ -109,7 +110,7 @@ export async function getAboutPage(): Promise<any | null> {
     }
 }
 
-export async function getServicesPage(): Promise<any | null> {
+export async function getServicesPage(): Promise<any> {
     try {
         const db = getDb();
         const snap = await db.doc('content/services').get();
@@ -123,7 +124,7 @@ export async function getServicesPage(): Promise<any | null> {
     }
 }
 
-export async function getCasesIndexPage(): Promise<any | null> {
+export async function getCasesIndexPage(): Promise<any> {
     try {
         const db = getDb();
         const snap = await db.doc('content/cases-index').get();
@@ -137,7 +138,7 @@ export async function getCasesIndexPage(): Promise<any | null> {
     }
 }
 
-export async function getContactPage(): Promise<any | null> {
+export async function getContactPage(): Promise<any> {
     try {
         const db = getDb();
         const snap = await db.doc('content/contact').get();
