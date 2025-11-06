@@ -40,7 +40,7 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
   try {
     getAdminApp();
     const db = getDb();
-    const snap = await db.collection('cms_site').doc('seo').get();
+    const snap = await db.collection('site').doc('settings').get();
     const data = snap.exists ? snap.data() : {};
     const parsed = SiteSettingsSchema.safeParse(data);
     if (!parsed.success) {
@@ -60,7 +60,7 @@ export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key
 
 export async function saveSiteSettings(data: SiteSettings) {
   const db = getDb();
-  await db.collection('cms_site').doc('seo').set(data, { merge: true });
+  await db.collection('site').doc('settings').set(data, { merge: true });
   revalidateTag(SITE_TAG);
 }
 

@@ -22,22 +22,20 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-      const res = await fetch('/api/cms/site', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const url = "/api/cms/site";
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
 
-      let data: any;
-      const raw = await res.text();
-      try {
-        data = raw ? JSON.parse(raw) : {};
-      } catch {
-        throw new Error(`API returned invalid JSON (${res.status}): ${raw.slice(0, 200)}`);
-      }
-      
+      const text = await res.text();
+      const isJson = res.headers.get("content-type")?.includes("application/json");
+      const data = isJson && text ? JSON.parse(text) : null;
+
       if (!res.ok || data?.ok === false) {
-        throw new Error(data?.error || `API returned status ${res.status}`);
+        const msg = data?.error ?? `${res.status} ${res.statusText}${!isJson && text ? ` • ${text.slice(0,200)}` : ""}`;
+        throw new Error(`Save failed (${url}): ${msg}`);
       }
       
       toast({ title: "Success", description: "Site settings saved and will be live shortly." });
