@@ -11,14 +11,13 @@ import {
     getCasesIndexPage as getCasesIndexPageData, 
     getContactPage as getContactPageData, 
     getNavigation as getNavigationData, 
-    getSiteSettings as getSiteSettingsData,
-    updateSiteSeo as updateSiteSettingsData, 
     updateNavigation as updateNavigationData, 
     updateHomepage as updateHomepageData,
     getCaseCount as getCaseCountData,
     getPageCount as getPageCountData,
     getNavigationMenuCount as getNavigationMenuCountData
 } from './cms-server';
+import { getSiteSettings as getSiteSettingsData, saveSiteSettings as updateSiteSettingsData } from './cms/site';
 import { z } from 'zod';
 import { NavigationSchema, SiteSettingsSchema } from './schemas';
 
@@ -72,7 +71,9 @@ export async function getContactPage(): Promise<Page<{}> | null> {
 }
 
 export async function getSiteSettings() {
-    return getSiteSettingsData();
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/cms/site`, { next: { tags: ['site-settings'] } });
+    const json = await res.json();
+    return json.data;
 }
 
 export async function saveSiteSettings(data: z.infer<typeof SiteSettingsSchema>) {

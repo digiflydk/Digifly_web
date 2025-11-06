@@ -24,43 +24,17 @@ import {
 } from '@/lib/cms-data';
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache } from 'next/cache';
+import { getSiteSettings as getSiteSettingsFromFile, saveSiteSettings as saveSiteSettingsToFile } from '@/lib/cms/site';
+
 
 const SITE_TAG = "site-settings";
 
-const siteDefaults: SiteSettings = {
-  siteTitle: "Digifly",
-  tagline: "Digital solutions.",
-  defaultDescription: "Digifly builds measurable digital results.",
-  logoUrl: "",
-  faviconUrl: "",
-};
-
-
-async function getSiteSettingsRaw(): Promise<SiteSettings> {
-  try {
-    getAdminApp();
-    const db = getDb();
-    const snap = await db.collection('site').doc('settings').get();
-    const data = snap.exists ? snap.data() : {};
-    const parsed = SiteSettingsSchema.safeParse(data);
-    if (!parsed.success) {
-      console.warn('Site settings validation failed, using defaults.', parsed.error);
-      return siteDefaults;
-    }
-    return { ...siteDefaults, ...parsed.data };
-  } catch (e) {
-    console.warn('Falling back to default site settings.', e);
-    return siteDefaults;
-  }
-}
-
-export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key'], {
+export const getSiteSettings = nextCache(getSiteSettingsFromFile, ['site-settings:key'], {
   tags: [SITE_TAG],
 });
 
 export async function saveSiteSettings(data: SiteSettings) {
-  const db = getDb();
-  await db.collection('site').doc('settings').set(data, { merge: true });
+  await saveSiteSettingsToFile(data);
   revalidateTag(SITE_TAG);
 }
 

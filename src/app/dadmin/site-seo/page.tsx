@@ -2,11 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getSiteSettings } from "@/lib/cms-server";
+import { getSiteSettings } from "@/lib/cms";
 import { SiteSeoForm } from "@/components/cms/forms/SiteSeoForm";
 import { SiteSettings } from "@/lib/types";
 
-// This is a server component that fetches initial data
+// This is a client component that fetches initial data on the client
 export default function SiteSeoPageWrapper() {
   const [initialData, setInitialData] = useState<SiteSettings | null>(null);
 
@@ -22,10 +22,6 @@ export default function SiteSeoPageWrapper() {
 
   return (
     <>
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold">Site &amp; SEO</h1>
-        <p className="text-sm text-slate-500">Manage global site identity and default SEO.</p>
-      </header>
       <SiteSeoForm initialData={initialData} />
     </>
   );
