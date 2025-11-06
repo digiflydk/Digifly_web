@@ -3,9 +3,9 @@
 
 # The command to build your app
 build:
-  command: "npm run cms:seed && npm run build"
+  command: "npm run build"
   # After the build, run tests. If tests fail, the deploy is canceled.
-  postbuild: "node scripts/run-tests-and-publish.js"
+  postdeploy: "npm run postdeploy"
 
 runConfig:
   # Increase this value if you'd like to automatically spin up
