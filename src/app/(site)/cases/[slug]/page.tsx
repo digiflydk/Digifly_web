@@ -56,7 +56,7 @@ export default async function CasePage({ params }: { params: Promise<Params> }) 
         <div className="aspect-[16/9] md:aspect-[2/1] max-w-5xl mx-auto my-12 overflow-hidden rounded-2xl shadow-xl">
             <MediaImage
                 src={caseDoc.cover.src}
-                alt={caseDoc.cover.alt}
+                alt={caseDoc.cover.alt ?? caseDoc.title}
                 width={1200}
                 height={600}
                 className="w-full h-full object-cover"

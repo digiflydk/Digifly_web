@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     });
   }
   return metaDefaults({
-    title: page.seo?.title ?? "About • Digifly",
+    title: page.seo?.title ?? page.title ?? "About • Digifly",
     description: page.seo?.description ?? "Learn more about Digifly.",
   });
 }
@@ -27,13 +27,10 @@ export default async function AboutPage() {
     if (!page) {
         return (
             <div className="py-16 md:py-24">
-                <Container>
-                    <SectionHeading 
-                        title="About Us"
-                        subtitle="This page is currently being updated. Please check back soon."
-                        textCenter
-                    />
-                </Container>
+              <div className="max-w-3xl mx-auto px-4">
+                <h1 className="text-2xl font-semibold mb-4">About</h1>
+                <p>Content coming soon.</p>
+              </div>
             </div>
         );
     }

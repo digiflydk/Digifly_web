@@ -10,14 +10,31 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getServicesPage();
+  if (!page) {
+    return metaDefaults({
+      title: "Services • Digifly",
+      description: "Our services.",
+    });
+  }
   return metaDefaults({
-    title: page.seo.title,
-    description: page.seo.description,
+    title: page.seo?.title ?? page.title ?? "Services • Digifly",
+    description: page.seo?.description ?? "Our services.",
   });
 }
 
 export default async function ServicesPage() {
     const page = await getServicesPage();
+
+    if (!page) {
+      return (
+        <div className="py-16 md:py-24">
+          <div className="max-w-3xl mx-auto px-4">
+            <h1 className="text-2xl font-semibold mb-4">Services</h1>
+            <p>Content coming soon.</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
         <div className="py-16 md:py-24">
