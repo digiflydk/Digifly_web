@@ -1,11 +1,12 @@
+
 'use server';
 import { z } from 'zod';
-import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/cms-schemas';
+import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { DesignSettings, HomePage, Navigation, CaseDoc, Page, RichTextContent } from '@/lib/types';
 import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';
 
-export async function getDesign(): Promise<DesignSettings> {
+export async function getDesign(): Promise<DesignSettings | null> {
     try {
         const db = getDb();
         const snap = await db.doc('content/design').get();
@@ -25,7 +26,7 @@ export async function getDesign(): Promise<DesignSettings> {
     }
 }
 
-export async function getNavigation(): Promise<Navigation> {
+export async function getNavigation(): Promise<Navigation | null> {
     try {
         const db = getDb();
         const snap = await db.doc('content/navigation').get();
@@ -39,7 +40,7 @@ export async function getNavigation(): Promise<Navigation> {
     }
 }
 
-export async function getHomePage(): Promise<HomePage> {
+export async function getHomePage(): Promise<HomePage | null> {
     try {
         const db = getDb();
         const snap = await db.doc('content/home').get();
@@ -93,15 +94,15 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
             return fallback || null;
         };
         const doc = q.docs[0];
-        const parsed = zCase.safeParse({ slug: doc.id, ...doc.data() });
-        return parsed.success ? parsed.data : null;
+        const rawData = { slug: doc.id, ...doc.data() };
+        return rawData as CaseDoc;
     } catch (e) {
         const fallback = defaultCases.find(c => c.slug === slug);
         return fallback || null;
     }
 }
 
-export async function getAboutPage(): Promise<Page<{ body: RichTextContent[] }>> {
+export async function getAboutPage(): Promise<Page<{ body: RichTextContent[] }> | null> {
     try {
         const db = getDb();
         const snap = await db.doc('content/about').get();
@@ -115,7 +116,7 @@ export async function getAboutPage(): Promise<Page<{ body: RichTextContent[] }>>
     }
 }
 
-export async function getServicesPage(): Promise<Page<{ services: any[] }>> {
+export async function getServicesPage(): Promise<Page<{ services: any[] }> | null> {
     try {
         const db = getDb();
         const snap = await db.doc('content/services').get();
@@ -129,7 +130,7 @@ export async function getServicesPage(): Promise<Page<{ services: any[] }>> {
     }
 }
 
-export async function getCasesIndexPage(): Promise<Page<{}>> {
+export async function getCasesIndexPage(): Promise<Page<{}> | null> {
     try {
         const db = getDb();
         const snap = await db.doc('content/cases-index').get();
@@ -143,7 +144,7 @@ export async function getCasesIndexPage(): Promise<Page<{}>> {
     }
 }
 
-export async function getContactPage(): Promise<Page<{}>> {
+export async function getContactPage(): Promise<Page<{}> | null> {
     try {
         const db = getDb();
         const snap = await db.doc('content/contact').get();

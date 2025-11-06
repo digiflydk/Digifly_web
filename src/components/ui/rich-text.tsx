@@ -8,6 +8,10 @@ type RichTextProps = {
 
 export function RichText({ content, className }: RichTextProps) {
     const nodes = content ?? [];
+    if (nodes.length === 0) {
+        return null;
+    }
+
     return (
         <div className={`prose prose-lg max-w-none text-foreground/90 leading-relaxed ${className}`}>
             {nodes.map((block, index) => {
@@ -34,3 +38,4 @@ export function RichText({ content, className }: RichTextProps) {
         </div>
     )
 }
+export default RichText;

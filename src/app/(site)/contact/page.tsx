@@ -4,36 +4,24 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { ContactForm } from "@/components/sections/contact-form";
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
+import { zContactPage } from "@/lib/schemas";
+import { safeStr } from "@/lib/safe";
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await getContactPage();
-  if (!page) {
-    return metaDefaults({
-      title: "Contact • Digifly",
-      description: "Get in touch.",
-    });
-  }
+  const rawPage = await getContactPage();
+  const page = zContactPage.parse(rawPage || {});
+
   return metaDefaults({
-    title: page.seo?.title ?? page.title ?? "Contact • Digifly",
-    description: page.seo?.description ?? "Get in touch.",
+    title: safeStr(page.seo?.title, page.title),
+    description: safeStr(page.seo?.description, page.subtitle),
   });
 }
 
 export default async function ContactPage() {
-    const page = await getContactPage();
-
-    if (!page) {
-        return (
-            <div className="py-16 md:py-24">
-                <div className="max-w-3xl mx-auto px-4">
-                    <h1 className="text-2xl font-semibold mb-4">Contact</h1>
-                    <p>Content coming soon.</p>
-                </div>
-            </div>
-        );
-    }
+    const rawPage = await getContactPage();
+    const page = zContactPage.parse(rawPage || {});
 
     return (
         <div className="py-16 md:py-24">

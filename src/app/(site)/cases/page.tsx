@@ -4,33 +4,24 @@ import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Container } from "@/components/layout/container";
+import { zCasesIndexPage } from "@/lib/schemas";
+import { safeStr } from "@/lib/safe";
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await getCasesIndexPage();
-  if (!page) {
-    return metaDefaults({
-      title: "Case Studies • Digifly",
-      description: "Our work in action.",
-    });
-  }
+  const rawPage = await getCasesIndexPage();
+  const page = zCasesIndexPage.parse(rawPage || {});
+
   return metaDefaults({
-    title: page.seo.title,
-    description: page.seo.description,
+    title: safeStr(page.seo.title, page.title),
+    description: safeStr(page.seo.description, page.subtitle),
   });
 }
 
 export default async function CasesPage() {
-    const page = await getCasesIndexPage();
-    
-    if (!page) {
-        return (
-            <Container className="py-16 text-center">
-                <SectionHeading title="Our Work" subtitle="Case studies are being updated. Please check back soon." />
-            </Container>
-        );
-    }
+    const rawPage = await getCasesIndexPage();
+    const page = zCasesIndexPage.parse(rawPage || {});
     
     return (
         <>

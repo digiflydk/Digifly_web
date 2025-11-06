@@ -4,36 +4,24 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { RichText } from "@/components/ui/rich-text";
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
+import { zAboutPage } from "@/lib/schemas";
+import { safeStr } from "@/lib/safe";
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await getAboutPage();
-  if (!page) {
-    return metaDefaults({
-      title: "About • Digifly",
-      description: "Learn more about Digifly.",
-    });
-  }
+  const rawPage = await getAboutPage();
+  const page = zAboutPage.parse(rawPage || {});
+  
   return metaDefaults({
-    title: page.seo?.title ?? page.title ?? "About • Digifly",
-    description: page.seo?.description ?? "Learn more about Digifly.",
+    title: safeStr(page.seo?.title, page.title),
+    description: safeStr(page.seo?.description, page.subtitle),
   });
 }
 
 export default async function AboutPage() {
-    const page = await getAboutPage();
-
-    if (!page) {
-        return (
-            <div className="py-16 md:py-24">
-              <div className="max-w-3xl mx-auto px-4">
-                <h1 className="text-2xl font-semibold mb-4">About</h1>
-                <p>Content coming soon.</p>
-              </div>
-            </div>
-        );
-    }
+    const rawPage = await getAboutPage();
+    const page = zAboutPage.parse(rawPage || {});
 
     return (
         <div className="py-16 md:py-24">

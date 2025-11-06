@@ -5,36 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
+import { zServicesPage } from "@/lib/schemas";
+import { safeStr } from "@/lib/safe";
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await getServicesPage();
-  if (!page) {
-    return metaDefaults({
-      title: "Services • Digifly",
-      description: "Our services.",
-    });
-  }
+  const rawPage = await getServicesPage();
+  const page = zServicesPage.parse(rawPage || {});
+  
   return metaDefaults({
-    title: page.seo?.title ?? page.title ?? "Services • Digifly",
-    description: page.seo?.description ?? "Our services.",
+    title: safeStr(page.seo?.title, page.title),
+    description: safeStr(page.seo?.description, page.subtitle),
   });
 }
 
 export default async function ServicesPage() {
-    const page = await getServicesPage();
-
-    if (!page) {
-      return (
-        <div className="py-16 md:py-24">
-          <div className="max-w-3xl mx-auto px-4">
-            <h1 className="text-2xl font-semibold mb-4">Services</h1>
-            <p>Content coming soon.</p>
-          </div>
-        </div>
-      );
-    }
+    const rawPage = await getServicesPage();
+    const page = zServicesPage.parse(rawPage || {});
 
     return (
         <div className="py-16 md:py-24">
