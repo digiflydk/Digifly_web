@@ -1,3 +1,4 @@
+
 import { getServicesPage } from "@/lib/cms";
 import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -34,7 +35,7 @@ export default async function ServicesPage() {
                     className="mb-12"
                 />
                 <div className="space-y-12 max-w-4xl mx-auto">
-                    {page.services.map(service => (
+                    {page.content.services.map(service => (
                         <Card key={service.title} id={service.title.toLowerCase().replace(/\s/g, '-')} className="scroll-mt-24 shadow-lg border-2">
                             <CardHeader>
                                 <CardTitle className="font-headline text-2xl">{service.title}</CardTitle>
