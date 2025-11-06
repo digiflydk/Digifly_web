@@ -1,7 +1,7 @@
 
 'use server';
 import { z } from 'zod';
-import { zDesignSettings, zNavigation, zHome, CaseSchema as zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/schemas';
+import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { DesignSettings, HomePage, Navigation, CaseDoc, Page, RichTextContent } from '@/lib/types';
 import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';
@@ -56,10 +56,11 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
         if (snap.empty) {
             return defaultCases;
         }
-        return snap.docs.map(d => {
+        const items = snap.docs.map(d => {
             const parsed = zCase.safeParse({ slug: d.id, ...d.data() });
-            return parsed.success ? parsed.data : null;
+            return parsed.success ? (parsed.data as CaseDoc) : null;
         }).filter((c): c is CaseDoc => c !== null);
+        return items;
     } catch(e) {
         console.warn('Falling back to default cases data.', e);
         return defaultCases;
