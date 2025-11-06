@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     getAdminApp(); // Ensure app is initialized
     const db = getFirestore();
     
-    await db.collection('design').doc('site').set(parsed.data, { merge: true });
+    await db.collection('site').doc('settings').set(parsed.data, { merge: true });
 
     // Invalidate cached data & key routes immediately
     revalidateTag('site-settings');
