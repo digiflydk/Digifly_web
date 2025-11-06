@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAdminApp } from '@/lib/firebase-admin';
-
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+import { NextResponse } from 'next/server';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAdminApp } from '@/lib/firebase-admin';
 
 const ok = (data: any) =>
   NextResponse.json({ ok: true, ...data }, { headers: { 'Cache-Control': 'no-store' } });
@@ -17,7 +17,7 @@ export async function GET() {
     const snap = await db.collection('config').doc('site').get();
     const site = snap.exists
       ? snap.data()
-      : { branding: { logoUrl: '', faviconUrl: '' }, seo: { defaultDescription: '' } };
+      : { siteTitle: '', tagline: '', logoUrl: '', faviconUrl: '', defaultDescription: '' };
     return ok({ site });
   } catch (e: any) {
     console.error('[GET /api/cms/site]', e);
@@ -30,7 +30,6 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => null);
     if (!body) return fail('INVALID_JSON', 400);
 
-    // Validate structure of body
     const { siteTitle, tagline, logoUrl, faviconUrl, defaultDescription } = body as any;
 
     const db = getFirestore(getAdminApp());
