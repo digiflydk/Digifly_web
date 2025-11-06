@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 const menuItems = [
   { href: "/dadmin", label: "Dashboard", icon: Home },
@@ -16,11 +17,10 @@ const menuItems = [
   { href: "/dadmin/pages", label: "Pages", icon: FileText, disabled: true },
 ];
 
-export function Sidebar() {
+function NavContent() {
   const pathname = usePathname();
-
   return (
-    <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 min-h-screen flex flex-col">
+    <>
       <div className="h-16 flex items-center px-6 border-b border-slate-200">
         <Link href="/dadmin" className="font-bold text-lg">{siteConfig.name} Admin</Link>
       </div>
@@ -33,7 +33,7 @@ export function Sidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors h-[44px]",
                     isActive
                       ? "bg-violet-50 text-violet-700"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
@@ -51,6 +51,24 @@ export function Sidebar() {
           })}
         </ul>
       </nav>
-    </aside>
+    </>
+  )
+}
+
+export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boolean, setMobileMenuOpen: (open: boolean) => void }) {
+  return (
+    <>
+        {/* Mobile */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetContent side="left" className="w-64 p-0 bg-white md:hidden">
+                <NavContent />
+            </SheetContent>
+        </Sheet>
+        
+        {/* Desktop */}
+        <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 min-h-screen flex-col hidden md:flex">
+            <NavContent />
+        </aside>
+    </>
   );
 }

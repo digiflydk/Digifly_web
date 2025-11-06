@@ -21,7 +21,7 @@ export default async function DadminPage() {
     ]);
 
     return (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard title="Case Studies" value={caseCount} href="/dadmin/cases" icon="Briefcase" cta="Manage cases" />
           <StatCard title="Pages" value={pageCount} href="/dadmin/pages" icon="Newspaper" cta="Manage pages" />
           <StatCard title="Navigation" value={menuCount} href="/dadmin/navigation" icon="Link2" cta="Manage menus" />
