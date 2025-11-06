@@ -209,7 +209,7 @@ export const casesIndexPage: Page<{}> = {
 
 export const contactPage: Page<{}> = {
     title: "Contact",
-    subtitle: "Let’s build something intelligent",
+    subtitle: "Let’s build something intelligent.",
     content: {},
     seo: {
         title: "Contact — Digifly",

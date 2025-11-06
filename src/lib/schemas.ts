@@ -11,25 +11,28 @@ export const SeoSchema = z.object({
   description: z.string().optional().default(''),
 });
 
-export const zNavLink = z.object({
+export const NavLinkSchema = z.object({
   label: z.string(),
   href: z.string().url().or(z.string().startsWith("/")),
 });
+export const zNavLink = NavLinkSchema;
 
-export const zMedia = z.object({
+export const MediaSchema = z.object({
     src: z.string().min(1).default('/og-default.jpg'),
     alt: z.string().optional(),
     hint: z.string().optional(),
 });
+export const zMedia = MediaSchema;
 
-export const zRichText = z.array(
+export const RichTextSchema = z.array(
   z.union([
     z.object({ type: z.literal('p'), text: z.string() }),
     z.object({ type: z.literal('list'), items: z.array(z.string()) }),
   ])
 ).default([]);
+export const zRichText = RichTextSchema;
 
-export const zBrand = z.object({
+export const BrandSchema = z.object({
   name: z.string().default('Digifly'),
   logo: z.object({
       src: z.string().min(1, "logo src required"),
@@ -39,9 +42,10 @@ export const zBrand = z.object({
   }).default({ src: '/logo.svg', alt: 'Digifly logo' }),
   favicon: z.object({ src: z.string().min(1).default("/favicon.ico") }).default({src: "/favicon.ico"}),
 }).default({ logo: { src: '/logo.svg' } });
+export const zBrand = BrandSchema;
 
 
-export const zDesignSettings = z.object({
+export const DesignSettingsSchema = z.object({
   brand: zBrand.optional(),
   colors: z.object({
     primary: z.string().default('#6C3CF6'),
@@ -54,19 +58,22 @@ export const zDesignSettings = z.object({
     body: z.string().default('Inter'),
   }).default({})
 });
+export const zDesignSettings = DesignSettingsSchema;
 
 
-export const zFooterNav = z.object({
+export const FooterNavSchema = z.object({
     columns: z.array(z.object({
         title: z.string(),
         links: z.array(zNavLink),
     })).default([])
 });
+export const zFooterNav = FooterNavSchema;
 
-export const zNavigation = z.object({
-  header: z.array(zNavLink).default([]),
-  footer: zFooterNav.default({ columns: [] }),
+export const NavigationSchema = z.object({
+  primary: z.array(zNavLink).default([]),
+  footer: z.array(zNavLink).default([]),
 });
+export const zNavigation = NavigationSchema;
 
 export const CaseSchema = z.object({
   slug: z.string(),
@@ -91,27 +98,42 @@ const ServiceItemSchema = z.object({
   href: z.string().default('#'),
 });
 
-export const HomeSchema = z.object({
+const zIntro = z.object({
+  tagline: z.string().optional(),
+  heading: z.string(),
+  body: z.string(),
+  image: zMedia.optional(),
+}).optional();
+
+const zServicesPreview = z.array(z.object({
+  title: z.string(),
+  bullets: z.array(z.string()),
+  href: z.string(),
+})).optional();
+
+const zFeaturedCases = z.array(z.string()).optional();
+
+const zCTA = z.object({
+  text: z.string(),
+  button: NavLinkSchema,
+}).optional();
+
+
+export const HomepageSchema = z.object({
   hero: z.object({
-    headline: z.string().min(1),
-    subcopy: z.string().optional().default(''),
-    ctaLabel: z.string().optional().default(''),
-    ctaHref: z.string().optional().default(''),
+    title: z.string().min(1),
+    subtitle: z.string().optional().default(''),
+    primaryCta: NavLinkSchema.optional(),
     image: zMedia.optional(),
   }),
-  features: z.array(z.object({
-    title: z.string().min(1),
-    text: z.string().optional().default(''),
-    icon: zMedia.optional(),
-  })).default([]),
-  clients: z.array(z.object({
-    name: z.string().min(1),
-    logo: zMedia,
-    href: z.string().optional(),
-  })).default([]),
+  intro: zIntro,
+  servicesPreview: zServicesPreview,
+  featuredCases: zFeaturedCases,
+  cta: zCTA,
   seo: SeoSchema.optional(),
 });
-export const zHome = HomeSchema;
+export const zHome = HomepageSchema;
+export const zHomepage = HomepageSchema;
 
 export const AboutPageSchema = z.object({
   title: z.string(),
@@ -171,30 +193,6 @@ export const NavItemSchema = z.object({
   external: z.boolean().optional().default(false),
   visible: z.boolean().optional().default(true),
   order: z.number().int().default(0),
-});
-
-export const NavigationSchema = z.object({
-  primary: z.array(NavItemSchema).default([]),
-  footer: z.array(NavItemSchema).default([]),
-});
-
-export const HomepageSchema = z.object({
-  hero: z.object({
-    headline: z.string().min(1),
-    subcopy: z.string().optional().default(''),
-    ctaLabel: z.string().optional().default(''),
-    ctaHref: z.string().optional().default(''),
-    image: zMedia.optional(),
-  }),
-  features: z.array(z.object({
-    title: z.string().min(1),
-    text: z.string().optional().default(''),
-  })).default([]),
-  caseSpotlight: z.string().optional(),
-  newsletter: z.object({
-    enabled: z.boolean().default(false),
-    listId: z.string().optional().default(''),
-  }).default({}),
 });
 
 

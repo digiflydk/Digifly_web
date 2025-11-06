@@ -1,11 +1,20 @@
 
 
+
 'use server';
 import { z } from 'zod';
 import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage, SiteSchema } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { DesignSettings, HomePage, Navigation, CaseDoc } from '@/lib/types';
 import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';
+
+
+const HOME_DEFAULTS: Pick<HomePage, "intro" | "servicesPreview" | "featuredCases" | "cta"> = {
+  intro: { tagline: 'Why', heading: "Who we are", body: "We help you plan, build and scale digital products." },
+  servicesPreview: [],
+  featuredCases: [],
+  cta: { text: "Ready to talk?", button: { label: "Contact us", href: "/contact"} },
+};
 
 export async function getDesign(): Promise<DesignSettings> {
     try {
@@ -41,7 +50,12 @@ export async function getHomePage(): Promise<HomePage> {
         const snap = await db.doc('content/home').get();
         const data = snap.exists ? snap.data() : {};
         const parsed = zHome.safeParse(data);
-        if (parsed.success) return parsed.data;
+        if (parsed.success) {
+            return {
+                ...HOME_DEFAULTS,
+                ...parsed.data,
+            }
+        };
         throw new Error('Homepage validation failed');
     } catch (e) {
         console.warn('Falling back to default homepage data.', e);
