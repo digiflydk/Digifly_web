@@ -28,6 +28,12 @@ async function loadSiteSettings() {
     });
 
     clearTimeout(timeoutId);
+    
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      const txt = await res.text().catch(() => '');
+      throw new Error(`API response was not valid JSON (status ${res.status}). Snippet: ${txt.slice(0,120)}`);
+    }
 
     let data: any = null;
     try {
@@ -122,12 +128,13 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
         body: JSON.stringify(values),
       });
 
-      let body: any = {};
-      try { body = await res.json(); } catch { /* ignore parsing error if body is not json */ }
+      const text = await res.text();
+      const isJson = res.headers.get("content-type")?.includes("application/json");
+      const data = isJson && text ? JSON.parse(text) : null;
 
-      if (!res.ok || !body?.ok) {
-        const msg = `Save failed (${url}): ${res.status} • ${body?.error ?? res.statusText}`;
-        throw new Error(msg);
+      if (!res.ok || data?.ok === false) {
+        const msg = data?.error ?? `${res.status} ${res.statusText}${!isJson && text ? ` • ${text.slice(0,200)}` : ""}`;
+        throw new Error(`Save failed (${url}): ${msg}`);
       }
       
       toast({ title: "Success", description: "Site settings saved." });

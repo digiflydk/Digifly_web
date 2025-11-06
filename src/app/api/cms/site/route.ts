@@ -1,4 +1,3 @@
-
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,6 +15,7 @@ function json(data: any, status = 200) {
     status,
     headers: {
       'Cache-Control': 'no-store',
+      'Content-Type': 'application/json; charset=utf-8',
     },
   });
 }
