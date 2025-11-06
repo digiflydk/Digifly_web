@@ -13,9 +13,10 @@ import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function NavItems({ control, name }: { control: any, name: "primary" | "footer" }) {
-  const { fields, append, remove, move } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name,
   });
@@ -30,7 +31,7 @@ function NavItems({ control, name }: { control: any, name: "primary" | "footer" 
             render={({ field }) => (
               <FormItem className="flex-1">
                 <FormLabel className={cn(index !== 0 && "sr-only")}>Label</FormLabel>
-                <FormControl><Input {...field} placeholder="Link Label" /></FormControl>
+                <FormControl><Input {...field} placeholder="Link Label" value={field.value ?? ''} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -41,7 +42,7 @@ function NavItems({ control, name }: { control: any, name: "primary" | "footer" 
             render={({ field }) => (
               <FormItem className="flex-1">
                 <FormLabel className={cn(index !== 0 && "sr-only")}>URL</FormLabel>
-                <FormControl><Input {...field} placeholder="/path-or-url" /></FormControl>
+                <FormControl><Input {...field} placeholder="/path-or-url" value={field.value ?? ''} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -68,7 +69,7 @@ export function NavigationForm({ data }: { data: any }) {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<z.infer<typeof NavigationSchema>>({
     resolver: zodResolver(NavigationSchema),
-    defaultValues: data || {},
+    defaultValues: data || { primary: [], footer: [] },
   });
 
   async function onSubmit(values: z.infer<typeof NavigationSchema>) {
@@ -118,6 +119,3 @@ export function NavigationForm({ data }: { data: any }) {
     </Form>
   );
 }
-
-// Minimal stub for cn
-const cn = (...args: any[]) => args.filter(Boolean).join(' ');

@@ -6,7 +6,6 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteSchema } from "@/lib/schemas";
 import { updateSiteSeo } from "@/lib/cms";
@@ -41,14 +40,14 @@ export function SiteSeoForm({ data }: { data: any }) {
             <FormField control={form.control} name="siteTitle" render={({ field }) => (
               <FormItem>
                 <FormLabel>Site Title</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
+                <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="tagline" render={({ field }) => (
               <FormItem>
                 <FormLabel>Tagline</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
+                <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -60,14 +59,14 @@ export function SiteSeoForm({ data }: { data: any }) {
             <FormField control={form.control} name="logo.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Logo URL</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
+                <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="favicon.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Favicon URL</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
+                <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />

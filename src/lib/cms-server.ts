@@ -1,6 +1,4 @@
 
-
-
 'use server';
 import { z } from 'zod';
 import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage, SiteSchema } from './schemas';
@@ -9,7 +7,7 @@ import type { DesignSettings, HomePage, Navigation, CaseDoc } from '@/lib/types'
 import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';
 
 
-const HOME_DEFAULTS: Pick<HomePage, "intro" | "servicesPreview" | "featuredCases" | "cta"> = {
+const HOME_DEFAULTS: Partial<HomePage> = {
   intro: { tagline: 'Why', heading: "Who we are", body: "We help you plan, build and scale digital products." },
   servicesPreview: [],
   featuredCases: [],
@@ -40,7 +38,7 @@ export async function getNavigation(): Promise<Navigation> {
         throw new Error('Navigation validation failed');
     } catch(e) {
         console.warn('Falling back to default navigation.', e);
-        return defaultNav;
+        return { primary: [], footer: [] };
     }
 }
 
@@ -54,7 +52,7 @@ export async function getHomePage(): Promise<HomePage> {
             return {
                 ...HOME_DEFAULTS,
                 ...parsed.data,
-            }
+            } as HomePage;
         };
         throw new Error('Homepage validation failed');
     } catch (e) {
@@ -175,9 +173,9 @@ export async function getSiteSeo() {
         const data = snap.exists ? snap.data() : {};
         const parsed = SiteSchema.safeParse(data);
         if (parsed.success) return parsed.data;
-        return null;
+        return { siteTitle: '', tagline: '', logo: { src: '' }, favicon: { src: '' } };
     } catch {
-        return null;
+        return { siteTitle: '', tagline: '', logo: { src: '' }, favicon: { src: '' } };
     }
 }
 

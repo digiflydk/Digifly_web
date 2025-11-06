@@ -12,18 +12,18 @@ import { HomepageSchema } from "@/lib/schemas";
 import { updateHomepage } from "@/lib/cms";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Switch } from "@/components/ui/switch";
+import type { HomePage } from "@/lib/types";
 
-export function HomepageForm({ data }: { data: any }) {
+export function HomepageForm({ data }: { data: HomePage }) {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<z.infer<typeof HomepageSchema>>({
     resolver: zodResolver(HomepageSchema),
-    defaultValues: data || {},
+    defaultValues: data,
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "features",
+    name: "servicesPreview",
   });
 
   async function onSubmit(values: z.infer<typeof HomepageSchema>) {
@@ -44,32 +44,21 @@ export function HomepageForm({ data }: { data: any }) {
         <Card>
           <CardHeader><CardTitle>Hero Section</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <FormField control={form.control} name="hero.headline" render={({ field }) => (
-              <FormItem><FormLabel>Headline</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+            <FormField control={form.control} name="hero.title" render={({ field }) => (
+              <FormItem><FormLabel>Headline</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
             )} />
-            <FormField control={form.control} name="hero.subcopy" render={({ field }) => (
-              <FormItem><FormLabel>Subcopy</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
+            <FormField control={form.control} name="hero.subtitle" render={({ field }) => (
+              <FormItem><FormLabel>Subcopy</FormLabel><FormControl><Textarea {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
+            )} />
+             <FormField control={form.control} name="hero.primaryCta.label" render={({ field }) => (
+              <FormItem><FormLabel>CTA Label</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
+            )} />
+             <FormField control={form.control} name="hero.primaryCta.href" render={({ field }) => (
+              <FormItem><FormLabel>CTA URL</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
             )} />
           </CardContent>
         </Card>
-        <Card>
-            <CardHeader><CardTitle>Features Section</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                {fields.map((field, index) => (
-                    <div key={field.id} className="flex gap-2 items-start">
-                        <FormField control={form.control} name={`features.${index}.title`} render={({ field }) => (
-                            <FormItem className="flex-1"><FormLabel className={index !== 0 ? 'sr-only' : ''}>Title</FormLabel><FormControl><Input {...field} placeholder="Feature Title" /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name={`features.${index}.text`} render={({ field }) => (
-                            <FormItem className="flex-1"><FormLabel className={index !== 0 ? 'sr-only' : ''}>Description</FormLabel><FormControl><Input {...field} placeholder="Feature description" /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <Button type="button" variant="outline" onClick={() => remove(index)} className="mt-8">Remove</Button>
-                    </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => append({title: '', text: ''})}>Add Feature</Button>
-            </CardContent>
-        </Card>
-
+        
         <div className="sticky bottom-0 bg-slate-50/90 py-4">
           <Button type="submit" disabled={isSaving}>
             {isSaving ? "Saving..." : "Save Homepage"}
