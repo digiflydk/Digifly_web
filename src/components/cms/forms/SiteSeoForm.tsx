@@ -22,16 +22,22 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-      const res = await fetch('/api/cms/site/seo', {
+      const res = await fetch('/api/cms/site', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
 
-      const body = await res.json();
+      let data: any;
+      const raw = await res.text();
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error(`API returned invalid JSON (${res.status}): ${raw.slice(0, 200)}`);
+      }
       
-      if (!res.ok) {
-        throw new Error(body.error || 'Failed to save settings');
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.error || `API returned status ${res.status}`);
       }
       
       toast({ title: "Success", description: "Site settings saved and will be live shortly." });

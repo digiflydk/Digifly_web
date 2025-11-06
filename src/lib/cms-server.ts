@@ -58,6 +58,12 @@ export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key
   tags: [SITE_TAG],
 });
 
+export async function saveSiteSettings(data: SiteSettings) {
+  const db = getDb();
+  await db.collection('cms_site').doc('seo').set(data, { merge: true });
+  revalidateTag(SITE_TAG);
+}
+
 
 export async function getNavigation(): Promise<Navigation> {
     try {
@@ -240,9 +246,7 @@ export async function getSiteSeo() {
 }
 
 export async function updateSiteSeo(data: z.infer<typeof SiteSettingsSchema>) {
-    const db = getDb();
-    await db.doc('cms_site/seo').set(data, { merge: true });
-    revalidateTag('site');
+    return saveSiteSettings(data);
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
@@ -261,7 +265,7 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'health') {
     return { ok: true, ts: Date.now() };
   }
-  if (path === 'design') {
+  if (path === 'site') {
     return getSiteSettings();
   }
   if (path === 'navigation') {

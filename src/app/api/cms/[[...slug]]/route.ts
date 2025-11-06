@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getCmsData } from '@/lib/cms-server';
+import { getCmsData, saveSiteSettings } from '@/lib/cms-server';
+import { z } from 'zod';
+import { SiteSettingsSchema } from '@/lib/schemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,10 +19,37 @@ export async function GET(req: NextRequest, ctx: any) {
   try {
     const data = await getCmsData(path, searchParams);
     if (data === null) {
-      return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+      return NextResponse.json({ ok: false, error: 'Not Found' }, { status: 404 });
     }
-    return NextResponse.json(data, { headers: cacheHeaders() });
+    return NextResponse.json({ ok: true, data }, { headers: cacheHeaders() });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Bad Request' }, { status: 400 });
+    return NextResponse.json({ ok: false, error: e?.message || 'Bad Request' }, { status: 400 });
   }
+}
+
+export async function POST(req: NextRequest, { params }: { params: { slug?: string[] }}) {
+  const path = (params.slug || []).join('/');
+
+  if (path === "site") {
+      let body: any;
+      try {
+        body = await req.json();
+      } catch {
+        return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+      }
+      
+      try {
+        const parsedData = SiteSettingsSchema.parse(body);
+        await saveSiteSettings(parsedData);
+        return NextResponse.json({ ok: true });
+      } catch (error: any) {
+        console.error(`[api/cms/site] Save Error:`, error);
+        if (error instanceof z.ZodError) {
+          return NextResponse.json({ ok: false, error: "Invalid data provided.", details: error.flatten() }, { status: 400 });
+        }
+        return NextResponse.json({ ok: false, error: 'Failed to save site settings.' }, { status: 500 });
+      }
+  }
+
+  return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
 }
