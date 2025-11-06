@@ -1,7 +1,7 @@
+
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
 import { getCaseCount } from "@/lib/cms";
-import AdminShell from "./_components/AdminShell";
 import { StatCard } from "./_components/StatCard";
 
 export function generateMetadata(): Metadata {
@@ -15,7 +15,6 @@ export function generateMetadata(): Metadata {
 async function getPages(opts: {limit: number}) { return { count: 4 }; }
 async function getNavigationMenuCount() { return { count: 2 }; }
 
-
 export default async function DadminPage() {
     const [{ count: caseCount }, { count: pageCount }, { count: menuCount }] = await Promise.all([
       getCaseCount(),
@@ -24,12 +23,10 @@ export default async function DadminPage() {
     ]);
 
     return (
-        <AdminShell title="Dashboard" subtitle="Overview of your site's content.">
-          <div className="grid gap-4 md:grid-cols-3">
-            <StatCard title="Case Studies" value={caseCount} href="/dadmin/cases" icon="Briefcase" cta="Manage cases" />
-            <StatCard title="Pages" value={pageCount} href="/dadmin/pages" icon="Newspaper" cta="Manage pages" />
-            <StatCard title="Navigation" value={menuCount} href="/dadmin/navigation" icon="Link2" cta="Manage menus" />
-          </div>
-        </AdminShell>
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatCard title="Case Studies" value={caseCount} href="/dadmin/cases" icon="Briefcase" cta="Manage cases" />
+          <StatCard title="Pages" value={pageCount} href="/dadmin/pages" icon="Newspaper" cta="Manage pages" />
+          <StatCard title="Navigation" value={menuCount} href="/dadmin/navigation" icon="Link2" cta="Manage menus" />
+        </div>
     );
 }

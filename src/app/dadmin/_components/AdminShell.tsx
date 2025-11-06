@@ -1,7 +1,23 @@
+
+"use client";
+
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
-export default function AdminShell({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+const titles: Record<string, { title: string; subtitle?: string }> = {
+  "/dadmin": { title: "Dashboard", subtitle: "Overview of your site's content." },
+  "/dadmin/site-seo": { title: "Site & SEO", subtitle: "Manage global site information and default SEO settings." },
+  "/dadmin/navigation": { title: "Navigation", subtitle: "Manage primary and footer menus." },
+  "/dadmin/homepage": { title: "Homepage", subtitle: "Edit the content for your site's main landing page." },
+  "/dadmin/cases": { title: "Case Studies", subtitle: "Manage your case studies." },
+  "/dadmin/pages": { title: "Pages", subtitle: "Manage your site's pages." },
+};
+
+export default function AdminShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const { title, subtitle } = titles[pathname] || { title: "Admin" };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="flex">

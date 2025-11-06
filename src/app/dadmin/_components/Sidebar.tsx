@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -26,18 +27,21 @@ export function Sidebar() {
       <nav className="flex-1 p-4">
         <ul>
           {menuItems.map(item => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href !== '/dadmin' && pathname.startsWith(item.href));
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    isActive ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50",
+                    isActive
+                      ? "bg-violet-50 text-violet-700"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                     item.disabled && "opacity-50 cursor-not-allowed"
                   )}
                   aria-disabled={item.disabled}
                   onClick={(e) => item.disabled && e.preventDefault()}
+                  aria-current={isActive ? "page" : undefined}
                 >
                   <item.icon className="h-5 w-5" />
                   {item.label}
