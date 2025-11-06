@@ -1,8 +1,9 @@
+
 export type Media = { src: string; alt?: string; hint?: string };
 
 export type Brand = {
   name?: string;
-  logo?: {
+  logo: {
     src: string;
     width?: number;
     height?: number;

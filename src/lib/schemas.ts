@@ -39,6 +39,7 @@ export const zNavLink = z.object({
 export const AboutPageSchema = PageBaseSchema.extend({
   body: RichBodySchema,
 });
+export const zAboutPage = AboutPageSchema;
 
 export const ServicesPageSchema = PageBaseSchema.extend({
   services: z.array(z.object({
@@ -48,14 +49,17 @@ export const ServicesPageSchema = PageBaseSchema.extend({
     bullets: z.array(z.string()).default([]),
   })).default([]),
 });
+export const zServicesPage = ServicesPageSchema;
 
 export const ContactPageSchema = PageBaseSchema.extend({
-  email: z.string().default("hello@digifly.dk"),
-  phone: z.string().default("+45 00 00 00 00"),
-  address: z.string().default("Copenhagen, Denmark"),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
 });
+export const zContactPage = ContactPageSchema;
 
 export const CasesIndexSchema = PageBaseSchema;
+export const zCasesIndexPage = CasesIndexSchema;
 
 export const CaseSchema = z.object({
   slug: z.string().min(1),
@@ -95,7 +99,7 @@ const NavigationItemSchema = z.object({
   label: z.string(),
   href: z.string().default("#"),
 });
-const NavigationSchema = z.object({
+export const NavigationSchema = z.object({
   header: z.array(zNavLink).default([]),
   footer: z.object({
       columns: z.array(z.object({
@@ -104,13 +108,19 @@ const NavigationSchema = z.object({
       })).default([])
   }).default({ columns: [] }),
 });
+export const zNavigation = NavigationSchema;
 
 /** NEW: Design settings schema */
-const DesignSettingsSchema = z.object({
+export const DesignSettingsSchema = z.object({
   brand: z.object({
     name: z.string().default('Digifly'),
-    logo: CoverSchema.partial().default({}),
-    favicon: z.object({ src: z.string().default("/favicon.ico") }).default({}),
+    logo: z.object({
+        src: z.string().min(1, "Logo src is required"),
+        width: z.number().optional(),
+        height: z.number().optional(),
+        alt: z.string().optional(),
+    }).default({ src: '/logo.svg' }),
+    favicon: z.object({ src: z.string().min(1).default("/favicon.ico") }).default({}),
   }).default({}),
   colors: z.object({
     primary: z.string().default('#6C3CF6'),
@@ -123,6 +133,7 @@ const DesignSettingsSchema = z.object({
     body: z.string().default('Inter'),
   }).default({})
 });
+export const zDesignSettings = DesignSettingsSchema;
 
 /** NEW: Home page schema */
 const ServiceItemSchema = z.object({
@@ -130,7 +141,7 @@ const ServiceItemSchema = z.object({
   bullets: z.array(z.string()).default([]),
   href: z.string().default('#'),
 });
-const HomePageSchema = z.object({
+export const HomePageSchema = z.object({
   hero: z.object({
     title: z.string().default('We build software, SaaS and automation that ship'),
     subtitle: z.string().default('We combine analytical strength with technology to create concrete solutions.'),
@@ -157,14 +168,8 @@ const HomePageSchema = z.object({
     description: z.string().default('Strategy, Software & Automation with AI.')
   }).default({})
 });
+export const zHome = HomePageSchema;
 
 
 /** IMPORTANT: Export under the exact names cms-server expects */
-export const zNavigation = NavigationSchema;
-export const zDesignSettings = DesignSettingsSchema;
-export const zHome = HomePageSchema;
 export const zCase = CaseSchema;
-export const zAboutPage = AboutPageSchema;
-export const zServicesPage = ServicesPageSchema;
-export const zCasesIndexPage = CasesIndexSchema;
-export const zContactPage = ContactPageSchema;
