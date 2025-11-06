@@ -11,41 +11,96 @@ import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+async function loadSiteSettings() {
+  const ctrl = new AbortController();
+  const timeoutId = setTimeout(() => ctrl.abort(), 8000); // 8-second hard timeout
+
+  try {
+    const res = await fetch('/api/cms/site', {
+      method: 'GET',
+      cache: 'no-store',
+      next: { revalidate: 0 },
+      signal: ctrl.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    let data: any = null;
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error(`Load failed: API response was not valid JSON.`);
+    }
+
+    if (!res.ok || !data?.ok) {
+      const msg = data?.error
+        ? `${res.status} • ${data.error}${data.detail ? ` • ${JSON.stringify(data.detail)}` : ''}`
+        : `${res.status} • ${res.statusText || 'Unknown error'}`;
+      throw new Error(`Load failed (/api/cms/site): ${msg}`);
+    }
+    return data.site;
+  } catch (e: any) {
+    clearTimeout(timeoutId);
+    if (e.name === 'AbortError') {
+      throw new Error(`Load failed: Request timed out after 8 seconds.`);
+    }
+    throw e; // Re-throw other errors
+  }
+}
+
 
 export default function SiteSeoPageWrapper() {
   const [initialData, setInitialData] = useState<SiteSettings | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/cms/site')
-      .then(res => res.json())
+    loadSiteSettings()
       .then(data => {
-        if (data.ok) {
-          setInitialData(data.site);
-        } else {
-          setInitialData({
-            siteTitle: 'Digifly',
-            tagline: '',
-            logoUrl: '',
-            faviconUrl: '',
-            defaultDescription: '',
-          });
-          toast({
-            title: "Error loading settings",
-            description: data.error || "Could not fetch initial site settings.",
-            variant: "destructive"
-          });
-        }
+        setInitialData(SiteSettingsSchema.parse(data || {}));
       })
+      .catch(err => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
+  if (isLoading) {
+    return (
+        <div className="space-y-8">
+            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
+        </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <Terminal className="h-4 w-4" />
+        <AlertTitle>Failed to Load Settings</AlertTitle>
+        <AlertDescription className="break-all">{error}</AlertDescription>
+      </Alert>
+    )
+  }
+
   if (!initialData) {
-    return <div>Loading form...</div>;
+      return (
+        <Alert variant="destructive">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>Could not load initial site settings. The data is missing.</AlertDescription>
+        </Alert>
+      );
   }
 
   return (
-    <>
-      <SiteSeoForm initialData={initialData} />
-    </>
+    <SiteSeoForm initialData={initialData} />
   );
 }
 
@@ -68,9 +123,7 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
       });
 
       let body: any = {};
-      try {
-        body = await res.json();
-      } catch { /* ignore parsing error if body is not json */ }
+      try { body = await res.json(); } catch { /* ignore parsing error if body is not json */ }
 
       if (!res.ok || !body?.ok) {
         const msg = `Save failed (${url}): ${res.status} • ${body?.error ?? res.statusText}`;

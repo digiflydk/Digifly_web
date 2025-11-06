@@ -1,65 +1,63 @@
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
-
-type SitePayload = {
-  siteTitle: string;
-  tagline: string;
-  logoUrl: string;
-  faviconUrl: string;
-  defaultDescription: string;
-};
+import { SiteSettingsSchema } from '@/lib/schemas';
 
 const COL = 'config';
 const DOC = 'site';
+
+function json(data: any, status = 200) {
+  return NextResponse.json(data, {
+    status,
+    headers: {
+      'Cache-Control': 'no-store',
+    },
+  });
+}
 
 export async function GET() {
   try {
     const db = getFirestore(getAdminApp());
     const snap = await db.collection(COL).doc(DOC).get();
-    const site = snap.exists
-      ? snap.data()
-      : { 
-          siteTitle: "Digifly",
-          tagline: "Strategy, Software & Automation with AI.",
-          logoUrl: "", 
-          faviconUrl: "", 
-          defaultDescription: "" 
-        };
-    return NextResponse.json({ ok: true, site });
-  } catch (error: any) {
-    console.error(`[API GET /api/cms/site]`, error);
-    return NextResponse.json({ ok: false, error: "Could not connect to database.", details: error.message }, { status: 500 });
+    
+    // Use the schema with defaults to ensure the object shape is always consistent.
+    const site = SiteSettingsSchema.parse(snap.exists ? snap.data() : {});
+    
+    return json({ ok: true, site });
+  } catch (e: any) {
+    console.error('[CMS][GET /api/cms/site] ', e?.message ?? e);
+    return json({ ok: false, error: 'SERVER_ERROR', detail: String(e?.message ?? e) }, 500);
   }
 }
 
 export async function POST(req: Request) {
-  let data: Partial<SitePayload>;
   try {
-    data = await req.json();
-  } catch {
-    return NextResponse.json({ ok: false, error: 'Invalid JSON' }, { status: 400 });
-  }
+    const body = await req.json().catch(() => null);
+    if (!body) return json({ ok: false, error: 'INVALID_JSON' }, 400);
 
-  try {
-    const db = getFirestore(getAdminApp());
-    // Ensure we only write the fields we expect.
-    const payloadToSave = {
-      siteTitle: data.siteTitle ?? "Digifly",
-      tagline: data.tagline ?? "",
-      logoUrl: data.logoUrl ?? "",
-      faviconUrl: data.faviconUrl ?? "",
-      defaultDescription: data.defaultDescription ?? "",
-      updatedAt: Date.now()
-    };
+    // Validate the incoming data against the schema
+    const parsed = SiteSettingsSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return json({ ok: false, error: 'INVALID_PAYLOAD', detail: parsed.error.flatten() }, 400);
+    }
     
-    await db.collection(COL).doc(DOC).set(payloadToSave, { merge: true });
-    return NextResponse.json({ ok: true });
-  } catch (error: any) {
-    console.error(`[API POST /api/cms/site]`, error);
-    return NextResponse.json({ ok: false, error: "Could not save to database.", details: error.message }, { status: 500 });
+    const db = getFirestore(getAdminApp());
+    await db.collection(COL).doc(DOC).set(
+      {
+        ...parsed.data,
+        updatedAt: Date.now(),
+      },
+      { merge: true },
+    );
+    return json({ ok: true });
+  } catch (e: any) {
+    console.error('[CMS][POST /api/cms/site] ', e?.message ?? e);
+    return json({ ok: false, error: 'SERVER_ERROR', detail: String(e?.message ?? e) }, 500);
   }
 }
