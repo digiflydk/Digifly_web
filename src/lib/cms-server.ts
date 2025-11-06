@@ -1,7 +1,7 @@
 
 'use server';
 import { z } from 'zod';
-import { zDesignSettings, zNavigation, zHome, zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/schemas';
+import { zDesignSettings, zNavigation, zHome, CaseSchema as zCase, zAboutPage, zServicesPage, zCasesIndexPage, zContactPage } from '@/lib/schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { DesignSettings, HomePage, Navigation, CaseDoc, Page, RichTextContent } from '@/lib/types';
 import { designSettings, navigation as defaultNav, homePage as defaultHomePage, cases as defaultCases, aboutPage as defaultAbout, servicesPage as defaultServices, casesIndexPage as defaultCasesIndex, contactPage as defaultContact } from '@/lib/cms-data';

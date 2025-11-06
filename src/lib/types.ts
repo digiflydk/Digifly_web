@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { CaseSchema } from "@/lib/schemas";
+
 
 export type Media = { src: string; alt?: string; hint?: string };
 
@@ -62,16 +65,7 @@ export type RichTextContent =
   | { type: 'p'; text: string }
   | { type: 'list'; items: string[] };
 
-export type CaseDoc = {
-  slug: string;
-  title: string;
-  summary?: string;
-  cover: Media;
-  body?: RichTextContent[];
-  metrics?: { label: string; value: string }[];
-  seo: { title: string; description: string; image?: string };
-  updatedAt?: number;
-};
+export type CaseDoc = z.infer<typeof CaseSchema>;
 
 export type Page<T> = {
   title: string;
