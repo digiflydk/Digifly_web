@@ -1,6 +1,12 @@
 
-import { z } from 'zod';
+import { z } from "zod";
 import type { RichTextContent } from './types';
+
+// tiny helper for defaults
+const makeSeo = (title: string, description: string = "") => ({
+  title,
+  description,
+});
 
 export const zNavLink = z.object({
   label: z.string(),
@@ -63,12 +69,6 @@ const SeoSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
   image: z.string().optional(),
-});
-
-// tiny helper for defaults
-const makeSeo = (title: string, description: string = "") => ({
-  title,
-  description,
 });
 
 export const zCase = z.object({
@@ -151,3 +151,13 @@ export const zContactPage = z.object({
   subtitle: z.string().default(""),
   seo: SeoSchema.default(makeSeo("Contact", "")),
 });
+
+// Re-exports to match page imports
+export { zAboutPage as AboutPageSchema };
+export { zServicesPage as ServicesPageSchema };
+export { zCasesIndexPage as CasesIndexSchema };
+export { zContactPage as ContactPageSchema };
+export { zCase as CaseSchema };
+export type CaseDoc = z.infer<typeof zCase>;
+
+export const parseCase = (data: unknown) => zCase.parse(data);
