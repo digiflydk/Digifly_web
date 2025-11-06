@@ -17,8 +17,8 @@ export default function SiteSeoPage() {
     }
 
     return (
-        <div className="mt-8">
-            <SiteSeoForm data={data} />
-        </div>
+      <>
+        <SiteSeoForm data={data} />
+      </>
     );
 }

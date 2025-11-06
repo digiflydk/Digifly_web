@@ -19,8 +19,8 @@ export default function NavigationPage() {
     }
 
     return (
-        <div className="mt-8">
-            <NavigationForm data={data} />
-        </div>
+      <>
+        <NavigationForm data={data} />
+      </>
     );
 }

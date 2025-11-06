@@ -25,7 +25,7 @@ export function Sidebar() {
         <Link href="/dadmin" className="font-bold text-lg">{siteConfig.name} Admin</Link>
       </div>
       <nav className="flex-1 p-4">
-        <ul>
+        <ul className="space-y-1">
           {menuItems.map(item => {
             const isActive = (item.href === '/dadmin' && pathname === item.href) || (item.href !== '/dadmin' && pathname.startsWith(item.href));
             return (

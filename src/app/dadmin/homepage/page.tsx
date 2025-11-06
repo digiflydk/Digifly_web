@@ -18,8 +18,8 @@ export default function HomepageAdminPage() {
     }
 
     return (
-        <div className="mt-8">
-            <HomepageForm data={data} />
-        </div>
+      <>
+        <HomepageForm data={data} />
+      </>
     );
 }

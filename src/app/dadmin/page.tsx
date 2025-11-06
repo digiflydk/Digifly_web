@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import { getCaseCount, getPageCount, getNavigationMenuCount } from "@/lib/cms-server";
 import { StatCard } from "./_components/StatCard";
 
+export const dynamic = 'force-dynamic';
+
 export function generateMetadata(): Metadata {
     return metaDefaults({
       title: 'CMS Dashboard',
