@@ -66,7 +66,9 @@ export default function Header({ nav, logo }: HeaderProps) {
           })}
         </nav>
         <div className="hidden md:flex">
-             <Button href="/contact" variant="secondary">Contact Us</Button>
+             <Button asChild variant="secondary">
+                <Link href="/contact">Contact Us</Link>
+             </Button>
         </div>
 
         <div className="md:hidden">
