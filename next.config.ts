@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 import path from "path";
 
@@ -29,6 +30,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.postimg.cc',
+        port: '',
+        pathname: '/**',
+      }
     ],
   },
   webpack: (config) => {
