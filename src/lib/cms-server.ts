@@ -25,7 +25,7 @@ import {
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache } from 'next/cache';
 
-const SITE_TAG = "site";
+const SITE_TAG = "site-settings";
 
 const siteDefaults: SiteSettings = {
   siteTitle: "Digifly",
@@ -40,7 +40,7 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
   try {
     getAdminApp();
     const db = getDb();
-    const snap = await db.collection('site').doc('settings').get();
+    const snap = await db.collection('cms_site').doc('seo').get();
     const data = snap.exists ? snap.data() : {};
     const parsed = SiteSettingsSchema.safeParse(data);
     if (!parsed.success) {
@@ -241,7 +241,7 @@ export async function getSiteSeo() {
 
 export async function updateSiteSeo(data: z.infer<typeof SiteSettingsSchema>) {
     const db = getDb();
-    await db.doc('site/settings').set(data, { merge: true });
+    await db.doc('cms_site/seo').set(data, { merge: true });
     revalidateTag('site');
 }
 
