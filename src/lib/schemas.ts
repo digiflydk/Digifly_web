@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import type { RichTextContent } from './types';
 
@@ -59,7 +60,7 @@ export const CasesIndexSchema = PageBaseSchema;
 export const CaseSchema = z.object({
   slug: z.string().min(1),
   title: z.string().default("Untitled case"),
-  summary: z.string().optional(),
+  summary: z.string().default(""),
   seo: SeoSchema.default({}),
   cover: CoverSchema.default({}),
   body: RichBodySchema,
@@ -78,6 +79,7 @@ export function parseCase(input: unknown): CaseDoc {
     return {
       slug: "unknown-case",
       title: "Untitled Case",
+      summary: "",
       seo: {},
       cover: { src: "/media/placeholder.jpg", alt: "Placeholder" },
       body: [],

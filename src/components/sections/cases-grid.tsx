@@ -1,3 +1,4 @@
+
 import { getCases } from '@/lib/cms';
 import { Container } from '@/components/layout/container';
 import { SectionHeading } from '@/components/ui/section-heading';
@@ -57,7 +58,16 @@ export default async function CasesGrid({ ids, title, subtitle, showAllLink = fa
       <SectionHeading textCenter title={title} subtitle={safeSubtitle} />
       <div className="mt-12 grid gap-8 md:grid-cols-2">
           {cases.map((caseDoc) => (
-            <CaseCard key={caseDoc.slug} item={{...caseDoc, image: caseDoc.cover}} />
+            <CaseCard
+              key={caseDoc.slug}
+              item={{
+                slug: caseDoc.slug,
+                title: caseDoc.title,
+                image: caseDoc.cover,
+                summary: caseDoc.summary ?? "",
+                metrics: caseDoc.metrics,
+              }}
+            />
           ))}
         </div>
         {showAllLink && (
