@@ -15,7 +15,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-async function loadSiteSettings() {
+async function loadSiteSettings(): Promise<SiteSettings> {
   const ctrl = new AbortController();
   const timeoutId = setTimeout(() => ctrl.abort(), 8000); // 8-second hard timeout
 

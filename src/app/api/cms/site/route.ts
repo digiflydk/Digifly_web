@@ -1,63 +1,53 @@
+import { NextResponse } from 'next/server';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAdminApp } from '@/lib/firebase-admin';
+
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-import { NextResponse } from 'next/server';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAdminApp } from '@/lib/firebase-admin';
-import { SiteSettingsSchema } from '@/lib/schemas';
-
-const COL = 'config';
-const DOC = 'site';
-
-function json(data: any, status = 200) {
-  return NextResponse.json(data, {
-    status,
-    headers: {
-      'Cache-Control': 'no-store',
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-  });
-}
+const ok = (data: any) =>
+  NextResponse.json({ ok: true, ...data }, { headers: { 'Cache-Control': 'no-store' } });
+const fail = (error: string, status = 500, detail?: any) =>
+  NextResponse.json({ ok: false, error, detail }, { status, headers: { 'Cache-Control': 'no-store' } });
 
 export async function GET() {
   try {
     const db = getFirestore(getAdminApp());
-    const snap = await db.collection(COL).doc(DOC).get();
-    
-    // Use the schema with defaults to ensure the object shape is always consistent.
-    const site = SiteSettingsSchema.parse(snap.exists ? snap.data() : {});
-    
-    return json({ ok: true, site });
+    const snap = await db.collection('config').doc('site').get();
+    const site = snap.exists
+      ? snap.data()
+      : { branding: { logoUrl: '', faviconUrl: '' }, seo: { defaultDescription: '' } };
+    return ok({ site });
   } catch (e: any) {
-    console.error('[CMS][GET /api/cms/site] ', e?.message ?? e);
-    return json({ ok: false, error: 'SERVER_ERROR', detail: String(e?.message ?? e) }, 500);
+    console.error('[GET /api/cms/site]', e);
+    return fail('SERVER_ERROR', 500, String(e?.message ?? e));
   }
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
-    if (!body) return json({ ok: false, error: 'INVALID_JSON' }, 400);
+    if (!body) return fail('INVALID_JSON', 400);
 
-    // Validate the incoming data against the schema
-    const parsed = SiteSettingsSchema.safeParse(body);
+    // Validate structure of body
+    const { siteTitle, tagline, logoUrl, faviconUrl, defaultDescription } = body as any;
 
-    if (!parsed.success) {
-      return json({ ok: false, error: 'INVALID_PAYLOAD', detail: parsed.error.flatten() }, 400);
-    }
-    
     const db = getFirestore(getAdminApp());
-    await db.collection(COL).doc(DOC).set(
+    await db.collection('config').doc('site').set(
       {
-        ...parsed.data,
+        siteTitle: siteTitle ?? '',
+        tagline: tagline ?? '',
+        logoUrl: logoUrl ?? '',
+        faviconUrl: faviconUrl ?? '',
+        defaultDescription: defaultDescription ?? '',
         updatedAt: Date.now(),
       },
-      { merge: true },
+      { merge: true }
     );
-    return json({ ok: true });
+    return ok({});
   } catch (e: any) {
-    console.error('[CMS][POST /api/cms/site] ', e?.message ?? e);
-    return json({ ok: false, error: 'SERVER_ERROR', detail: String(e?.message ?? e) }, 500);
+    console.error('[POST /api/cms/site]', e);
+    return fail('SERVER_ERROR', 500, String(e?.message ?? e));
   }
 }
