@@ -1,5 +1,5 @@
 
-import type { SiteSettings } from '@/lib/types';
+import type { SiteSettings, HomePage } from '@/lib/types';
 
 export const SITE_DEFAULTS: SiteSettings = {
   siteTitle: 'Digifly',
@@ -27,3 +27,18 @@ export const safeImage = (img?: Partial<Img> | null): Img => ({
   width: img?.width ?? undefined,
   height: img?.height ?? undefined,
 });
+
+export const defaultHomepage: HomePage = {
+  hero: { slides: [], rotationDelaySec: 5 },
+  intro: { heading: "", body: "", image: { src: "", alt: "" } },
+  servicesPreview: [],
+  featuredCases: [],
+  cta: {
+    text: "Let's build something intelligent together.",
+    button: { label: 'Book a Call', href: '/contact' }
+  },
+  seo: {
+    title: 'Digifly Homepage',
+    description: 'Default homepage description.'
+  }
+};

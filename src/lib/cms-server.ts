@@ -1,5 +1,4 @@
 
-
 'use server';
 import { z, type ZodIssue } from 'zod';
 import {
@@ -17,7 +16,6 @@ import { getDb } from '@/lib/firebase-admin';
 import type { HomePage, Navigation, CaseDoc, SiteSettings, Page } from '@/lib/types';
 import {
   navigation as defaultNav,
-  homePage as defaultHomePage,
   cases as defaultCases,
   aboutPage as defaultAbout,
   servicesPage as defaultServices,
@@ -27,7 +25,7 @@ import {
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache, unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-import { SITE_DEFAULTS, safeImage } from './defaults/siteDefaults';
+import { SITE_DEFAULTS, defaultHomepage } from './defaults/siteDefaults';
 import { normalizeHome } from './cms-normalize';
 
 
@@ -35,28 +33,14 @@ const SITE_TAG = "site-settings";
 const SITE_SETTINGS_PATH = "site/settings";
 
 function buildHomeFallback(raw: any): HomePage {
-  const heroImage = safeImage(raw?.hero?.image);
-  const introImage = safeImage(raw?.intro?.image);
-
-  const sanitized = {
-    hero: {
-      title: raw?.hero?.title || 'From Idea to Intelligent Solution',
-      subtitle: raw?.hero?.subtitle || 'Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.',
-      primaryCta: raw?.hero?.primaryCta || { label: 'Start Your Project', href: '/contact' },
-      image: heroImage,
-    },
-    intro: {
-      tagline: raw?.intro?.tagline || 'Why • How • What',
-      heading: raw?.intro?.heading || 'We turn complexity into clarity.',
-      body: raw?.intro?.body || "We combine analytical strength with deep technological expertise to create elegant, effective solutions. Our process is transparent, collaborative, and always focused on delivering measurable results for your business.",
-      image: introImage,
-    },
-    servicesPreview: raw?.servicesPreview || [],
-    featuredCases: raw?.featuredCases || [],
-    cta: raw?.cta || { text: "Let's build something intelligent together.", button: { label: "Book a Call", href: "/contact" }},
-    seo: raw?.seo || {},
-  };
-  return HomepageSchema.parse(sanitized);
+  return HomepageSchema.parse({
+    ...defaultHomepage,
+    ...(raw || {}),
+    hero: { ...defaultHomepage.hero, ...(raw?.hero || {}) },
+    intro: { ...defaultHomepage.intro, ...(raw?.intro || {}) },
+    cta: { ...defaultHomepage.cta, ...(raw?.cta || {}) },
+    seo: { ...defaultHomepage.seo, ...(raw?.seo || {}) },
+  });
 }
 
 
@@ -137,7 +121,7 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
         const snap = await db.doc(`pages/${slug}`).get();
         if (!snap.exists) {
             const fallbacks: Record<string, any> = {
-                home: defaultHomePage,
+                home: defaultHomepage,
                 about: defaultAbout,
                 services: defaultServices,
                 'cases-index': defaultCasesIndex,
@@ -160,7 +144,15 @@ type GetHomePageResult =
 export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
   const raw = await getPageBySlug('home');
   const normalized = normalizeHome(raw ?? {});
-  const parsed = HomepageSchema.safeParse(normalized);
+  
+  const merged = {
+    ...defaultHomepage,
+    ...normalized,
+    hero: { ...defaultHomepage.hero, ...(normalized?.hero || {}) },
+    intro: { ...defaultHomepage.intro, ...(normalized?.intro || {}) },
+  };
+
+  const parsed = HomepageSchema.safeParse(merged);
   
   if (parsed.success) {
     return { ok: true, data: parsed.data };
@@ -173,7 +165,8 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
     });
   }
   
-  return { ok: false, data: buildHomeFallback(raw), issues };
+  // On failure, return the merged data which is at least shape-complete
+  return { ok: false, data: buildHomeFallback(merged), issues };
 }
 
 
@@ -186,8 +179,7 @@ export async function updatePage(slug: string, data: any) {
 
 export async function getCasesServer() {
   noStore();
-  const db = getDb();
-  const snap = await db.collection('cases').get();
+  const snap = await getDb().collection('cases').get();
   const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   const parsed = rows.map(r => CaseSchema.partial().parse(r));
   return parsed;
@@ -200,8 +192,7 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
 
 export async function listCaseSlugs(): Promise<string[]> {
     try {
-        const db = getDb();
-        const snap = await db.collection('cases').select('slug').get();
+        const snap = await getDb().collection('cases').select('slug').get();
         if (snap.empty) {
             return defaultCases.map(c => c.slug);
         }
@@ -213,8 +204,7 @@ export async function listCaseSlugs(): Promise<string[]> {
 
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     try {
-        const db = getDb();
-        const snap = await db.collection('cases').where('slug', '==', slug).limit(1).get();
+        const snap = await getDb().collection('cases').where('slug', '==', slug).limit(1).get();
         if (snap.empty) {
              const fallback = defaultCases.find(c => c.slug === slug);
             return (fallback as CaseDoc) || null;
@@ -229,21 +219,19 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
 }
 
 export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
-    const db = getDb();
-    const { id, slug: newSlug, ...rest } = data; // remove id/slug from data object
-    const querySnap = await db.collection('cases').where('slug', '==', slug).limit(1).get();
+    const { id, slug: newSlug, ...rest } = data; // remove id/slug
+    const querySnap = await getDb().collection('cases').where('slug', '==', slug).limit(1).get();
     if(querySnap.empty){
         throw new Error(`Case with slug ${slug} not found`);
     }
     const docId = querySnap.docs[0].id;
-    await db.collection('cases').doc(docId).set(rest, { merge: true });
+    await getDb().collection('cases').doc(docId).set(rest, { merge: true });
     return { id: docId, slug, ...rest };
 }
 
 export async function deleteCaseServer(id: string) {
     noStore();
-    const db = getDb();
-    const ref = db.collection('cases').doc(id);
+    const ref = getDb().collection('cases').doc(id);
     const s = await ref.get();
     if (!s.exists) {
         return { ok: false, status: 404, error: "Not Found" };
@@ -255,8 +243,7 @@ export async function deleteCaseServer(id: string) {
 
 export async function getCaseCount(): Promise<{ count: number }> {
     try {
-        const db = getDb();
-        const snap = await db.collection('cases').count().get();
+        const snap = await getDb().collection('cases').count().get();
         return { count: snap.data().count };
     } catch {
         return { count: defaultCases.length };
@@ -264,8 +251,7 @@ export async function getCaseCount(): Promise<{ count: number }> {
 }
 export async function getPageCount(): Promise<{ count: number }> {
     try {
-        const db = getDb();
-        const snap = await db.collection('pages').count().get();
+        const snap = await getDb().collection('pages').count().get();
         return { count: snap.data().count };
     } catch {
         return { count: 5 }; // home, about, services, cases-index, contact
@@ -311,7 +297,8 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'pages/home') {
     const debug = searchParams?.get('debug') === '1';
     const result = await getHomePage({ debug });
-    return result;
+    // In API route, always return a JSON object, not just the data part
+    return { ...result, data: result.ok ? result.data : buildHomeFallback(result.data) };
   }
   
   if (path.startsWith('pages/')) {

@@ -1,6 +1,8 @@
 
+
 import { getHomePage } from "@/lib/cms-server";
 import { NextResponse, NextRequest } from "next/server";
+import { ZodIssue } from "zod";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,14 +18,15 @@ export async function GET(req: NextRequest) {
     const result = await getHomePage({ debug });
     
     if (!result.ok) {
-        // Even if validation fails, return sanitized data but with a 422 status
-        // so the frontend knows there's an issue.
-        return json({ ok: false, data: result.data, errors: result.issues }, 422);
+        return json({ ok: false, error: 'VALIDATION_ERROR', issues: result.issues }, 422);
     }
     
     return json({ ok: true, data: result.data });
 
   } catch (error: any) {
+     if (error?.code === "HOMEPAGE_VALIDATION_ERROR") {
+      return json({ ok: false, error: error.code, issues: error.details as ZodIssue[] }, 422);
+    }
     console.error(`[GET /api/cms/pages/home]`, error);
     return json({ ok: false, error: 'SERVER_ERROR', detail: error.message }, 500);
   }

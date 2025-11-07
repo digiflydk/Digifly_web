@@ -1,11 +1,28 @@
-import { z } from "zod";
-import { ImageUrlSchema } from './validators';
 
-// Base Schemas
+import { z } from "zod";
+import { normalizeImageSrc } from "./cms-normalize";
+
+// Reusable Schemas
 export const NavLinkSchema = z.object({
   label: z.string(),
   href: z.string(),
 });
+
+export const ImageUrlSchema = z.string()
+  .transform(v => normalizeImageSrc(v))
+  .superRefine((v, ctx) => {
+    if (!v) return; // empty is allowed
+    const hasGoodPrefix = v.startsWith('https://') || v.startsWith('/');
+    if (!hasGoodPrefix) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Must be https:// or root-relative (/...)' });
+      return;
+    }
+    const bare = v.split(/[?#]/)[0].toLowerCase();
+    const allowed = ['.png','.jpg','.jpeg','.svg','.ico','.webp'];
+    if (!allowed.some(ext => bare.endsWith(ext))) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid file extension. Allowed: png, jpg, jpeg, svg, ico, webp.' });
+    }
+  });
 
 export const MediaSchema = z.object({
     src: ImageUrlSchema.optional().default(''),
@@ -35,30 +52,6 @@ export const BrandSchema = z.object({
   }).optional().default({ src: '/favicon.ico' }),
 }).optional().default({});
 
-export const DesignSettingsSchema = z.object({
-  brand: BrandSchema.optional(),
-  colors: z.object({
-    primary: z.string().default('#6C3CF6'),
-    accent: z.string().default('#22C55E'),
-    bg: z.string().default('#F6F7FB'),
-    muted: z.string().default('#E5E7EB'),
-  }).default({}),
-  typography: z.object({
-    headline: z.string().default('Inter'),
-    body: z.string().default('Inter'),
-  }).default({})
-});
-
-export const NavigationSchema = z.object({
-  header: z.array(NavLinkSchema).default([]),
-  footer: z.object({
-      columns: z.array(z.object({
-        title: z.string(),
-        links: z.array(NavLinkSchema)
-      })).default([{ title: 'Links', links: [] }])
-  }).default({ columns: [] })
-});
-
 const PageContentSchema = z.object({
   body: RichTextSchema,
 }).default({ body: [] });
@@ -68,24 +61,17 @@ const SeoSchema = z.object({
   description: z.string().optional().default(''),
 });
 
-export const CaseSchema = z.object({
-  id: z.string().optional(),
-  slug: z.string().min(1, "Slug is required."),
-  title: z.string().min(1, "Title is required."),
-  summary: z.string().optional().default(""),
-  published: z.boolean().default(false),
-  order: z.number().optional().default(0),
-  seo: SeoSchema.optional(),
-  cover: MediaSchema,
-  content: PageContentSchema.optional(),
-  metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
-  updatedAt: z.any().optional(),
-  createdAt: z.any().optional(),
+export const HeroSlideSchema = z.object({
+  image: MediaSchema.default({ src: "", alt: "" }),
+  title: z.string().default(""),
+  subtitle: z.string().default(""),
+  ctaLabel: z.string().default(""),
+  ctaHref: z.string().default(""),
 });
 
 // Page-specific schemas
 const IntroSchema = z.object({
-  tagline: z.string().optional().default('Why • How • What'),
+  tagline: z.string().optional(),
   heading: z.string().default(''),
   body: z.string().default(''),
   image: MediaSchema.optional(),
@@ -93,13 +79,9 @@ const IntroSchema = z.object({
 
 export const HomepageSchema = z.object({
   hero: z.object({
-    title: z.string().min(1, "Hero title is required").default('From Idea to Intelligent Solution'),
-    subtitle: z.string().optional().default(''),
-    primaryCta: NavLinkSchema.optional(),
-    images: z.array(MediaSchema).max(6).default([]),
-    rotate: z.boolean().default(true),
-    delaySec: z.enum([3, 5, 8, 10, 15]).default(5),
-  }).default({ images: [], rotate: true, delaySec: 5, title: '' }),
+    slides: z.array(HeroSlideSchema).default([]),
+    rotationDelaySec: z.coerce.number().default(5),
+  }).default({ slides: [], rotationDelaySec: 5 }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({
     title: z.string(),
@@ -112,18 +94,33 @@ export const HomepageSchema = z.object({
     button: NavLinkSchema,
   }).optional(),
   seo: SeoSchema.optional(),
-})
-.transform(data => {
-  // @ts-ignore - backward compatibility for old single image
-  const oldImageSrc = data.hero?.image?.src;
-  if (oldImageSrc && (!data.hero.images || data.hero.images.length === 0)) {
-    data.hero.images = [{ src: oldImageSrc, alt: data.hero.image.alt || '' }];
-  }
-  // @ts-ignore
-  if (data.hero.image) delete data.hero.image;
-  return data;
 });
 
+// Other Schemas
+export const SiteSettingsSchema = z.object({
+  siteTitle: z.string().min(1, 'Site Title is required').default('Digifly'),
+  social: z.object({
+    tagline: z.string().optional().default('')
+  }).optional().default({}),
+  brand: BrandSchema,
+  defaultSeo: z.object({
+    description: z.preprocess(
+      (v) => (typeof v === "string" ? v.trim() : v),
+      z.string().max(160, "Description must be 160 characters or less").optional().default('')
+    ),
+    title: z.string().optional().default(''),
+  }).optional().default({})
+});
+
+export const NavigationSchema = z.object({
+  header: z.array(NavLinkSchema).default([]),
+  footer: z.object({
+      columns: z.array(z.object({
+        title: z.string(),
+        links: z.array(NavLinkSchema)
+      })).default([{ title: 'Links', links: [] }])
+  }).default({ columns: [] })
+});
 
 export const BasePageSchema = z.object({
   title: z.string(),
@@ -164,28 +161,19 @@ export const ContactPageSchema = z.object({
   seo: SeoSchema.optional(),
 });
 
-export const SiteSettingsSchema = z.object({
-  siteTitle: z.string().min(1, 'Site Title is required').default('Digifly'),
-  social: z.object({
-    tagline: z.string().optional().default('')
-  }).optional().default({}),
-  brand: BrandSchema,
-  defaultSeo: z.object({
-    description: z.preprocess(
-      (v) => (typeof v === "string" ? v.trim() : v),
-      z.string().max(160, "Description must be 160 characters or less").optional().default('')
-    ),
-    title: z.string().optional().default(''),
-  }).optional().default({})
-});
-
-export const NavItemSchema = z.object({
+export const CaseSchema = z.object({
   id: z.string().optional(),
-  label: z.string().min(1),
-  href: z.string().min(1),
-  external: z.boolean().optional().default(false),
-  visible: z.boolean().optional().default(true),
-  order: z.number().int().default(0),
+  slug: z.string().min(1, "Slug is required."),
+  title: z.string().min(1, "Title is required."),
+  summary: z.string().optional().default(""),
+  published: z.boolean().default(false),
+  order: z.number().optional().default(0),
+  seo: SeoSchema.optional(),
+  cover: MediaSchema,
+  content: PageContentSchema.optional(),
+  metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
+  updatedAt: z.any().optional(),
+  createdAt: z.any().optional(),
 });
 
 export const allSchemas = {
