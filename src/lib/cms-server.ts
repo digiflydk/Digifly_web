@@ -1,8 +1,4 @@
 
-
-
-
-
 'use server';
 import { z } from 'zod';
 import {
@@ -34,7 +30,7 @@ const SITE_TAG = "site-settings";
 
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
   const db = getDb();
-  const snap = await db.collection('content').doc('site').get();
+  const snap = await db.collection('config').doc('site').get();
   const data = snap.exists ? snap.data() : {};
   const parsed = SiteSettingsSchema.safeParse(data);
   if (!parsed.success) {
@@ -56,7 +52,7 @@ export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key
 
 export async function saveSiteSettings(data: SiteSettings) {
   const db = getDb();
-  await db.collection("content").doc("site").set(data, { merge: true });
+  await db.collection("config").doc("site").set(data, { merge: true });
   revalidateTag(SITE_TAG);
 }
 
@@ -261,9 +257,6 @@ export async function updateHomepage(data: HomePage) {
 export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'health') {
     return { ok: true, ts: Date.now() };
-  }
-  if (path === 'site') {
-    return getSiteSettings();
   }
   if (path === 'navigation') {
     return getNavigation();

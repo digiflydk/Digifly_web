@@ -17,16 +17,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 async function loadSiteSettings(): Promise<SiteSettings> {
   const ctrl = new AbortController();
-  const timeoutId = setTimeout(() => ctrl.abort(), 8000); // 8-second hard timeout
+  const timeoutId = setTimeout(() => ctrl.abort(), 8000);
 
   try {
-    const res = await fetch('/api/admin/site', {
+    const res = await fetch('/api/cms/site', {
       method: 'GET',
       cache: 'no-store',
       next: { revalidate: 0 },
       signal: ctrl.signal,
     });
-
     clearTimeout(timeoutId);
     
     const ct = res.headers.get('content-type') || '';
@@ -35,18 +34,13 @@ async function loadSiteSettings(): Promise<SiteSettings> {
       throw new Error(`API response was not valid JSON (status ${res.status}). Snippet: ${txt.slice(0,120)}`);
     }
 
-    let data: any = null;
-    try {
-      data = await res.json();
-    } catch {
-      throw new Error(`Load failed: API response was not valid JSON.`);
-    }
+    const data = await res.json();
 
     if (!res.ok || !data?.ok) {
       const msg = data?.error
         ? `${res.status} • ${data.error}${data.detail ? ` • ${JSON.stringify(data.detail)}` : ''}`
         : `${res.status} • ${res.statusText || 'Unknown error'}`;
-      throw new Error(`Load failed (/api/admin/site): ${msg}`);
+      throw new Error(`Load failed (/api/cms/site): ${msg}`);
     }
     return data.site;
   } catch (e: any) {
@@ -54,10 +48,9 @@ async function loadSiteSettings(): Promise<SiteSettings> {
     if (e.name === 'AbortError') {
       throw new Error(`Load failed: Request timed out after 8 seconds.`);
     }
-    throw e; // Re-throw other errors
+    throw e;
   }
 }
-
 
 export default function SiteSeoPageWrapper() {
   const [initialData, setInitialData] = useState<SiteSettings | null>(null);
@@ -121,7 +114,7 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-      const url = "/api/admin/site";
+      const url = "/api/cms/site";
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
