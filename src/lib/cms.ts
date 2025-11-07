@@ -20,6 +20,30 @@ import {
 import { z } from 'zod';
 import { NavigationSchema, SiteSettingsSchema, CaseSchema } from './schemas';
 
+// --- Cases: Client Helpers ---
+
+export async function getCases(params?: { published?: boolean; limit?: number }) {
+  const qp = new URLSearchParams();
+  if (params?.published !== undefined) qp.set('published', String(params.published));
+  if (params?.limit) qp.set('limit', String(params.limit));
+  const res = await fetch(`/api/cms/cases?${qp.toString()}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to load cases: ${res.status}`);
+  const json = await res.json();
+  return json.data ?? [];
+}
+
+export async function deleteCase(id: string) {
+  const res = await fetch(`/api/cms/cases/${id}`, { method: 'DELETE' });
+  if (!res.ok) {
+      const msg = await res.text().catch(() => '');
+      throw new Error(`Failed to delete case ${id}: ${res.status} ${msg}`);
+  }
+  return true;
+}
+
+
+// --- Client/Server Passthrough ---
+
 export async function getNavigation(): Promise<Navigation> {
   return await getNavigationData();
 }
@@ -34,16 +58,6 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
 
 export async function updatePage(slug: string, data: any) {
     return updatePageData(slug, data);
-}
-
-export async function getCasesClient(params?: { published?: boolean; limit?: number }): Promise<CaseDoc[]> {
-    const qp = new URLSearchParams();
-    if (params?.published !== undefined) qp.set('published', String(params.published));
-    if (params?.limit) qp.set('limit', String(params.limit));
-    const res = await fetch(`/api/cms/cases?${qp.toString()}`, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Failed to load cases: ${res.status}`);
-    const json = await res.json();
-    return json.data ?? [];
 }
 
 export async function getCaseCount(): Promise<{ count: number }> {

@@ -47,7 +47,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { slug: str
   const { slug: id } = params; // The slug is the ID in this case for client
   try {
     const result = await deleteCaseServer(id);
-    return json({ ok: result.ok }, { status: result.status });
+    if (!result.ok) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true });
   } catch (e: any) {
     return json({ ok: false, error: 'Server Error', details: e.message }, 500);
   }
