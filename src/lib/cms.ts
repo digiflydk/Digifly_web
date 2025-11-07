@@ -1,4 +1,5 @@
 
+
 "use server"
 
 import type { HomePage, CaseDoc, Page, Navigation, SiteSettings } from './types';
@@ -16,7 +17,8 @@ import {
     getNavigationMenuCount as getNavigationMenuCountData,
     getSiteSettings as getSiteSettingsData,
     saveSiteSettings as saveSiteSettingsData,
-    updateCase as updateCaseData
+    updateCase as updateCaseData,
+    deleteCase as deleteCaseData,
 } from './cms-server';
 import { z } from 'zod';
 import { NavigationSchema, SiteSettingsSchema, CaseSchema } from './schemas';
@@ -37,12 +39,16 @@ export async function updatePage(slug: string, data: any) {
     return updatePageData(slug, data);
 }
 
-export async function getCases(options?: {limit?: number}): Promise<CaseDoc[]> {
-  const params = new URLSearchParams();
-  if (options?.limit) {
-      params.set('limit', String(options.limit));
-  }
-  return await listCases(params);
+export async function getCases(params?: { published?: boolean; limit?: number }): Promise<CaseDoc[]> {
+    const qp = new URLSearchParams();
+    if (params?.published !== undefined) qp.set('published', String(params.published));
+    if (params?.limit) qp.set('limit', String(params.limit));
+    const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const url = `${base}/api/cms/cases?${qp.toString()}`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to load cases: ${res.status}`);
+    const json = await res.json();
+    return json.data ?? [];
 }
 
 export async function getCaseCount(): Promise<{ count: number }> {
@@ -66,6 +72,14 @@ export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>)
     return updateCaseData(slug, data);
 }
 
+export async function deleteCase(slug: string): Promise<void> {
+  const res = await fetch(`/api/cms/cases/${slug}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => '');
+    throw new Error(`Failed to delete case ${slug}: ${res.status} ${msg}`);
+  }
+}
+
 export async function getAboutPage(): Promise<Page<{ body: any }> | null> {
     return getPageBySlugData('about');
 }
@@ -83,11 +97,32 @@ export async function getContactPage(): Promise<Page<{}> | null> {
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-    return getSiteSettingsData();
+    const raw = await getSiteSettingsData();
+    // Re-parsing here on the client-side server action to be safe
+    const parsed = SiteSettingsSchema.safeParse(raw);
+    if (!parsed.success) {
+      console.warn("Loaded site settings were invalid. Using defaults.", parsed.error);
+      return SiteSettingsSchema.parse({});
+    }
+    return parsed.data;
 }
 
 export async function saveSiteSettings(data: z.infer<typeof SiteSettingsSchema>) {
-    return saveSiteSettingsData(data);
+    const res = await fetch('/api/cms/site', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({ error: { message: "Unknown error" } }));
+        throw new Error(errorBody?.error?.message || `Save failed with status ${res.status}`);
+    }
+    const result = await res.json();
+    if (!result.ok) {
+        throw new Error(result.error.message || "Save failed.");
+    }
+    return result.data;
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {

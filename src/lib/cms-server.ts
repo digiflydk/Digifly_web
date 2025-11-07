@@ -1,4 +1,5 @@
 
+
 'use server';
 import { z, type ZodIssue } from 'zod';
 import {
@@ -27,11 +28,37 @@ import {
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-import { SITE_DEFAULTS } from './defaults/siteDefaults';
-import { normalizeHome } from './cms-normalize';
+import { SITE_DEFAULTS, safeImage } from './defaults/siteDefaults';
+import { normalizeImageSrc } from './cms-normalize';
 
 const SITE_TAG = "site-settings";
 const SITE_SETTINGS_PATH = "site/settings";
+
+function buildHomeFallback(raw: any): HomePage {
+  const heroImage = safeImage(raw?.hero?.image);
+  const introImage = safeImage(raw?.intro?.image);
+
+  const sanitized = {
+    hero: {
+      title: raw?.hero?.title || 'From Idea to Intelligent Solution',
+      subtitle: raw?.hero?.subtitle || 'Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.',
+      primaryCta: raw?.hero?.primaryCta || { label: 'Start Your Project', href: '/contact' },
+      image: heroImage,
+    },
+    intro: {
+      tagline: raw?.intro?.tagline || 'Why • How • What',
+      heading: raw?.intro?.heading || 'We turn complexity into clarity.',
+      body: raw?.intro?.body || "We combine analytical strength with deep technological expertise to create elegant, effective solutions. Our process is transparent, collaborative, and always focused on delivering measurable results for your business.",
+      image: introImage,
+    },
+    servicesPreview: raw?.servicesPreview || [],
+    featuredCases: raw?.featuredCases || [],
+    cta: raw?.cta || { text: "Let's build something intelligent together.", button: { label: "Book a Call", href: "/contact" }},
+    seo: raw?.seo || {},
+  };
+  return HomepageSchema.parse(sanitized);
+}
+
 
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
   try {
@@ -132,31 +159,19 @@ type GetHomePageResult =
   | { ok: true; data: HomePage; issues?: undefined }
   | { ok: false; data: HomePage; issues: ZodIssue[] };
 
-function buildHomeFallback(raw: any): HomePage {
-  const heroImage = { src: normalizeImageSrc(raw?.hero?.image?.src), alt: raw?.hero?.image?.alt ?? ''};
-  const introImage = { src: normalizeImageSrc(raw?.intro?.image?.src), alt: raw?.intro?.image?.alt ?? ''};
 
-  const sanitized = {
+function normalizeHome(doc: any) {
+  return {
+    ...doc,
     hero: {
-      title: raw?.hero?.title || 'From Idea to Intelligent Solution',
-      subtitle: raw?.hero?.subtitle || 'Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.',
-      primaryCta: raw?.hero?.primaryCta || { label: 'Start Your Project', href: '/contact' },
-      image: heroImage,
+      ...doc?.hero,
+      image: { ...(doc?.hero?.image ?? {}), src: normalizeImageSrc(doc?.hero?.image?.src) },
     },
     intro: {
-      tagline: raw?.intro?.tagline || 'Why • How • What',
-      heading: raw?.intro?.heading || 'We turn complexity into clarity.',
-      body: raw?.intro?.body || "We combine analytical strength with deep technological expertise to create elegant, effective solutions. Our process is transparent, collaborative, and always focused on delivering measurable results for your business.",
-      image: introImage,
+      ...doc?.intro,
+      image: { ...(doc?.intro?.image ?? {}), src: normalizeImageSrc(doc?.intro?.image?.src) },
     },
-    servicesPreview: raw?.servicesPreview || [],
-    featuredCases: raw?.featuredCases || [],
-    cta: raw?.cta || { text: "Let's build something intelligent together.", button: { label: "Book a Call", href: "/contact" }},
-    seo: raw?.seo || {},
   };
-  
-  // This final parse ensures the fallback itself conforms to the schema, preventing downstream errors.
-  return HomepageSchema.parse(sanitized);
 }
 
 export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
@@ -170,12 +185,11 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
   
   const issues = zodErrorToIssues(parsed.error);
   if (process.env.NODE_ENV !== 'production' || options.debug) {
-    console.error("[cms-server] Homepage validation failed. Returning sanitized fallback.", {
+    console.warn("[cms-server] Homepage validation failed. Returning sanitized fallback.", {
       issues,
     });
   }
   
-  // Always return a structurally-sound object, even on failure
   return { ok: false, data: buildHomeFallback(raw), issues };
 }
 
@@ -196,7 +210,7 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
             return defaultCases as CaseDoc[];
         }
         const items = snap.docs.map(d => {
-            const parsed = CaseSchema.safeParse({ slug: d.id, ...d.data() });
+            const parsed = CaseSchema.safeParse({ id: d.id, slug: d.data().slug, ...d.data() });
             return parsed.success ? (parsed.data as CaseDoc) : null;
         }).filter((c): c is CaseDoc => c !== null);
         return items;
@@ -209,11 +223,11 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
 export async function listCaseSlugs(): Promise<string[]> {
     try {
         const db = getDb();
-        const snap = await db.collection('cases').select().get();
+        const snap = await db.collection('cases').select('slug').get();
         if (snap.empty) {
             return defaultCases.map(c => c.slug);
         }
-        return snap.docs.map(d => d.id).filter(Boolean);
+        return snap.docs.map(d => d.data().slug).filter(Boolean);
     } catch (e) {
         return [];
     }
@@ -222,12 +236,13 @@ export async function listCaseSlugs(): Promise<string[]> {
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     try {
         const db = getDb();
-        const doc = await db.collection('cases').doc(slug).get();
-        if (!doc.exists) {
+        const snap = await db.collection('cases').where('slug', '==', slug).limit(1).get();
+        if (snap.empty) {
              const fallback = defaultCases.find(c => c.slug === slug);
             return (fallback as CaseDoc) || null;
         }
-        const rawData = { slug: doc.id, ...doc.data() };
+        const doc = snap.docs[0];
+        const rawData = { id: doc.id, slug, ...doc.data() };
         return rawData as CaseDoc;
     } catch (e) {
         const fallback = defaultCases.find(c => c.slug === slug);
@@ -237,10 +252,25 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
 
 export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
     const db = getDb();
-    const { slug: _slug, ...rest } = data; // remove slug from data object
-    await db.collection('cases').doc(slug).set(rest, { merge: true });
-    return { slug, ...rest };
+    const { id, slug: newSlug, ...rest } = data; // remove id/slug from data object
+    const querySnap = await db.collection('cases').where('slug', '==', slug).limit(1).get();
+    if(querySnap.empty){
+        throw new Error(`Case with slug ${slug} not found`);
+    }
+    const docId = querySnap.docs[0].id;
+    await db.collection('cases').doc(docId).set(rest, { merge: true });
+    return { id: docId, slug, ...rest };
 }
+
+export async function deleteCase(slug: string): Promise<void> {
+    const db = getDb();
+    const querySnap = await db.collection('cases').where('slug', '==', slug).limit(1).get();
+    if (querySnap.empty) {
+      throw new Error(`Case with slug ${slug} not found.`);
+    }
+    const docId = querySnap.docs[0].id;
+    await db.collection('cases').doc(docId).delete();
+  }
 
 export async function getCaseCount(): Promise<{ count: number }> {
     try {
@@ -265,19 +295,19 @@ export async function getNavigationMenuCount(): Promise<{ count: number }> {
 }
 
 export async function getAboutPage(): Promise<any> {
-    return getPageBySlug('about');
+    return getPageBySlugData('about');
 }
 
 export async function getServicesPage(): Promise<any> {
-    return getPageBySlug('services');
+    return getPageBySlugData('services');
 }
 
 export async function getCasesIndexPage(): Promise<any> {
-    return getPageBySlug('cases-index');
+    return getPageBySlugData('cases-index');
 }
 
 export async function getContactPage(): Promise<any> {
-    return getPageBySlug('contact');
+    return getPageBySlugData('contact');
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {

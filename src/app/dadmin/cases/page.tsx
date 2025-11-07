@@ -1,4 +1,5 @@
 
+
 "use client";
 import { useEffect, useState } from "react";
 import { getCases, deleteCase } from "@/lib/cms";
@@ -26,13 +27,19 @@ export default function CasesListPage() {
   }, []);
 
   const handleDelete = async () => {
-    if (!deleteCandidate?.id) return;
+    if (!deleteCandidate?.slug) return;
+    const originalCases = cases;
+    
+    // Optimistic update
+    setCases(currentCases => currentCases.filter(c => c.slug !== deleteCandidate.slug));
+    
     try {
-      await deleteCase(deleteCandidate.id);
-      setCases(cases.filter(c => c.id !== deleteCandidate.id));
+      await deleteCase(deleteCandidate.slug);
       toast({ title: "Success", description: "Case study deleted." });
-    } catch (e) {
-      toast({ title: "Error", description: "Could not delete case study.", variant: "destructive" });
+    } catch (e: any) {
+      // Rollback on error
+      setCases(originalCases);
+      toast({ title: "Error", description: e.message || "Could not delete case study.", variant: "destructive" });
     } finally {
       setDeleteCandidate(null);
     }

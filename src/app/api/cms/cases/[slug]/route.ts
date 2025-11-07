@@ -1,6 +1,7 @@
 
+
 import { NextRequest, NextResponse } from "next/server";
-import { getCaseBySlug, updateCase } from "@/lib/cms-server";
+import { getCaseBySlug, updateCase, deleteCase } from "@/lib/cms-server";
 import { CaseSchema } from "@/lib/schemas";
 
 export const runtime = 'nodejs';
@@ -39,4 +40,17 @@ export async function PUT(req: NextRequest, { params }: { params: { slug: string
         }
         return json({ ok: false, error: 'Server Error', details: e.message }, 500);
     }
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: { slug: string } }) {
+  const { slug } = params;
+  try {
+    await deleteCase(slug);
+    return json({ ok: true });
+  } catch (e: any) {
+    if (e.message.includes('not found')) {
+      return json({ ok: false, error: 'Not found' }, 404);
+    }
+    return json({ ok: false, error: 'Server Error', details: e.message }, 500);
+  }
 }
