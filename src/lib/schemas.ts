@@ -96,8 +96,8 @@ export const HomepageSchema = z.object({
     title: z.string().min(1, "Hero title is required"),
     subtitle: z.string().optional().default(''),
     primaryCta: NavLinkSchema.optional(),
-    image: MediaSchema.optional(),
-  }).default({ title: 'Default Hero Title' }),
+    image: MediaSchema,
+  }).default({ title: 'Default Hero Title', image: { src: '' } }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({
     title: z.string(),

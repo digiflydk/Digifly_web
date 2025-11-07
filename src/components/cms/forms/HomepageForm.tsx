@@ -56,6 +56,12 @@ export function HomepageForm({ data }: { data: HomePage }) {
              <FormField control={form.control} name="hero.primaryCta.href" render={({ field }) => (
               <FormItem><FormLabel>CTA URL</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
             )} />
+            <FormField control={form.control} name="hero.image.src" render={({ field }) => (
+              <FormItem><FormLabel>Hero Image URL</FormLabel><FormControl><Input {...field} value={field.value ?? ""} placeholder="e.g., /hero.jpg or https://..." /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={form.control} name="hero.image.alt" render={({ field }) => (
+                <FormItem><FormLabel>Hero Image Alt Text</FormLabel><FormControl><Input {...field} value={field.value ?? ""} placeholder="A descriptive caption for the image" /></FormControl><FormMessage /></FormItem>
+            )} />
           </CardContent>
         </Card>
         
