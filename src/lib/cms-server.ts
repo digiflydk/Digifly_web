@@ -25,7 +25,7 @@ import {
 } from '@/lib/cms-data';
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache } from 'next/cache';
-import { zodErrorToIssues, safeImageSrc } from './zod-helpers';
+import { zodErrorToIssues } from './zod-helpers';
 
 
 const SITE_TAG = "site-settings";
@@ -35,7 +35,7 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
   try {
     const db = getDb();
     const settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
-    let data = settingsSnap.exists ? settingsSnap.data() : {};
+    const data = settingsSnap.exists ? settingsSnap.data() : {};
     
     // This will use Zod's defaults to fill in any missing nested objects.
     const parsed = SiteSettingsSchema.safeParse(data || {});
@@ -119,11 +119,11 @@ function buildHomeFallback(raw: any): HomePage {
   sanitized.hero.title = raw?.hero?.title || 'Welcome';
   sanitized.hero.subtitle = raw?.hero?.subtitle || '';
   
-  if (raw?.hero?.image?.src && safeImageSrc.safeParse(raw.hero.image.src).success) {
+  if (raw?.hero?.image?.src) {
     sanitized.hero.image = { src: raw.hero.image.src, alt: raw.hero.image.alt || '' };
   }
   
-  if (raw?.intro?.image?.src && safeImageSrc.safeParse(raw.intro.image.src).success) {
+  if (raw?.intro?.image?.src) {
     sanitized.intro!.image = { src: raw.intro.image.src, alt: raw.intro.image.alt || '' };
   }
 
@@ -140,8 +140,8 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
   }
   
   const issues = zodErrorToIssues(parsed.error);
-  if (options.debug) {
-    console.error("[Home Validation Failed]", {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn("[cms-server] Homepage validation failed. Returning sanitized fallback.", {
       keys: Object.keys(data || {}),
       issues: issues,
     });
@@ -271,7 +271,7 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'pages/home') {
     const debug = searchParams?.get('debug') === '1';
     const result = await getHomePage({ debug });
-    return { ...result, status: result.ok ? 200 : 422 };
+    return result;
   }
   
   if (path.startsWith('pages/')) {

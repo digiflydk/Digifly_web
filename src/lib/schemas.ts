@@ -1,6 +1,6 @@
 
 import { z } from "zod";
-import { safeImageSrc } from './zod-helpers';
+import { ImageUrlSchema } from './validators';
 
 // Base Schemas
 export const NavLinkSchema = z.object({
@@ -9,7 +9,7 @@ export const NavLinkSchema = z.object({
 });
 
 export const MediaSchema = z.object({
-    src: safeImageSrc,
+    src: ImageUrlSchema,
     alt: z.string().optional().default(''),
     hint: z.string().optional(),
 }).default({ src: '', alt: '' });
@@ -24,13 +24,13 @@ export const RichTextSchema = z.array(
 export const BrandSchema = z.object({
   name: z.string().optional().default('Digifly'),
   logo: z.object({
-      src: safeImageSrc,
+      src: ImageUrlSchema,
       width: z.number().optional(),
       height: z.number().optional(),
       alt: z.string().optional().default('Digifly Logo'),
   }).optional().default({ src: '' }),
   favicon: z.object({ 
-    src: safeImageSrc,
+    src: ImageUrlSchema,
   }).optional().default({ src: '' }),
 }).optional().default({});
 
