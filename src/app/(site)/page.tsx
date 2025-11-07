@@ -1,4 +1,4 @@
-import { getHomePage } from '@/lib/cms';
+import { getHomePage, getSiteSettings } from '@/lib/cms';
 import Hero from '@/components/sections/hero';
 import ServicesOverview from '@/components/sections/services-overview';
 import CasesGrid from '@/components/sections/cases-grid';
@@ -8,18 +8,18 @@ import { metaDefaults } from '@/lib/seo';
 import type { Metadata } from 'next';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
+import { safeStr } from '@/lib/safe';
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getHomePage();
-  if (!page?.seo) {
-    return metaDefaults({
-      title: "Home",
-      description: "Homepage for Digifly"
-    });
-  }
+  const site = await getSiteSettings();
+
+  const seoTitle = safeStr(page.seo?.title, safeStr(site.defaultSeo?.description, site.siteTitle));
+  const seoDesc = safeStr(page.seo?.description, site.defaultSeo?.description);
+  
   return metaDefaults({
-    title: page.seo.title,
-    description: page.seo.description,
+    title: seoTitle,
+    description: seoDesc,
   });
 }
 
@@ -46,7 +46,9 @@ export default async function HomePage() {
         subtitle="See how we translate complex problems into elegant, effective solutions."
         showAllLink
       />
-      <CtaBanner text={page.cta.text} button={page.cta.button} />
+      {page.cta && (
+        <CtaBanner text={page.cta.text} button={page.cta.button} />
+      )}
     </>
   );
 }

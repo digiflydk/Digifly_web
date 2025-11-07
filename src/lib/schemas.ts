@@ -17,9 +17,11 @@ export const urlOrEmpty = z.union([z.string().url(), z.literal("")]);
 
 const imageUrlRegex = /\.(png|jpg|jpeg|svg|ico)$/i;
 
+// A valid image URL can be a full URL or a relative path starting with /
 const validImageUrl = z.string()
-  .url("Invalid URL")
-  .refine((v) => imageUrlRegex.test(v), "URL must end in .png, .jpg, .svg, or .ico");
+  .refine((v) => v.startsWith('http') || v.startsWith('/'), "Must be a valid URL or a relative path starting with /")
+  .refine((v) => v === '' || imageUrlRegex.test(v), "URL must end in .png, .jpg, .svg, or .ico, or be empty.");
+
 
 // Base Schemas
 export const NavLinkSchema = z.object({
@@ -176,15 +178,11 @@ export const SiteSettingsSchema = z.object({
   }).default({}),
   brand: z.object({
     logo: z.object({
-      src: z.string().url("Invalid URL format").refine((v) => v === '' || imageUrlRegex.test(v), {
-        message: "Logo must be a PNG, JPG, SVG, or ICO file, or be empty.",
-      }).default('/logo.svg'),
+      src: validImageUrl.default('/logo.svg'),
       alt: z.string().optional().default('Site Logo'),
     }).default({ src: '/logo.svg', alt: 'Site Logo'}),
     favicon: z.object({
-      src: z.string().url("Invalid URL format").refine((v) => v === '' || imageUrlRegex.test(v), {
-        message: "Favicon must be a PNG, JPG, SVG, or ICO file, or be empty.",
-      }).default('/favicon.ico'),
+      src: validImageUrl.default('/favicon.ico'),
     }).default({ src: '/favicon.ico'}),
   }).default(),
   defaultSeo: z.object({

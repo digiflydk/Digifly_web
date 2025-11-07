@@ -27,18 +27,40 @@ import { unstable_cache as nextCache } from 'next/cache';
 
 
 const SITE_TAG = "site-settings";
-const SITE_DOC_PATH = "site/settings";
+const SITE_SETTINGS_PATH = "site/settings";
+const SITE_CONFIG_PATH = "site/config"; // Legacy
 
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
   try {
     const db = getDb();
-    const snap = await db.doc(SITE_DOC_PATH).get();
-    const data = snap.exists ? snap.data() : {};
-    // Ensure we always return a fully-formed object with defaults
+    let settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
+    let data = settingsSnap.exists ? settingsSnap.data() : {};
+
+    // One-time migration logic
+    if (!settingsSnap.exists) {
+        const configSnap = await db.doc(SITE_CONFIG_PATH).get();
+        if (configSnap.exists) {
+            console.log(`[CMS] Migrating legacy 'site/config' to 'site/settings'.`);
+            const legacyData = configSnap.data() as any;
+            const migratedData = {
+                siteTitle: legacyData.siteTitle,
+                social: { tagline: legacyData.tagline },
+                brand: {
+                    logo: { src: legacyData.logoUrl, alt: 'Site Logo' },
+                    favicon: { src: legacyData.faviconUrl },
+                },
+                defaultSeo: { description: legacyData.defaultDescription },
+            };
+            const parsed = SiteSettingsSchema.parse(migratedData);
+            await db.doc(SITE_SETTINGS_PATH).set(parsed);
+            console.log(`[CMS] Migration complete. You can now delete 'site/config'.`);
+            return parsed;
+        }
+    }
+    
     return SiteSettingsSchema.parse(data || {});
   } catch (e) {
     console.error("[getSiteSettingsRaw] Failed to fetch or parse site settings, returning defaults.", e);
-    // Return a valid, default-parsed object in case of any error
     return SiteSettingsSchema.parse({});
   }
 }
@@ -50,10 +72,9 @@ export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key
 export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const parsedData = SiteSettingsSchema.parse(data);
   const db = getDb();
-  await db.doc(SITE_DOC_PATH).set(parsedData, { merge: true });
+  await db.doc(SITE_SETTINGS_PATH).set(parsedData, { merge: true });
   revalidateTag(SITE_TAG);
-  // Re-fetch to return the saved (and potentially merged) data
-  const snap = await db.doc(SITE_DOC_PATH).get();
+  const snap = await db.doc(SITE_SETTINGS_PATH).get();
   return SiteSettingsSchema.parse(snap.data() || {});
 }
 
@@ -64,9 +85,10 @@ export async function getNavigation(): Promise<Navigation> {
         const footerSnap = await db.doc('navigation/footer').get();
         
         const mainData = mainSnap.exists ? mainSnap.data() : {};
-        const footerData = footerSnap.exists ? footerData.data() : {};
+        const footerData = footerSnap.exists ? footerSnap.data() : {};
 
         const header = NavigationSchema.shape.header.parse(mainData?.items || []);
+        
         const footerLinks = (footerData?.items || []).map((item: any) => ({
           label: item.label,
           href: item.href,

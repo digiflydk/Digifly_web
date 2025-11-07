@@ -16,7 +16,8 @@ import {
     getCaseCount as getCaseCountData,
     getPageCount as getPageCountData,
     getNavigationMenuCount as getNavigationMenuCountData,
-    getSiteSettings as getSiteSettingsData
+    getSiteSettings as getSiteSettingsData,
+    saveSiteSettings as saveSiteSettingsData
 } from './cms-server';
 import { z } from 'zod';
 import { NavigationSchema, SiteSettingsSchema } from './schemas';
@@ -70,21 +71,12 @@ export async function getContactPage(): Promise<Page<{}> | null> {
     return getContactPageData();
 }
 
-export async function getSiteSettings() {
+export async function getSiteSettings(): Promise<SiteSettings> {
     return getSiteSettingsData();
 }
 
 export async function saveSiteSettings(data: z.infer<typeof SiteSettingsSchema>) {
-    // This is now handled by the API route
-    const res = await fetch('/api/cms/site', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-        throw new Error('Failed to save site settings');
-    }
-    return res.json();
+    return saveSiteSettingsData(data);
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {

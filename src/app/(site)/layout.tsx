@@ -8,6 +8,7 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // These functions are now hardened to return non-null values with defaults.
   const [navigation, site] = await Promise.all([getNavigation(), getSiteSettings()]);
 
   return (
