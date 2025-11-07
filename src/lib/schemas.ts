@@ -73,6 +73,7 @@ export const HeroSlideSchema = z.object({
   visible: z.boolean().default(true),
 });
 
+const AllowedDelays = [3, 5, 8, 10, 15] as const;
 
 // Page-specific schemas
 const IntroSchema = z.object({
@@ -85,7 +86,11 @@ const IntroSchema = z.object({
 export const HomepageSchema = z.object({
   hero: z.object({
     slides: z.array(HeroSlideSchema).default([]),
-    rotationDelaySec: z.enum(['3', '5', '8', '10', '15']).transform(Number).default(5),
+    rotationDelaySec: z.coerce.number()
+      .refine(v => (AllowedDelays as readonly number[]).includes(v), {
+        message: "Must be one of 3, 5, 8, 10, 15",
+      })
+      .default(5),
   }).default({ slides: [], rotationDelaySec: 5 }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({
