@@ -31,20 +31,23 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 }
 
-const DevErrorDisplay = ({ issues }: { issues: ZodIssue[] }) => (
-    <div className="fixed bottom-4 right-4 max-w-md w-full z-50">
-        <Alert variant="destructive">
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>Homepage Validation Error (Dev only)</AlertTitle>
-            <AlertDescription>
-                <p>The content from the CMS is invalid. Page is rendering with safe fallbacks.</p>
-                <pre className="mt-2 text-xs bg-black/10 p-2 rounded-md overflow-auto max-h-40">
-                    {JSON.stringify(issues, null, 2)}
-                </pre>
-            </AlertDescription>
-        </Alert>
-    </div>
-);
+const DevErrorDisplay = ({ issues }: { issues: ZodIssue[] }) => {
+    if (issues.length === 0) return null;
+    return (
+        <div className="fixed bottom-4 right-4 max-w-md w-full z-50">
+            <Alert variant="destructive">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>Homepage Validation Error (Dev only)</AlertTitle>
+                <AlertDescription>
+                    <p>The content from the CMS is invalid. Page is rendering with safe fallbacks.</p>
+                    <pre className="mt-2 text-xs bg-black/10 p-2 rounded-md overflow-auto max-h-40">
+                        {JSON.stringify(issues, null, 2)}
+                    </pre>
+                </AlertDescription>
+            </Alert>
+        </div>
+    );
+};
 
 export default async function HomePage() {
   const result = await getHomePage();
@@ -64,7 +67,7 @@ export default async function HomePage() {
 
   return (
     <>
-      {!result.ok && process.env.NODE_ENV === 'development' && result.issues.length > 0 && (
+      {!result.ok && process.env.NODE_ENV === 'development' && (
           <DevErrorDisplay issues={result.issues} />
       )}
       <Hero data={page.hero} />

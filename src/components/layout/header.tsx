@@ -6,16 +6,17 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import React, { useEffect, useState } from "react";
-import { NavLink } from "@/lib/types";
+import type { NavLink } from "@/lib/types";
+import type { Brand } from "@/lib/types";
 import Image from "next/image";
 
 type HeaderProps = {
   nav?: NavLink[];
-  logoUrl?: string | null;
+  logo?: Brand['logo'];
   siteTitle?: string | null;
 };
 
-export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
+export default function Header({ nav, logo, siteTitle }: HeaderProps) {
   const [path, setPath] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -28,7 +29,7 @@ export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
     { label: 'Contact', href: '/contact' },
   ] : [{ label: 'Contact', href: '/contact' }];
 
-  const finalLogoUrl = logoUrl || "/logo.svg";
+  const finalLogoUrl = logo?.src || "";
   const finalSiteTitle = siteTitle || siteConfig.name;
 
   return (
@@ -43,9 +44,9 @@ export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
             {finalLogoUrl ? (
               <Image
                 src={finalLogoUrl}
-                alt={finalSiteTitle}
-                width={140}
-                height={28}
+                alt={logo?.alt || finalSiteTitle}
+                width={logo?.width || 140}
+                height={logo?.height || 28}
                 priority
                 className="h-7 w-auto object-contain"
               />

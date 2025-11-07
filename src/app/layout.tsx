@@ -7,17 +7,22 @@ import { siteConfig } from '@/config/site';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
 import { getSiteSettings } from "@/lib/cms-server";
 import { buildSiteMetadata } from '@/lib/seo';
+import { SITE_DEFAULTS } from '@/lib/defaults/siteDefaults';
 
 export async function generateMetadata(): Promise<Metadata> {
+  // buildSiteMetadata is now null-safe thanks to getSiteSettings' resilience
   return await buildSiteMetadata();
 }
 
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const site = await getSiteSettings();
+  const faviconSrc = site.brand?.favicon?.src || SITE_DEFAULTS.brand.favicon.src;
+
   return (
     <html lang="en" className="overflow-x-hidden" suppressHydrationWarning>
       <head>
@@ -27,6 +32,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {faviconSrc && <link rel="icon" href={faviconSrc} sizes="any" />}
         {process.env.NEXT_PUBLIC_GA_ID ? (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}></script>

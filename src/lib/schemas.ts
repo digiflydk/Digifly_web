@@ -9,7 +9,7 @@ export const NavLinkSchema = z.object({
 });
 
 export const MediaSchema = z.object({
-    src: ImageUrlSchema,
+    src: ImageUrlSchema.optional().default(''),
     alt: z.string().optional().default(''),
     hint: z.string().optional(),
 }).default({ src: '', alt: '' });
@@ -24,14 +24,14 @@ export const RichTextSchema = z.array(
 export const BrandSchema = z.object({
   name: z.string().optional().default('Digifly'),
   logo: z.object({
-      src: ImageUrlSchema,
+      src: ImageUrlSchema.optional().default(''),
       width: z.number().optional(),
       height: z.number().optional(),
       alt: z.string().optional().default('Digifly Logo'),
   }).optional().default({ src: '' }),
   favicon: z.object({ 
-    src: ImageUrlSchema,
-  }).optional().default({ src: '' }),
+    src: ImageUrlSchema.optional().default('/favicon.ico'),
+  }).optional().default({ src: '/favicon.ico' }),
 }).optional().default({});
 
 export const DesignSettingsSchema = z.object({

@@ -12,6 +12,7 @@ import {
   ContactPageSchema,
   BasePageSchema,
 } from './schemas';
+import { ImageUrlSchema } from './validators';
 import { getDb } from '@/lib/firebase-admin';
 import type { HomePage, Navigation, CaseDoc, SiteSettings, Page } from '@/lib/types';
 import {
@@ -26,7 +27,7 @@ import {
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-
+import { SITE_DEFAULTS } from './defaults/siteDefaults';
 
 const SITE_TAG = "site-settings";
 const SITE_SETTINGS_PATH = "site/settings";
@@ -37,17 +38,23 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
-    // This will use Zod's defaults to fill in any missing nested objects.
-    const parsed = SiteSettingsSchema.safeParse(data || {});
+    const mergedData = { 
+        ...SITE_DEFAULTS, 
+        ...data,
+        brand: { ...SITE_DEFAULTS.brand, ...data?.brand },
+        social: { ...SITE_DEFAULTS.social, ...data?.social },
+        defaultSeo: { ...SITE_DEFAULTS.defaultSeo, ...data?.defaultSeo },
+    };
+
+    const parsed = SiteSettingsSchema.safeParse(mergedData);
     if (!parsed.success) {
       console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
-      return SiteSettingsSchema.parse({}); // Return default object on validation failure
+      return SITE_DEFAULTS; 
     }
     return parsed.data;
   } catch (e) {
     console.error("[getSiteSettingsRaw] Failed to fetch or parse site settings, returning defaults.", e);
-    // Return a default object on any error.
-    return SiteSettingsSchema.parse({});
+    return SITE_DEFAULTS;
   }
 }
 
@@ -60,7 +67,6 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const db = getDb();
   await db.doc(SITE_SETTINGS_PATH).set(parsedData, { merge: true });
   revalidateTag(SITE_TAG);
-  // Return the saved data to confirm what was written
   return parsedData;
 }
 
@@ -75,12 +81,12 @@ export async function getNavigation(): Promise<Navigation> {
 
         const header = NavigationSchema.shape.header.parse(mainData?.items || []);
         
-        // Group footer links into one column for simplicity, matching schema
         const footerLinks = (footerData?.items || []).map((item: any) => ({
           label: item.label,
           href: item.href,
         }));
         
+        // Match the schema which expects columns
         return NavigationSchema.parse({ header, footer: { columns: [{ title: "Links", links: footerLinks }] } });
     } catch(e) {
         console.warn('Falling back to default navigation.', e);
@@ -93,7 +99,6 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
         const db = getDb();
         const snap = await db.doc(`pages/${slug}`).get();
         if (!snap.exists) {
-            // Fallback for known pages, useful during development/seeding
             const fallbacks: Record<string, any> = {
                 home: defaultHomePage,
                 about: defaultAbout,
@@ -111,7 +116,7 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
 }
 
 type GetHomePageResult = 
-  | { ok: true; data: HomePage }
+  | { ok: true; data: HomePage; issues?: ZodIssue[] }
   | { ok: false; data: HomePage; issues: ZodIssue[] };
 
 function buildHomeFallback(raw: any): HomePage {
@@ -120,14 +125,18 @@ function buildHomeFallback(raw: any): HomePage {
   if (raw && typeof raw === 'object') {
     sanitized.hero.title = raw.hero?.title || sanitized.hero.title;
     sanitized.hero.subtitle = raw.hero?.subtitle || sanitized.hero.subtitle;
-    if (raw.hero?.image?.src) {
-        const parsedImg = SiteSettingsSchema.shape.brand.shape.logo.shape.src.safeParse(raw.hero.image.src);
-        sanitized.hero.image.src = parsedImg.success ? parsedImg.data : '';
+    
+    // Ensure image objects exist before setting properties
+    if (raw.hero?.image) {
+        sanitized.hero.image = sanitized.hero.image || {};
+        const parsedSrc = ImageUrlSchema.safeParse(raw.hero.image.src);
+        sanitized.hero.image.src = parsedSrc.success ? parsedSrc.data : '';
         sanitized.hero.image.alt = raw.hero.image.alt || '';
     }
-    if (raw.intro?.image?.src) {
-        const parsedImg = SiteSettingsSchema.shape.brand.shape.logo.shape.src.safeParse(raw.intro.image.src);
-        sanitized.intro.image.src = parsedImg.success ? parsedImg.data : '';
+    if (raw.intro?.image) {
+        sanitized.intro.image = sanitized.intro.image || {};
+        const parsedSrc = ImageUrlSchema.safeParse(raw.intro.image.src);
+        sanitized.intro.image.src = parsedSrc.success ? parsedSrc.data : '';
         sanitized.intro.image.alt = raw.intro.image.alt || '';
     }
   }
@@ -141,11 +150,11 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
   const parsed = HomepageSchema.safeParse(data || {});
   
   if (parsed.success) {
-    return { ok: true, data: parsed.data };
+    return { ok: true, data: parsed.data, issues: [] };
   }
   
   const issues = zodErrorToIssues(parsed.error);
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' || options.debug) {
     console.warn("[cms-server] Homepage validation failed. Returning sanitized fallback.", {
       keys: Object.keys(data || {}),
       issues: issues,
