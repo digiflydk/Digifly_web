@@ -2,25 +2,24 @@
 import { z } from "zod";
 
 // Reusable Zod helpers for common validation patterns.
-// This validator now correctly handles URLs with query parameters.
+// This validator handles absolute URLs (with or without query params) and root-relative paths.
 export const imageSrc = z.string().trim().refine(
   (v) => {
     if (v === '') return true; // Allow empty string
-    // Check if it's a valid URL or a root-relative path
-    if (v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/')) {
-      try {
-        // Use a dummy base for relative paths to allow URL constructor to parse the pathname
-        const url = new URL(v, 'https://dummy.base');
-        // Test the pathname against the regex, ignoring query params
-        return /\.(png|jpg|jpeg|svg|ico)$/i.test(url.pathname);
-      } catch {
-        return false;
-      }
+    
+    const isAllowedPath = v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/');
+    if (!isAllowedPath) return false;
+
+    try {
+      // Remove query string and hash for extension checking
+      const pathname = v.split('?')[0].split('#')[0];
+      return /\.(png|jpg|jpeg|svg|ico)$/i.test(pathname);
+    } catch {
+      return false;
     }
-    return false;
   },
   {
-    message: 'Must be a valid URL or root-relative path ending in .png, .jpg, .jpeg, .svg, or .ico',
+    message: 'Must be an absolute URL (https://...), a root-relative path (e.g. /favicon.ico), or an empty string. Only .png, .jpg, .jpeg, .svg, or .ico files are allowed.',
   }
 );
 
@@ -51,11 +50,11 @@ export const BrandSchema = z.object({
       width: z.number().optional(),
       height: z.number().optional(),
       alt: z.string().optional().default('Digifly Logo'),
-  }).default({ src: '', alt: 'Digifly Logo' }),
+  }).optional().default({}),
   favicon: z.object({ 
     src: imageSrc.default("") 
-  }).default({src: ""}),
-}).default({});
+  }).optional().default({}),
+}).optional().default({});
 
 export const DesignSettingsSchema = z.object({
   brand: BrandSchema.optional(),

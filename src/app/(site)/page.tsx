@@ -29,30 +29,43 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const rawPage = await getHomePage();
-  const page = HomepageSchema.parse(rawPage || {});
+  
+  try {
+    const page = HomepageSchema.parse(rawPage || {});
 
-  if (!page) {
     return (
+      <>
+        <Hero data={page.hero} />
+        {page.intro && <IntroWhyHowWhat data={page.intro} />}
+        {page.servicesPreview && page.servicesPreview.length > 0 && <ServicesOverview items={page.servicesPreview} />}
+        <CasesGrid 
+          ids={page.featuredCases}
+          title="Our Work in Action"
+          subtitle="See how we translate complex problems into elegant, effective solutions."
+          showAllLink
+        />
+        {page.cta && page.cta.button?.href && (
+          <CtaBanner text={page.cta.text} button={page.cta.button} />
+        )}
+      </>
+    );
+
+  } catch (error) {
+      if (error instanceof Error) {
+        console.error("Homepage validation failed:", error.message);
+      }
+      return (
         <Container className="py-16 text-center">
-            <SectionHeading title="Content Not Found" subtitle="Could not load homepage content from the CMS." />
+            <SectionHeading 
+                title="Something went wrong" 
+                subtitle="Could not load homepage content from the CMS due to invalid data." 
+            />
+             {error instanceof Error && (
+                <pre className="mt-4 text-left bg-slate-100 p-4 rounded-md text-xs overflow-auto">
+                    {JSON.stringify(JSON.parse(error.message), null, 2)}
+                </pre>
+             )}
         </Container>
     );
   }
-
-  return (
-    <>
-      <Hero data={page.hero} />
-      {page.intro && <IntroWhyHowWhat data={page.intro} />}
-      {page.servicesPreview && page.servicesPreview.length > 0 && <ServicesOverview items={page.servicesPreview} />}
-      <CasesGrid 
-        ids={page.featuredCases}
-        title="Our Work in Action"
-        subtitle="See how we translate complex problems into elegant, effective solutions."
-        showAllLink
-      />
-      {page.cta && page.cta.button?.href && (
-        <CtaBanner text={page.cta.text} button={page.cta.button} />
-      )}
-    </>
-  );
 }
