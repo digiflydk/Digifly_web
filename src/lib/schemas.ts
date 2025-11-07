@@ -15,6 +15,11 @@ export const optionalUrl = z.preprocess(
 // Literal empty string or valid URL
 export const urlOrEmpty = z.union([z.string().url(), z.literal("")]);
 
+const imageUrlRegex = /\.(png|jpg|jpeg|svg|ico)$/i;
+
+const validImageUrl = z.string()
+  .url("Invalid URL")
+  .refine((v) => imageUrlRegex.test(v), "URL must end in .png, .jpg, .svg, or .ico");
 
 // Base Schemas
 export const NavLinkSchema = z.object({
@@ -38,7 +43,7 @@ export const RichTextSchema = z.array(
 export const BrandSchema = z.object({
   name: z.string().default('Digifly'),
   logo: z.object({
-      src: imageSrc.default('/logo.svg'),
+      src: z.string().default('/logo.svg'),
       width: z.number().optional(),
       height: z.number().optional(),
       alt: z.string().default('Digifly Logo'),
@@ -169,7 +174,19 @@ export const SiteSettingsSchema = z.object({
   social: z.object({
     tagline: z.string().optional().default('')
   }).default({}),
-  brand: BrandSchema,
+  brand: z.object({
+    logo: z.object({
+      src: z.string().url("Invalid URL format").refine((v) => v === '' || imageUrlRegex.test(v), {
+        message: "Logo must be a PNG, JPG, SVG, or ICO file, or be empty.",
+      }).default('/logo.svg'),
+      alt: z.string().optional().default('Site Logo'),
+    }).default({ src: '/logo.svg', alt: 'Site Logo'}),
+    favicon: z.object({
+      src: z.string().url("Invalid URL format").refine((v) => v === '' || imageUrlRegex.test(v), {
+        message: "Favicon must be a PNG, JPG, SVG, or ICO file, or be empty.",
+      }).default('/favicon.ico'),
+    }).default({ src: '/favicon.ico'}),
+  }).default(),
   defaultSeo: z.object({
     description: z.preprocess(
       (v) => (typeof v === "string" ? v.trim() : v),

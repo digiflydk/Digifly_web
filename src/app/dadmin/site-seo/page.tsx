@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -14,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from 'next/image';
 
 async function loadSettings(): Promise<Partial<SiteSettings>> {
     const res = await fetch("/api/cms/site", { cache: "no-store" });
@@ -52,6 +54,27 @@ async function saveSettings(payload: any) {
     } catch {
         throw new Error(`Save failed (/api/cms/site): ${res.status} • ${text.slice(0,80)}`);
     }
+}
+
+function ImagePreview({ control, name, alt, width, height }: { control: any; name: "brand.logo.src" | "brand.favicon.src"; alt: string; width: number; height: number; }) {
+    const src = useWatch({ control, name });
+
+    if (!src || typeof src !== 'string' || !src.startsWith('http')) {
+        return <div className="h-10 w-24 bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400">No preview</div>;
+    }
+
+    return (
+        <div className="p-2 border rounded-md">
+            <Image
+                src={src}
+                alt={alt}
+                width={width}
+                height={height}
+                className="object-contain"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+        </div>
+    );
 }
 
 export default function SiteSeoPageWrapper() {
@@ -140,18 +163,24 @@ export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings
         </Card>
         <Card>
           <CardHeader><CardTitle>Branding</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <FormField control={form.control} name="brand.logo.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Logo URL</FormLabel>
-                <FormControl><Input type="text" {...field} value={field.value ?? ""} placeholder="https://... or /logo.svg" /></FormControl>
+                 <div className="flex items-start gap-4">
+                  <FormControl className="flex-1"><Input type="url" {...field} value={field.value ?? ""} placeholder="https://.../logo.svg" /></FormControl>
+                  <ImagePreview control={form.control} name="brand.logo.src" alt="Logo Preview" width={120} height={40} />
+                </div>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="brand.favicon.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Favicon URL</FormLabel>
-                <FormControl><Input type="text" {...field} value={field.value ?? ""} placeholder="https://... or /favicon.ico" /></FormControl>
+                <div className="flex items-start gap-4">
+                  <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://.../favicon.ico" /></FormControl>
+                  <ImagePreview control={form.control} name="brand.favicon.src" alt="Favicon Preview" width={32} height={32} />
+                </div>
                 <FormMessage />
               </FormItem>
             )} />
