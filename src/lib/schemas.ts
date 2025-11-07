@@ -1,25 +1,6 @@
 
 import { z } from "zod";
-
-// This validator handles absolute URLs, root-relative paths, or an empty string.
-// It correctly parses URLs with query strings to check file extensions.
-export const imageSrc = z.string().trim().refine(
-  (v) => {
-    if (v === '') return true; // Allow empty string
-    if (!v.startsWith('http') && !v.startsWith('/')) return false; // Must be absolute or root-relative
-    try {
-      // Use a dummy base for relative paths to allow URL parsing.
-      // The pathname will correctly exclude query strings.
-      const url = new URL(v, 'https://dummy.base');
-      return /\.(png|jpg|jpeg|svg|ico)$/i.test(url.pathname);
-    } catch {
-      return false; // Invalid URL format
-    }
-  },
-  {
-    message: 'Must be an absolute URL (https://...), a root-relative path (e.g. /favicon.ico), or an empty string. Only .png, .jpg, .jpeg, .svg, or .ico files are allowed.',
-  }
-);
+import { safeImageSrc } from './zod-helpers';
 
 // Base Schemas
 export const NavLinkSchema = z.object({
@@ -28,10 +9,10 @@ export const NavLinkSchema = z.object({
 });
 
 export const MediaSchema = z.object({
-    src: imageSrc.default(''),
+    src: safeImageSrc,
     alt: z.string().optional().default(''),
     hint: z.string().optional(),
-});
+}).default({ src: '', alt: '' });
 
 export const RichTextSchema = z.array(
   z.union([
@@ -43,13 +24,13 @@ export const RichTextSchema = z.array(
 export const BrandSchema = z.object({
   name: z.string().optional().default('Digifly'),
   logo: z.object({
-      src: imageSrc.default(''),
+      src: safeImageSrc,
       width: z.number().optional(),
       height: z.number().optional(),
       alt: z.string().optional().default('Digifly Logo'),
   }).optional().default({ src: '' }),
   favicon: z.object({ 
-    src: imageSrc.default("") 
+    src: safeImageSrc,
   }).optional().default({ src: '' }),
 }).optional().default({});
 
@@ -91,7 +72,7 @@ export const CaseSchema = z.object({
   title: z.string(),
   summary: z.string().default(""),
   seo: SeoSchema.optional(),
-  cover: MediaSchema.default({ src: '' }),
+  cover: MediaSchema,
   content: PageContentSchema.optional(),
   metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
   updatedAt: z.number().optional(),
@@ -102,7 +83,7 @@ const IntroSchema = z.object({
   tagline: z.string().optional().default(''),
   heading: z.string().default(''),
   body: z.string().default(''),
-  image: MediaSchema.optional().default({ src: '' }),
+  image: MediaSchema.optional(),
 }).default({});
 
 export const HomepageSchema = z.object({
@@ -110,7 +91,7 @@ export const HomepageSchema = z.object({
     title: z.string().min(1),
     subtitle: z.string().optional().default(''),
     primaryCta: NavLinkSchema.optional(),
-    image: MediaSchema.optional().default({ src: '' }),
+    image: MediaSchema.optional(),
   }).default({ title: 'Default Hero Title' }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({

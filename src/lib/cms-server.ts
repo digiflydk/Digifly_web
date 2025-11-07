@@ -25,6 +25,7 @@ import {
 } from '@/lib/cms-data';
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache } from 'next/cache';
+import { zodErrorToIssues, safeImageSrc } from './zod-helpers';
 
 
 const SITE_TAG = "site-settings";
@@ -35,27 +36,8 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const db = getDb();
     const settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
     let data = settingsSnap.exists ? settingsSnap.data() : {};
-
-    // One-time migration from legacy path
-    if (!settingsSnap.exists) {
-      const legacySnap = await db.doc('site/config').get();
-      if (legacySnap.exists) {
-        console.warn("[getSiteSettings] Migrating from legacy 'site/config' document.");
-        const legacyData = legacySnap.data() as any;
-        data = {
-          siteTitle: legacyData.siteTitle,
-          social: { tagline: legacyData.tagline },
-          brand: { 
-            logo: { src: legacyData.logoUrl || '' },
-            favicon: { src: legacyData.faviconUrl || '' }
-          },
-          defaultSeo: { description: legacyData.defaultDescription }
-        };
-      }
-    }
     
-    // Parse with defaults. This ensures that even if the doc is empty or missing,
-    // we get a valid object conforming to the schema.
+    // This will use Zod's defaults to fill in any missing nested objects.
     const parsed = SiteSettingsSchema.safeParse(data || {});
     if (!parsed.success) {
       console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
@@ -89,15 +71,11 @@ export async function getNavigation(): Promise<Navigation> {
         const footerSnap = await db.doc('navigation/footer').get();
         
         const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
-        let footerData;
-        if (footerSnap.exists) {
-            footerData = footerSnap.data();
-        } else {
-            footerData = { items: [] };
-        }
+        const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
 
         const header = NavigationSchema.shape.header.parse(mainData?.items || []);
         
+        // Group footer links into one column for simplicity, matching schema
         const footerLinks = (footerData?.items || []).map((item: any) => ({
           label: item.label,
           href: item.href,
@@ -136,7 +114,24 @@ type GetHomePageResult =
   | { ok: true; data: HomePage }
   | { ok: false; data: HomePage; issues: ZodIssue[] };
 
-export async function getHomePage(): Promise<GetHomePageResult> {
+function buildHomeFallback(raw: any): HomePage {
+  const sanitized: HomePage = HomepageSchema.parse({}); // Get a default object
+  sanitized.hero.title = raw?.hero?.title || 'Welcome';
+  sanitized.hero.subtitle = raw?.hero?.subtitle || '';
+  
+  if (raw?.hero?.image?.src && safeImageSrc.safeParse(raw.hero.image.src).success) {
+    sanitized.hero.image = { src: raw.hero.image.src, alt: raw.hero.image.alt || '' };
+  }
+  
+  if (raw?.intro?.image?.src && safeImageSrc.safeParse(raw.intro.image.src).success) {
+    sanitized.intro!.image = { src: raw.intro.image.src, alt: raw.intro.image.alt || '' };
+  }
+
+  return sanitized;
+}
+
+
+export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
   const data = await getPageBySlug('home');
   const parsed = HomepageSchema.safeParse(data || {});
   
@@ -144,15 +139,15 @@ export async function getHomePage(): Promise<GetHomePageResult> {
     return { ok: true, data: parsed.data };
   }
   
-  console.error("Homepage validation failed:", {
-    keys: Object.keys(data || {}),
-    issues: parsed.error.format(),
-  });
+  const issues = zodErrorToIssues(parsed.error);
+  if (options.debug) {
+    console.error("[Home Validation Failed]", {
+      keys: Object.keys(data || {}),
+      issues: issues,
+    });
+  }
   
-  // Create a sanitized fallback object
-  const sanitizedData = HomepageSchema.parse({}); // This will use all the .default() values
-  
-  return { ok: false, data: sanitizedData, issues: parsed.error.issues };
+  return { ok: false, data: buildHomeFallback(data), issues };
 }
 
 
@@ -271,6 +266,12 @@ export async function updateHomepage(data: HomePage) {
 export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'health') {
     return { ok: true, ts: Date.now() };
+  }
+  
+  if (path === 'pages/home') {
+    const debug = searchParams?.get('debug') === '1';
+    const result = await getHomePage({ debug });
+    return { ...result, status: result.ok ? 200 : 422 };
   }
   
   if (path.startsWith('pages/')) {
