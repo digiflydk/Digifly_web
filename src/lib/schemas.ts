@@ -61,6 +61,8 @@ const SeoSchema = z.object({
   description: z.string().optional().default(''),
 });
 
+const AllowedDelays = [3, 5, 8, 10, 15] as const;
+
 export const HeroSlideSchema = z.object({
   image: MediaSchema.default({ src: "", alt: "" }),
   title: z.string().max(120).default(""),
@@ -72,8 +74,6 @@ export const HeroSlideSchema = z.object({
   secondaryCtaHref: z.string().default(""),
   visible: z.boolean().default(true),
 });
-
-const AllowedDelays = [3, 5, 8, 10, 15] as const;
 
 // Page-specific schemas
 const IntroSchema = z.object({
