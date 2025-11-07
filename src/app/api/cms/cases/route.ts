@@ -4,5 +4,5 @@ import { getCasesServer } from '@/lib/cms-server';
 
 export async function GET() {
   const data = await getCasesServer();
-  return NextResponse.json({ ok: true, data });
+  return NextResponse.json({ data });
 }

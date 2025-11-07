@@ -1,4 +1,4 @@
-import { getApps, initializeApp, cert, applicationDefault, App } from 'firebase-admin/app';
+import { getApps, initializeApp, cert, App } from 'firebase-admin/app';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 function parseServiceAccount(): Record<string, any> | null {
@@ -36,26 +36,25 @@ let cachedApp: App | null = null;
 export function getAdminApp(): App {
   if (cachedApp) return cachedApp;
 
-  const sa = parseServiceAccount();
-  const projectId = resolveProjectId(sa);
+  const serviceAccount = parseServiceAccount();
+  const projectId = resolveProjectId(serviceAccount);
 
   if (getApps().length) {
     cachedApp = getApps()[0]!;
     return cachedApp;
   }
-
-  if (sa) {
-    cachedApp = initializeApp({
-      credential: cert(sa as any),
-      projectId,
-    });
-  } else {
-    // No SA in env → use application default credentials (GCP environment)
-    cachedApp = initializeApp({
-      credential: applicationDefault(),
-      projectId,
-    });
+  
+  if (!serviceAccount) {
+    // This will cause an error, but it's better to fail early
+    // if the service account isn't configured in a non-GCP env.
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not set or invalid. Cannot initialize Firebase Admin SDK.");
   }
+  
+  cachedApp = initializeApp({
+    credential: cert(serviceAccount as any),
+    projectId,
+  });
+
   return cachedApp;
 }
 

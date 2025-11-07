@@ -28,8 +28,7 @@ import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache, unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
 import { SITE_DEFAULTS, safeImage } from './defaults/siteDefaults';
-import { normalizeImageSrc } from './cms-normalize';
-import { collection, getDocs, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { normalizeHome } from './cms-normalize';
 
 
 const SITE_TAG = "site-settings";
@@ -67,7 +66,6 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
-    // Deep merge with defaults to ensure all properties exist
     const mergedData = { 
         ...SITE_DEFAULTS, 
         ...(data || {}),
@@ -81,7 +79,6 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
         defaultSeo: { ...SITE_DEFAULTS.defaultSeo, ...(data?.defaultSeo || {}) },
     };
 
-    // Use safeParse to avoid throwing errors on the server
     const parsed = SiteSettingsSchema.safeParse(mergedData);
     if (!parsed.success) {
       if (process.env.NODE_ENV !== 'production') {
@@ -127,7 +124,6 @@ export async function getNavigation(): Promise<Navigation> {
           href: item.href,
         }));
         
-        // Match the schema which expects columns
         return NavigationSchema.parse({ header, footer: { columns: [{ title: "Links", links: footerLinks }] } });
     } catch(e) {
         console.warn('Falling back to default navigation.', e);
@@ -191,16 +187,14 @@ export async function updatePage(slug: string, data: any) {
 export async function getCasesServer() {
   noStore();
   const db = getDb();
-  const snap = await getDocs(collection(db, 'cases'));
+  const snap = await db.collection('cases').get();
   const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  // Allow partial parse for admin list view to be more resilient
   const parsed = rows.map(r => CaseSchema.partial().parse(r));
   return parsed;
 }
 
 export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
     const data = await getCasesServer();
-    // This is where server-side filtering would happen if needed
     return data as CaseDoc[];
 }
 
@@ -249,12 +243,12 @@ export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>)
 export async function deleteCaseServer(id: string) {
     noStore();
     const db = getDb();
-    const ref = doc(db, 'cases', id);
-    const s = await getDoc(ref);
-    if (!s.exists()) {
+    const ref = db.collection('cases').doc(id);
+    const s = await ref.get();
+    if (!s.exists) {
         return { ok: false, status: 404, error: "Not Found" };
     }
-    await deleteDoc(ref);
+    await ref.delete();
     return { ok: true, status: 200 };
 }
 
