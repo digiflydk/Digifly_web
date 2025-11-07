@@ -34,11 +34,34 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
   try {
     const db = getDb();
     const settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
-    const data = settingsSnap.exists ? settingsSnap.data() : {};
+    let data = settingsSnap.exists ? settingsSnap.data() : {};
+
+    // One-time migration from legacy path
+    if (!settingsSnap.exists) {
+      const legacySnap = await db.doc('site/config').get();
+      if (legacySnap.exists) {
+        console.warn("[getSiteSettings] Migrating from legacy 'site/config' document.");
+        const legacyData = legacySnap.data() as any;
+        data = {
+          siteTitle: legacyData.siteTitle,
+          social: { tagline: legacyData.tagline },
+          brand: { 
+            logo: { src: legacyData.logoUrl || '' },
+            favicon: { src: legacyData.faviconUrl || '' }
+          },
+          defaultSeo: { description: legacyData.defaultDescription }
+        };
+      }
+    }
     
     // Parse with defaults. This ensures that even if the doc is empty or missing,
     // we get a valid object conforming to the schema.
-    return SiteSettingsSchema.parse(data || {});
+    const parsed = SiteSettingsSchema.safeParse(data || {});
+    if (!parsed.success) {
+      console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
+      return SiteSettingsSchema.parse({}); // Return default object on validation failure
+    }
+    return parsed.data;
   } catch (e) {
     console.error("[getSiteSettingsRaw] Failed to fetch or parse site settings, returning defaults.", e);
     // Return a default object on any error.
@@ -65,11 +88,8 @@ export async function getNavigation(): Promise<Navigation> {
         const mainSnap = await db.doc('navigation/main').get();
         const footerSnap = await db.doc('navigation/footer').get();
         
-        let mainData;
-        let footerData;
-
-        mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
-        footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
+        const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
+        const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
 
         const header = NavigationSchema.shape.header.parse(mainData?.items || []);
         

@@ -42,7 +42,7 @@ export const RichTextSchema = z.array(
 ).default([]);
 
 export const BrandSchema = z.object({
-  name: z.string().default('Digifly'),
+  name: z.string().optional().default('Digifly'),
   logo: z.object({
       src: imageSrc.default(''),
       width: z.number().optional(),

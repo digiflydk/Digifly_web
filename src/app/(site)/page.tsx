@@ -84,7 +84,7 @@ export default async function HomePage() {
         subtitle="See how we translate complex problems into elegant, effective solutions."
         showAllLink
       />
-      {validatedPage.cta && validatedPage.cta.button?.href && (
+      {validatedPage.cta?.button?.href && (
         <CtaBanner text={validatedPage.cta.text} button={validatedPage.cta.button} />
       )}
     </>
