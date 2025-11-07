@@ -187,5 +187,13 @@ export const NavItemSchema = z.object({
   order: z.number().int().default(0),
 });
 
+export const allSchemas = {
+    SiteSettingsSchema,
+    PageDocSchema: BasePageSchema,
+    NavSchema: NavigationSchema,
+    CaseListSchema: z.array(CaseSchema),
+    CaseDocSchema: CaseSchema,
+};
+
 export type CaseDoc = z.infer<typeof CaseSchema>;
 export const parseCase = (data: unknown) => CaseSchema.parse(data);
