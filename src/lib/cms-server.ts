@@ -11,8 +11,8 @@ import {
   CasesIndexSchema,
   ContactPageSchema,
 } from './schemas';
-import { getAdminApp, getDb } from '@/lib/firebase-admin';
-import type { SiteSettings, HomePage, Navigation, CaseDoc, Page } from '@/lib/types';
+import { getDb } from '@/lib/firebase-admin';
+import type { SiteSettings, HomePage, Navigation, CaseDoc } from '@/lib/types';
 import {
   navigation as defaultNav,
   homePage as defaultHomePage,
@@ -28,11 +28,11 @@ import { unstable_cache as nextCache } from 'next/cache';
 
 const SITE_TAG = "site-settings";
 
-async function getSiteSettingsRaw(): Promise<Partial<SiteSettings>> {
+async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const db = getDb();
     const snap = await db.collection('site').doc('settings').get();
     const data = snap.exists ? snap.data() : {};
-    return SiteSettingsSchema.partial().parse(data || {});
+    return SiteSettingsSchema.parse(data || {});
 }
 
 
@@ -55,20 +55,12 @@ export async function getNavigation(): Promise<Navigation> {
           href: item.href,
         }));
         
-        return { header, footer: { columns: [{ title: "Links", links: footerLinks }] } };
-
+        return NavigationSchema.parse({ header, footer: { columns: [{ title: "Links", links: footerLinks }] } });
     } catch(e) {
         console.warn('Falling back to default navigation.', e);
         return defaultNav;
     }
 }
-
-const HOME_DEFAULTS: Partial<HomePage> = {
-  intro: { tagline: 'Why', heading: "Who we are", body: "We help you plan, build and scale digital products." },
-  servicesPreview: [],
-  featuredCases: [],
-  cta: { text: "Ready to talk?", button: { label: "Contact us", href: "/contact"} },
-};
 
 export async function getHomePage(): Promise<HomePage> {
     try {
@@ -77,12 +69,9 @@ export async function getHomePage(): Promise<HomePage> {
         const data = snap.exists ? snap.data() : {};
         const parsed = HomepageSchema.safeParse(data);
         if (parsed.success) {
-             return {
-                ...HOME_DEFAULTS,
-                ...parsed.data,
-            } as HomePage;
+             return parsed.data as HomePage;
         };
-        console.warn("Homepage validation failed", parsed.error);
+        console.warn("Homepage validation failed, falling back to defaults.", parsed.error);
         return defaultHomePage;
     } catch (e) {
         console.warn('Falling back to default homepage data.', e);
@@ -164,10 +153,7 @@ export async function getAboutPage(): Promise<any> {
     try {
         const db = getDb();
         const snap = await db.doc('pages/about').get();
-        const data = snap.exists ? snap.data() : {};
-        const parsed = AboutPageSchema.safeParse(data);
-        if (parsed.success) return parsed.data;
-        throw new Error('About page validation failed');
+        return AboutPageSchema.parse(snap.data() || {});
     } catch (e) {
         console.warn('Falling back to default about page data.', e);
         return defaultAbout;
@@ -178,10 +164,7 @@ export async function getServicesPage(): Promise<any> {
     try {
         const db = getDb();
         const snap = await db.doc('pages/services').get();
-        const data = snap.exists ? snap.data() : {};
-        const parsed = ServicesPageSchema.safeParse(data);
-        if (parsed.success) return parsed.data;
-        throw new Error('Services page validation failed');
+        return ServicesPageSchema.parse(snap.data() || {});
     } catch (e) {
         console.warn('Falling back to default services page data.', e);
         return defaultServices;
@@ -192,10 +175,7 @@ export async function getCasesIndexPage(): Promise<any> {
     try {
         const db = getDb();
         const snap = await db.doc('pages/cases-index').get();
-        const data = snap.exists ? snap.data() : {};
-        const parsed = CasesIndexSchema.safeParse(data);
-        if (parsed.success) return parsed.data;
-        throw new Error('Cases index page validation failed');
+        return CasesIndexSchema.parse(snap.data() || {});
     } catch (e) {
         console.warn('Falling back to default cases index page data.', e);
         return defaultCasesIndex;
@@ -206,10 +186,7 @@ export async function getContactPage(): Promise<any> {
     try {
         const db = getDb();
         const snap = await db.doc('pages/contact').get();
-        const data = snap.exists ? snap.data() : {};
-        const parsed = ContactPageSchema.safeParse(data);
-        if (parsed.success) return parsed.data;
-        throw new Error('Contact page validation failed');
+        return ContactPageSchema.parse(snap.data() || {});
     } catch (e) {
         console.warn('Falling back to default contact page data.', e);
         return defaultContact;

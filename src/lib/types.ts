@@ -7,7 +7,7 @@ import {
     DesignSettingsSchema, 
     NavigationSchema, 
     SiteSettingsSchema,
-    zBasePage as BasePageSchema
+    BasePageSchema
 } from "./schemas";
 
 

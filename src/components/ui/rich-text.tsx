@@ -2,7 +2,7 @@ import { RichTextContent } from "@/lib/types";
 import { Check } from "lucide-react";
 
 type RichTextProps = {
-    content?: RichTextContent[] | null;
+    content?: RichTextContent[];
     className?: string;
 }
 

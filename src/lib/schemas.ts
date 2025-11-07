@@ -23,7 +23,7 @@ export const NavLinkSchema = z.object({
 
 export const MediaSchema = z.object({
     src: imageSrc.default('/og-default.jpg'),
-    alt: z.string().optional(),
+    alt: z.string().optional().default(''),
     hint: z.string().optional(),
 });
 
@@ -41,7 +41,7 @@ export const BrandSchema = z.object({
       width: z.number().optional(),
       height: z.number().optional(),
       alt: z.string().default('Digifly Logo'),
-  }).default({ src: '/logo.svg' }),
+  }).default({ src: '/logo.svg', alt: 'Digifly Logo' }),
   favicon: z.object({ 
     src: imageSrc.default("/favicon.ico") 
   }).default({src: "/favicon.ico"}),
@@ -68,40 +68,40 @@ export const NavigationSchema = z.object({
         title: z.string(),
         links: z.array(NavLinkSchema)
       })).default([{ title: 'Links', links: [] }])
-  })
+  }).default({ columns: [] })
 });
 
 const PageContentSchema = z.object({
   body: RichTextSchema,
-});
+}).default({ body: [] });
 
 const SeoSchema = z.object({
-  title: z.string().optional(),
-  description: z.string().optional(),
+  title: z.string().optional().default(''),
+  description: z.string().optional().default(''),
 });
 
 export const CaseSchema = z.object({
   slug: z.string(),
   title: z.string(),
   summary: z.string().default(""),
-  seo: SeoSchema.optional(),
+  seo: SeoSchema.default({}),
   cover: z.object({
     src: z.string(),
     alt: z.string().default(""),
     hint: z.string().optional(),
   }),
-  content: PageContentSchema.default({ body: [] }),
+  content: PageContentSchema,
   metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
   updatedAt: z.number().optional(),
 });
 
 // Page-specific schemas
 const IntroSchema = z.object({
-  tagline: z.string().optional(),
-  heading: z.string(),
-  body: z.string(),
+  tagline: z.string().optional().default(''),
+  heading: z.string().default(''),
+  body: z.string().default(''),
   image: MediaSchema.optional(),
-}).optional();
+}).default({});
 
 export const HomepageSchema = z.object({
   hero: z.object({
@@ -115,8 +115,8 @@ export const HomepageSchema = z.object({
     title: z.string(),
     bullets: z.array(z.string()),
     href: z.string(),
-  })).optional(),
-  featuredCases: z.array(z.string()).optional(),
+  })).default([]),
+  featuredCases: z.array(z.string()).default([]),
   cta: z.object({
     text: z.string(),
     button: NavLinkSchema,
@@ -138,7 +138,7 @@ export const AboutPageSchema = BasePageSchema.extend({
 });
 
 export const ServicesPageSchema = z.object({
-  title: z.string(),
+  title: z.string().default('Services'),
   subtitle: z.string().default(""),
   seo: SeoSchema.optional(),
   content: z.object({
@@ -147,18 +147,18 @@ export const ServicesPageSchema = z.object({
         title: z.string(),
         description: z.string(),
         bullets: z.array(z.string()),
-      })),
-  }),
+      })).default([]),
+  }).default({ services: [] }),
 });
 
 export const CasesIndexSchema = z.object({
-  title: z.string(),
+  title: z.string().default('Our Work'),
   subtitle: z.string().default(""),
   seo: SeoSchema.optional(),
 });
 
 export const ContactPageSchema = z.object({
-  title: z.string(),
+  title: z.string().default('Contact Us'),
   subtitle: z.string().default(""),
   seo: SeoSchema.optional(),
 });
@@ -166,27 +166,16 @@ export const ContactPageSchema = z.object({
 export const SiteSettingsSchema = z.object({
   siteTitle: z.string().min(1, 'Site Title is required').default('Digifly'),
   social: z.object({
-    tagline: z.string().optional()
-  }).optional(),
-  brand: z.object({
-    name: z.string().default("Digifly"),
-    logo: z.object({ 
-        src: imageSrc, 
-        alt: z.string().default("Logo"), 
-    }),
-    favicon: z.object({ 
-        src: imageSrc
-    })
-  }),
+    tagline: z.string().optional().default('')
+  }).default({}),
+  brand: BrandSchema,
   defaultSeo: z.object({
     description: z.preprocess(
       (v) => (typeof v === "string" ? v.trim() : v),
-      z.string().max(160, "Description must be 160 characters or less").optional()
+      z.string().max(160, "Description must be 160 characters or less").optional().default('')
     )
-  }).optional()
+  }).default({})
 });
-export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
-
 
 export const NavItemSchema = z.object({
   id: z.string().optional(),

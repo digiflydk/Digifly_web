@@ -1,3 +1,4 @@
+
 import { getCaseBySlug, listCaseSlugs } from "@/lib/cms-server";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
@@ -5,7 +6,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import RichText from "@/components/ui/rich-text";
 import { metaDefaults } from "@/lib/seo";
 import { Metadata } from "next";
-import { CaseSchema, parseCase } from "@/lib/schemas";
+import { parseCase } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
 import SafeImage from "@/components/media/SafeImage";
 
@@ -74,7 +75,7 @@ export default async function CasePage({ params }: { params: Promise<Params> }) 
                 <RichText content={doc.content.body} />
             </div>
             <aside>
-                {doc.metrics && doc.metrics.length > 0 && (
+                {doc.metrics.length > 0 && (
                     <div className="sticky top-24 rounded-xl border-2 p-6 shadow-md bg-background">
                         <h3 className="font-headline text-xl font-semibold mb-4">Key Results</h3>
                         <div className="space-y-4">
