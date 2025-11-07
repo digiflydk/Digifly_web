@@ -28,34 +28,17 @@ import { unstable_cache as nextCache } from 'next/cache';
 
 const SITE_TAG = "site-settings";
 
-async function getSiteSettingsRaw(): Promise<SiteSettings> {
-  const db = getDb();
-  const snap = await db.collection('config').doc('site').get();
-  const data = snap.exists ? snap.data() : {};
-  const parsed = SiteSettingsSchema.safeParse(data);
-  if (!parsed.success) {
-    // safe fallbacks so metadata never crashes build
-    return {
-      siteTitle: 'Digifly',
-      tagline: 'Digital solutions.',
-      defaultDescription: 'Digifly builds measurable digital results.',
-      logoUrl: undefined,
-      faviconUrl: undefined,
-    };
-  }
-  return parsed.data;
+async function getSiteSettingsRaw(): Promise<Partial<SiteSettings>> {
+    const db = getDb();
+    const snap = await db.collection('site').doc('settings').get();
+    const data = snap.exists ? snap.data() : {};
+    return SiteSettingsSchema.partial().parse(data || {});
 }
+
 
 export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key'], {
   tags: [SITE_TAG],
 });
-
-export async function saveSiteSettings(data: SiteSettings) {
-  const db = getDb();
-  await db.collection("config").doc("site").set(data, { merge: true });
-  revalidateTag(SITE_TAG);
-}
-
 
 export async function getNavigation(): Promise<Navigation> {
     try {
@@ -238,8 +221,9 @@ export async function getSiteSeo() {
 }
 
 export async function updateSiteSeo(data: z.infer<typeof SiteSettingsSchema>) {
+  const db = getDb();
+  await db.collection("site").doc("settings").set(data, { merge: true });
   revalidateTag(SITE_TAG);
-  return saveSiteSettings(data);
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {

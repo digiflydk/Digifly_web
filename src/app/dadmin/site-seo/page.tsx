@@ -15,7 +15,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-async function safeGetSite(): Promise<SiteSettings> {
+async function safeGetSite(): Promise<Partial<SiteSettings>> {
   const ctrl = new AbortController();
   const timeoutId = setTimeout(() => ctrl.abort(), 8000); // 8s hard timeout
 
@@ -52,7 +52,7 @@ async function safeGetSite(): Promise<SiteSettings> {
   }
 }
 
-async function saveSettings(payload: SiteSettings): Promise<any> {
+async function saveSettings(payload: Partial<SiteSettings>): Promise<any> {
     const url = "/api/cms/site";
     const res = await fetch(url, {
         method: 'PUT',
@@ -86,7 +86,7 @@ async function saveSettings(payload: SiteSettings): Promise<any> {
 
 
 export default function SiteSeoPageWrapper() {
-  const [initialData, setInitialData] = useState<SiteSettings | null>(null);
+  const [initialData, setInitialData] = useState<Partial<SiteSettings> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -94,7 +94,7 @@ export default function SiteSeoPageWrapper() {
     safeGetSite()
       .then(data => {
         const parsedData = SiteSettingsSchema.partial().parse(data || {});
-        setInitialData(parsedData as SiteSettings);
+        setInitialData(parsedData);
       })
       .catch(err => {
         setError(err.message);
@@ -108,7 +108,8 @@ export default function SiteSeoPageWrapper() {
     return (
         <div className="space-y-8">
             <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
-            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-24 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-24 w-full" /></CardContent></Card>
         </div>
     );
   }
@@ -130,7 +131,7 @@ export default function SiteSeoPageWrapper() {
 export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings> }) {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<SiteSettings>({
-    resolver: zodResolver(SiteSettingsSchema.partial()),
+    resolver: zodResolver(SiteSettingsSchema),
     defaultValues: initialData,
   });
 
@@ -174,14 +175,14 @@ export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings
             <FormField control={form.control} name="brand.logo.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Logo URL</FormLabel>
-                <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://..." /></FormControl>
+                <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://... or /logo.svg" /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="brand.favicon.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Favicon URL</FormLabel>
-                <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://.../favicon.ico" /></FormControl>
+                <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://... or /favicon.ico" /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
