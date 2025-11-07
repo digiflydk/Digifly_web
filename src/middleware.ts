@@ -11,7 +11,9 @@ const BLOCKED_PATTERNS = [
   /^\/telescope(?:\/|$)/i,
   /^\/config\.json$/i,
   /^\/@vite\/env$/i,
-  /^\/(api|graphql|gql)(?:\/|$)/i,           // unknown API endpoints
+  // Block common, but unknown API endpoints
+  /^\/api\/(?!cms|debug|contact|docs|_health|admin).*/i,
+  /^\/(graphql|gql)(?:\/|$)/i,
   /^\/(swagger|api-docs|v2|v3)(?:\/|$)/i,    // swagger, api-docs, etc.
   /^\/webjars\/swagger-ui\/index\.html$/i,
   /^\/swagger(?:-ui\.html|\/index\.html|\.json)?$/i,
