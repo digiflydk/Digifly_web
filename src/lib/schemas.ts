@@ -1,15 +1,19 @@
-
 import { z } from "zod";
 
 // Reusable Zod helpers for common validation patterns.
 const httpUrl = z.string().url("Must be a valid URL (e.g., https://...)");
-const pathUrl = z.string().regex(/^\/[^\s]*$/, 'Must start with a "/"');
+const pathUrl = z.string().regex(/^\/[^\s]*$/, 'Must start with "/"');
 export const imageSrc = z.union([httpUrl, pathUrl]);
+
+// Optional URL – treats empty string as undefined
 export const optionalUrl = z.preprocess(
-    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
-    z.string().url("Must be a valid URL (e.g., https://...)").optional()
+  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+  z.string().url("Must be a valid URL (e.g., https://...)").optional()
 );
-export const urlOrEmpty = z.union([httpUrl, z.literal("")]);
+
+// Literal empty string or valid URL
+export const urlOrEmpty = z.union([z.string().url(), z.literal("")]);
+
 
 // Base Schemas
 export const NavLinkSchema = z.object({
@@ -120,7 +124,7 @@ export const HomepageSchema = z.object({
   seo: SeoSchema.optional(),
 });
 
-const BasePageSchema = z.object({
+export const BasePageSchema = z.object({
   title: z.string(),
   subtitle: z.string().optional().default(""),
   seo: SeoSchema.optional(),
