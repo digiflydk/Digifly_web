@@ -78,7 +78,7 @@ export function CMSApiMapHealth() {
     return (
         <Alert variant="destructive">
             <Terminal className="h-4 w-4" />
-            <AlertTitle>Failed to load API Map</AlertTitle>
+            <AlertTitle>Failed to Load API Map</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
         </Alert>
     );
