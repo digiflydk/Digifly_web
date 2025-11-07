@@ -10,6 +10,7 @@ import { CaseSchema, parseCase } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
 import SafeImage from "@/components/media/SafeImage";
 import { z } from "zod";
+import { getCases } from "@/lib/cms-api";
 
 type CaseDoc = z.infer<typeof CaseSchema>;
 type Params = { slug: string };
@@ -18,6 +19,7 @@ export const revalidate = 300; // 5 min
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
+  // Now uses server-direct access
   const slugs = await listCaseSlugs();
   return slugs.map(slug => ({
     slug,
@@ -26,6 +28,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
+  // Now uses server-direct access
   const raw = await getCaseBySlug(slug);
   if (!raw) {
     return metaDefaults({ title: 'Case Study Not Found' });
@@ -41,6 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 export default async function CasePage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
+  // Now uses server-direct access
   const raw = await getCaseBySlug(slug);
 
   if (!raw) {

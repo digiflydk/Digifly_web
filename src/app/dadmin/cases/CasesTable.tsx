@@ -1,7 +1,7 @@
 
 "use client";
 import { useState } from "react";
-import { deleteCaseClient } from "@/lib/cms";
+import { deleteCase } from "@/lib/cms-api";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, PlusCircle, Trash2 } from "lucide-react";
@@ -29,7 +29,7 @@ export default function CasesTable({ initialRows }: { initialRows: Partial<CaseD
     setRows(currentCases => currentCases.filter(c => c.id !== deleteCandidate.id));
     
     try {
-      await deleteCaseClient(deleteCandidate.id);
+      await deleteCase(deleteCandidate.id);
       toast({ title: "Success", description: "Case study deleted." });
     } catch (e: any) {
       // Rollback on error
