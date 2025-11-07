@@ -2,7 +2,6 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
 import { 
-  designSettings,
   navigation,
   homePage,
   aboutPage,

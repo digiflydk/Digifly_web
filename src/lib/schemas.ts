@@ -1,21 +1,19 @@
 
 import { z } from "zod";
 
-// Reusable Zod helpers for common validation patterns.
-// This validator handles absolute URLs (with or without query params) and root-relative paths.
+// This validator handles absolute URLs, root-relative paths, or an empty string.
+// It correctly parses URLs with query strings to check file extensions.
 export const imageSrc = z.string().trim().refine(
   (v) => {
-    if (v === '') return true; // Allow empty string
+    if (v === '') return true; // Allow empty string for clearing a value.
+    if (!v.startsWith('http') && !v.startsWith('/')) return false; // Must be absolute or root-relative.
     
-    const isAllowedPath = v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/');
-    if (!isAllowedPath) return false;
-
     try {
-      // Remove query string and hash for extension checking
-      const pathname = v.split('?')[0].split('#')[0];
-      return /\.(png|jpg|jpeg|svg|ico)$/i.test(pathname);
+      // Use a dummy base for relative paths to allow URL parsing.
+      const url = new URL(v, 'https://dummy.base');
+      return /\.(png|jpg|jpeg|svg|ico)$/i.test(url.pathname);
     } catch {
-      return false;
+      return false; // Invalid URL format
     }
   },
   {
@@ -50,10 +48,10 @@ export const BrandSchema = z.object({
       width: z.number().optional(),
       height: z.number().optional(),
       alt: z.string().optional().default('Digifly Logo'),
-  }).optional().default({}),
+  }).optional().default({ src: '' }),
   favicon: z.object({ 
     src: imageSrc.default("") 
-  }).optional().default({}),
+  }).optional().default({ src: '' }),
 }).optional().default({});
 
 export const DesignSettingsSchema = z.object({
@@ -94,7 +92,7 @@ export const CaseSchema = z.object({
   title: z.string(),
   summary: z.string().default(""),
   seo: SeoSchema.optional(),
-  cover: MediaSchema.default({}),
+  cover: MediaSchema.default({ src: '' }),
   content: PageContentSchema.optional(),
   metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
   updatedAt: z.number().optional(),
@@ -173,7 +171,7 @@ export const SiteSettingsSchema = z.object({
   social: z.object({
     tagline: z.string().optional().default('')
   }).optional().default({}),
-  brand: BrandSchema.optional().default({}),
+  brand: BrandSchema,
   defaultSeo: z.object({
     description: z.preprocess(
       (v) => (typeof v === "string" ? v.trim() : v),

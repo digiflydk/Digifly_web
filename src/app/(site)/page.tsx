@@ -13,10 +13,8 @@ import { safeStr } from '@/lib/safe';
 import { HomepageSchema } from '@/lib/schemas';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const rawPage = await getHomePage();
+  const page = await getHomePage();
   const site = await getSiteSettings();
-
-  const page = HomepageSchema.parse(rawPage || {});
 
   const seoTitle = safeStr(page.seo?.title, safeStr(site.defaultSeo?.title, site.siteTitle));
   const seoDesc = safeStr(page.seo?.description, site.defaultSeo?.description);
@@ -28,24 +26,25 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const rawPage = await getHomePage();
+  const page = await getHomePage();
   
   try {
-    const page = HomepageSchema.parse(rawPage || {});
+    // We still parse here to be safe, but getHomePage is now hardened
+    const validatedPage = HomepageSchema.parse(page || {});
 
     return (
       <>
-        <Hero data={page.hero} />
-        {page.intro && <IntroWhyHowWhat data={page.intro} />}
-        {page.servicesPreview && page.servicesPreview.length > 0 && <ServicesOverview items={page.servicesPreview} />}
+        <Hero data={validatedPage.hero} />
+        {validatedPage.intro && <IntroWhyHowWhat data={validatedPage.intro} />}
+        {validatedPage.servicesPreview && validatedPage.servicesPreview.length > 0 && <ServicesOverview items={validatedPage.servicesPreview} />}
         <CasesGrid 
-          ids={page.featuredCases}
+          ids={validatedPage.featuredCases}
           title="Our Work in Action"
           subtitle="See how we translate complex problems into elegant, effective solutions."
           showAllLink
         />
-        {page.cta && page.cta.button?.href && (
-          <CtaBanner text={page.cta.text} button={page.cta.button} />
+        {validatedPage.cta && validatedPage.cta.button?.href && (
+          <CtaBanner text={validatedPage.cta.text} button={validatedPage.cta.button} />
         )}
       </>
     );

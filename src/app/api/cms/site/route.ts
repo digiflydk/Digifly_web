@@ -16,17 +16,9 @@ const json = (payload: any, status = 200) =>
 
 export async function GET() {
   try {
+    // getSiteSettings is now hardened to always return a valid (or default) object.
     const data = await getSiteSettings();
-    if (!data) {
-        return json({ ok: false, error: 'not_found', message: 'site/settings document not found in Firestore.' }, 404);
-    }
-    // Validate the data before sending it to the client.
-    const parsed = SiteSettingsSchema.safeParse(data);
-    if (!parsed.success) {
-      console.error("[GET /api/cms/site] Data from Firestore is invalid:", parsed.error.format());
-      return json({ ok: false, error: 'validation_error', details: parsed.error.format() }, 500);
-    }
-    return json({ ok: true, data: parsed.data });
+    return json({ ok: true, data });
   } catch (err: any) {
     console.error(`[GET /api/cms/site]`, err);
     return json({ ok: false, error: "SERVER_ERROR", detail: err.message }, 500);

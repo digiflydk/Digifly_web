@@ -29,39 +29,19 @@ import { unstable_cache as nextCache } from 'next/cache';
 
 const SITE_TAG = "site-settings";
 const SITE_SETTINGS_PATH = "site/settings";
-const SITE_CONFIG_PATH = "site/config"; // Legacy
 
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
   try {
     const db = getDb();
-    let settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
-    let data = settingsSnap.exists ? settingsSnap.data() : {};
-
-    // One-time migration logic
-    if (!settingsSnap.exists) {
-        const configSnap = await db.doc(SITE_CONFIG_PATH).get();
-        if (configSnap.exists) {
-            console.log(`[CMS] Migrating legacy 'site/config' to 'site/settings'.`);
-            const legacyData = configSnap.data() as any;
-            const migratedData = {
-                siteTitle: legacyData.siteTitle,
-                social: { tagline: legacyData.tagline },
-                brand: {
-                    logo: { src: legacyData.logoUrl, alt: 'Site Logo' },
-                    favicon: { src: legacyData.faviconUrl },
-                },
-                defaultSeo: { description: legacyData.defaultDescription },
-            };
-            const parsed = SiteSettingsSchema.parse(migratedData);
-            await db.doc(SITE_SETTINGS_PATH).set(parsed);
-            console.log(`[CMS] Migration complete. You can now delete 'site/config'.`);
-            return parsed;
-        }
-    }
+    const settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
+    const data = settingsSnap.exists ? settingsSnap.data() : {};
     
+    // Parse with defaults. This ensures that even if the doc is empty or missing,
+    // we get a valid object conforming to the schema.
     return SiteSettingsSchema.parse(data || {});
   } catch (e) {
     console.error("[getSiteSettingsRaw] Failed to fetch or parse site settings, returning defaults.", e);
+    // Return a default object on any error.
     return SiteSettingsSchema.parse({});
   }
 }
@@ -85,8 +65,8 @@ export async function getNavigation(): Promise<Navigation> {
         const mainSnap = await db.doc('navigation/main').get();
         const footerSnap = await db.doc('navigation/footer').get();
         
-        const mainData = mainSnap.exists ? mainSnap.data() : {};
-        const footerData = footerSnap.exists ? footerSnap.data() : {};
+        const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
+        const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
 
         const header = NavigationSchema.shape.header.parse(mainData?.items || []);
         
@@ -124,14 +104,15 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
     }
 }
 
-export async function getHomePage(): Promise<HomePage | null> {
+export async function getHomePage(): Promise<HomePage> {
     const data = await getPageBySlug('home');
-    if (!data) return null;
-    const parsed = HomepageSchema.safeParse(data);
+    const parsed = HomepageSchema.safeParse(data || {});
     if (parsed.success) return parsed.data;
     console.error("Homepage validation failed:", parsed.error.format());
-    return defaultHomePage;
+    // Return a default valid object on failure
+    return HomepageSchema.parse({});
 }
+
 
 export async function updatePage(slug: string, data: any) {
     const db = getDb();

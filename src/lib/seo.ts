@@ -12,10 +12,10 @@ export async function buildSiteMetadata(): Promise<Metadata> {
       default: s.siteTitle,
       template: `%s | ${s.siteTitle}`,
     },
-    description: s.defaultSeo.description || s.social.tagline,
+    description: s.defaultSeo?.description || s.social?.tagline,
     openGraph: {
       title: s.siteTitle,
-      description: s.defaultSeo.description || s.social.tagline,
+      description: s.defaultSeo?.description || s.social?.tagline,
       url: baseUrl,
       siteName: s.siteTitle,
       images: ['/og-default.jpg'],
@@ -24,13 +24,13 @@ export async function buildSiteMetadata(): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: s.siteTitle,
-      description: s.defaultSeo.description || s.social.tagline,
+      description: s.defaultSeo?.description || s.social?.tagline,
       images: [`${baseUrl}/og-default.jpg`],
     },
     alternates: {
       canonical: baseUrl,
     },
-    icons: { icon: [{ url: s.brand.favicon.src }] },
+    icons: { icon: [{ url: s.brand?.favicon?.src || '/favicon.ico' }] },
     manifest: '/manifest.webmanifest',
   };
 }

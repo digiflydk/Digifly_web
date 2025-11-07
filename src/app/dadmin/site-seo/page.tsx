@@ -16,7 +16,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
-import { ZodError, z } from "zod";
+import { ZodError } from "zod";
 
 async function loadSettings(): Promise<SiteSettings> {
     const res = await fetch("/api/cms/site", { cache: "no-store" });
@@ -24,20 +24,23 @@ async function loadSettings(): Promise<SiteSettings> {
     try {
         const json = JSON.parse(text);
         if (!res.ok || !json?.ok) {
-            // If the doc doesn't exist, the API returns a 404. We'll start with a clean default object.
-            if (res.status === 404 && json?.error === 'not_found') {
-                return SiteSettingsSchema.parse({}); 
-            }
+            // The API now returns a default object on 404, so we just need to handle other errors.
             throw new Error(json?.error || `Request failed with status ${res.status}`);
         }
         // Always parse the data to ensure it conforms to the schema, providing defaults for missing fields.
-        return SiteSettingsSchema.parse(json.data || {});
-    } catch {
-        // If parsing fails or it's not JSON, we still want to render the form with defaults.
-        console.error(`API response was not valid JSON or failed parsing (status ${res.status}). Snippet: ${text.slice(0, 120)}`);
+        const parsed = SiteSettingsSchema.safeParse(json.data || {});
+        if (!parsed.success) {
+            console.error("API data failed validation:", parsed.error);
+            throw new ZodError(parsed.error.issues);
+        }
+        return parsed.data;
+    } catch (e: any) {
+        console.error(`API response was not valid or failed parsing (status ${res.status}). Error: ${e.message}`);
+        // In case of any error, return a default object to prevent crashing the form.
         return SiteSettingsSchema.parse({});
     }
 }
+
 
 async function saveSettings(payload: SiteSettings) {
     const res = await fetch("/api/cms/site", {
@@ -48,7 +51,7 @@ async function saveSettings(payload: SiteSettings) {
     const text = await res.text();
     try {
         const json = JSON.parse(text);
-        if (!res.ok || !json?.ok) {
+        if (!res.ok || data?.ok === false) {
             let errorMsg = json?.error || `Request failed with status ${res.status}`;
             if (json.details && Array.isArray(json.details)) {
                 errorMsg += ` - ${json.details.map((d: any) => d.message).join(', ')}`;
@@ -68,8 +71,7 @@ function ImagePreview({ control, name, alt, width, height }: { control: any; nam
         return <div className="h-10 w-24 bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400">No preview</div>;
     }
     
-    // Use a regex to check for both absolute and relative URLs
-    const isValidSrc = /^(https?:\/\/|\/)/.test(src);
+    const isValidSrc = src.startsWith('http') || src.startsWith('/');
 
     if (!isValidSrc) {
         return <div className="h-10 w-24 bg-red-100 rounded flex items-center justify-center text-xs text-red-500 text-center p-1">Invalid Path</div>;
@@ -101,7 +103,7 @@ export default function SiteSeoPageWrapper() {
       })
       .catch(err => {
         setError(err.message);
-        setInitialData(SiteSettingsSchema.parse({}));
+        setInitialData(SiteSettingsSchema.parse({})); // Fallback to default on error
       })
   }, []);
 
@@ -181,7 +183,7 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
               <FormItem>
                 <FormLabel>Logo URL</FormLabel>
                  <div className="flex items-start gap-4">
-                  <FormControl className="flex-1"><Input type="text" {...field} value={field.value ?? ""} placeholder="https://.../logo.svg" /></FormControl>
+                  <FormControl className="flex-1"><Input type="text" {...field} value={field.value ?? ""} placeholder="https://... or /logo.svg" /></FormControl>
                   <ImagePreview control={form.control} name="brand.logo.src" alt="Logo Preview" width={120} height={40} />
                 </div>
                 <FormDescription>Accepts https://... or /path/to/logo.svg</FormDescription>
