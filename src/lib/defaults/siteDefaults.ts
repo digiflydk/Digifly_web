@@ -30,17 +30,23 @@ export const safeImage = (img?: Partial<Img> | null): Img => ({
   height: img?.height ?? undefined,
 });
 
-export const defaultHeroSlide = HeroSlideSchema.parse({});
+export const defaultHeroSlide: HeroSlide = {
+  image: { src: "", alt: "" },
+  heading: "New Slide",
+  subheading: "A compelling subtitle for your new slide.",
+  body: "",
+  cta: { label: "Learn More", href: "/" },
+  visible: true,
+};
 
 export const defaultHomepage: HomePage = {
   hero: { 
     slides: [
       {
         ...defaultHeroSlide,
-        title: "From Idea to Intelligent Solution",
-        subtitle: "Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.",
-        primaryCtaLabel: "Start Your Project",
-        primaryCtaHref: "/contact",
+        heading: "From Idea to Intelligent Solution",
+        subheading: "Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.",
+        cta: { label: "Start Your Project", href: "/contact" },
         image: { src: "/media/hero-1.jpg", alt: "Abstract hero image" },
       }
     ],

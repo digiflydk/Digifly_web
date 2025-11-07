@@ -52,11 +52,11 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
         </div>
 
         <div className="space-y-2">
-            <FormField control={control} name={`hero.slides.${index}.title`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Title</FormLabel><FormControl><Input {...field} placeholder="Slide-specific title" /></FormControl><FormMessage /></FormItem>
+            <FormField control={control} name={`hero.slides.${index}.heading`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">Heading</FormLabel><FormControl><Input {...field} placeholder="Slide-specific title" /></FormControl><FormMessage /></FormItem>
             )} />
-             <FormField control={control} name={`hero.slides.${index}.subtitle`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Subtitle</FormLabel><FormControl><Input {...field} placeholder="Brief text for the slide" /></FormControl><FormMessage /></FormItem>
+             <FormField control={control} name={`hero.slides.${index}.subheading`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">Subheading</FormLabel><FormControl><Input {...field} placeholder="Brief text for the slide" /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
         
@@ -67,20 +67,11 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
         </div>
         
         <div className="space-y-2">
-            <FormField control={control} name={`hero.slides.${index}.primaryCtaLabel`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Primary CTA Label</FormLabel><FormControl><Input {...field} placeholder="e.g. Learn More" /></FormControl><FormMessage /></FormItem>
+            <FormField control={control} name={`hero.slides.${index}.cta.label`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">CTA Label</FormLabel><FormControl><Input {...field} placeholder="e.g. Learn More" /></FormControl><FormMessage /></FormItem>
             )} />
-            <FormField control={control} name={`hero.slides.${index}.primaryCtaHref`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Primary CTA Link</FormLabel><FormControl><Input {...field} placeholder="/services" /></FormControl><FormMessage /></FormItem>
-            )} />
-        </div>
-
-        <div className="space-y-2">
-            <FormField control={control} name={`hero.slides.${index}.secondaryCtaLabel`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Secondary CTA Label</FormLabel><FormControl><Input {...field} placeholder="e.g. View Cases" /></FormControl><FormMessage /></FormItem>
-            )} />
-            <FormField control={control} name={`hero.slides.${index}.secondaryCtaHref`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Secondary CTA Link</FormLabel><FormControl><Input {...field} placeholder="/cases" /></FormControl><FormMessage /></FormItem>
+            <FormField control={control} name={`hero.slides.${index}.cta.href`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">CTA Link</FormLabel><FormControl><Input {...field} placeholder="/services" /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
         <div className="md:col-span-2">

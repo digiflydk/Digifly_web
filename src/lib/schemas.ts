@@ -63,19 +63,22 @@ const SeoSchema = z.object({
   description: z.string().optional().default(''),
 });
 
-const AllowedDelays = [3, 5, 8, 10, 15] as const;
+const HrefSchema = z.string().trim()
+  .refine(v => v === "" || v.startsWith("/") || v.startsWith("https://") || v.startsWith("http://"),
+    "CTA href must be empty or start with /, http://, or https://").optional();
 
 export const HeroSlideSchema = z.object({
   image: MediaSchema.default({ src: "", alt: "" }),
-  title: z.string().max(120).default(""),
-  subtitle: z.string().max(160).default(""),
-  body: z.string().max(600).default(""),
-  primaryCtaLabel: z.string().max(40).default(""),
-  primaryCtaHref: z.string().default(""),
-  secondaryCtaLabel: z.string().max(40).default(""),
-  secondaryCtaHref: z.string().default(""),
+  heading: z.string().max(120).optional().default(""),
+  subheading: z.string().max(160).optional().default(""),
+  body: z.string().max(400).optional().default(""),
+  cta: z.object({
+    label: z.string().max(40).optional().default(""),
+    href: HrefSchema.default(""),
+  }).optional().default({ label: "", href: "" }),
   visible: z.boolean().default(true),
 });
+
 
 // Page-specific schemas
 const IntroSchema = z.object({
@@ -89,7 +92,7 @@ export const HomepageSchema = z.object({
   hero: z.object({
     slides: z.array(HeroSlideSchema).default([]),
     rotationDelaySec: z.coerce.number()
-      .refine(v => (AllowedDelays as readonly number[]).includes(v), {
+      .refine(v => [3, 5, 8, 10, 15].includes(v), {
         message: "Must be one of 3, 5, 8, 10, 15",
       })
       .default(5),

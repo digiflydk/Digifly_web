@@ -38,7 +38,7 @@ export default function Hero({ data }: { data: HeroData }) {
         >
             <AnimatePresence>
                 <motion.div
-                    key={currentSlide?.image?.src || 'placeholder'}
+                    key={currentSlide?.image?.src || index}
                     className="absolute inset-0"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -65,13 +65,13 @@ export default function Hero({ data }: { data: HeroData }) {
             
             <div className="container relative flex items-center py-24 md:py-28 h-full">
                 <div className="max-w-2xl">
-                    {currentSlide?.title && (
+                    {currentSlide?.heading && (
                         <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
-                            {currentSlide.title}
+                            {currentSlide.heading}
                         </h1>
                     )}
-                    {currentSlide?.subtitle && (
-                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">{currentSlide.subtitle}</p>
+                    {currentSlide?.subheading && (
+                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">{currentSlide.subheading}</p>
                     )}
                     {currentSlide?.body && (
                         <div className="prose prose-lg mt-4 max-w-none text-muted-foreground">
@@ -79,14 +79,9 @@ export default function Hero({ data }: { data: HeroData }) {
                         </div>
                     )}
                     <div className="mt-8 flex flex-wrap gap-4">
-                        {currentSlide?.primaryCtaLabel && currentSlide?.primaryCtaHref && (
-                            <Link href={currentSlide.primaryCtaHref}>
-                                <Button>{currentSlide.primaryCtaLabel}</Button>
-                            </Link>
-                        )}
-                         {currentSlide?.secondaryCtaLabel && currentSlide?.secondaryCtaHref && (
-                            <Link href={currentSlide.secondaryCtaHref}>
-                                <Button variant="secondary">{currentSlide.secondaryCtaLabel}</Button>
+                        {currentSlide?.cta?.label && currentSlide?.cta?.href && (
+                            <Link href={currentSlide.cta.href}>
+                                <Button>{currentSlide.cta.label}</Button>
                             </Link>
                         )}
                     </div>
