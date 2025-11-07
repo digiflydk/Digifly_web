@@ -34,6 +34,7 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const db = getDb();
     const snap = await db.doc(SITE_DOC_PATH).get();
     const data = snap.exists ? snap.data() : {};
+    // Ensure we always return a fully-formed object with defaults
     return SiteSettingsSchema.parse(data || {});
   } catch (e) {
     console.error("[getSiteSettingsRaw] Failed to fetch or parse site settings, returning defaults.", e);

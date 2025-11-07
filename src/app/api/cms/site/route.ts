@@ -7,17 +7,15 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const json = (data: any, status = 200) =>
-  NextResponse.json(data, {
+const json = (payload: any, status = 200) =>
+  NextResponse.json(payload, {
     status,
     headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/json' },
   });
 
-
 export async function GET() {
   try {
-    const data = await getSiteSettings();
-    // getSiteSettings now guarantees a valid object, so no need to check for null
+    const data = await getSiteSettings(); // This now returns a valid object, never null
     return json({ ok: true, data });
   } catch (err: any) {
     console.error(`[GET /api/cms/site]`, err);
@@ -27,7 +25,10 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return json({ ok: false, error: 'INVALID_JSON' }, 400);
+    }
     const parsedData = SiteSettingsSchema.parse(body);
     const saved = await saveSiteSettings(parsedData);
     return json({ ok: true, data: saved });
@@ -36,6 +37,6 @@ export async function PUT(req: Request) {
       return json({ ok: false, error: 'VALIDATION_ERROR', detail: err.issues }, 422);
     }
     console.error(`[PUT /api/cms/site]`, err);
-    return json({ ok: false, error: err?.message ?? "Failed to save site settings" }, 400);
+    return json({ ok: false, error: "Failed to save site settings" }, 400);
   }
 }

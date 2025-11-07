@@ -26,6 +26,9 @@ async function loadSettings(): Promise<Partial<SiteSettings>> {
 
     const json = await res.json();
     if (!res.ok || !json?.ok) {
+        if (res.status === 404 && json?.error === 'not_found') {
+            return SiteSettingsSchema.parse({}); // Return default empty object
+        }
         throw new Error(json?.error || `Request failed with status ${res.status}`);
     }
     return json.data;
