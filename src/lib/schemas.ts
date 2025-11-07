@@ -9,12 +9,12 @@ export const NavLinkSchema = z.object({
 });
 
 export const MediaSchema = z.object({
-    src: ImageUrlSchema,
+    src: ImageUrlSchema.optional().default(''),
     alt: z.string().optional().default(''),
     hint: z.string().optional(),
     width: z.number().optional(),
     height: z.number().optional(),
-}).default({ src: '', alt: '' });
+}).default({});
 
 export const RichTextSchema = z.array(
   z.union([
@@ -90,7 +90,7 @@ const IntroSchema = z.object({
 
 export const HomepageSchema = z.object({
   hero: z.object({
-    title: z.string().min(1),
+    title: z.string().min(1, "Hero title is required"),
     subtitle: z.string().optional().default(''),
     primaryCta: NavLinkSchema.optional(),
     image: MediaSchema.optional(),

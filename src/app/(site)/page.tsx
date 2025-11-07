@@ -9,9 +9,6 @@ import { metaDefaults } from '@/lib/seo';
 import type { Metadata } from 'next';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
-import { safeStr } from '@/lib/safe';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
 import type { ZodIssue } from 'zod';
 
 
@@ -31,23 +28,6 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 }
 
-const DevErrorDisplay = ({ issues }: { issues: ZodIssue[] }) => {
-    if (process.env.NODE_ENV === 'production' || issues.length === 0) return null;
-    return (
-        <div className="fixed bottom-4 right-4 max-w-md w-full z-50">
-            <Alert variant="destructive">
-                <Terminal className="h-4 w-4" />
-                <AlertTitle>Homepage Validation Error (Dev only)</AlertTitle>
-                <AlertDescription>
-                    <p>The content from the CMS is invalid. Page is rendering with safe fallbacks.</p>
-                    <pre className="mt-2 text-xs bg-black/10 p-2 rounded-md overflow-auto max-h-40">
-                        {JSON.stringify(issues, null, 2)}
-                    </pre>
-                </AlertDescription>
-            </Alert>
-        </div>
-    );
-};
 
 export default async function HomePage() {
   const result = await getHomePage();
@@ -67,9 +47,6 @@ export default async function HomePage() {
 
   return (
     <>
-      {!result.ok && (
-          <DevErrorDisplay issues={result.issues} />
-      )}
       <Hero data={page.hero} />
       {page.intro && <IntroWhyHowWhat data={page.intro} />}
       {page.servicesPreview && page.servicesPreview.length > 0 && <ServicesOverview items={page.servicesPreview} />}

@@ -27,7 +27,8 @@ import {
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-import { SITE_DEFAULTS, safeImage } from './defaults/siteDefaults';
+import { SITE_DEFAULTS } from './defaults/siteDefaults';
+import { normalizeHome } from './cms-normalize';
 
 const SITE_TAG = "site-settings";
 const SITE_SETTINGS_PATH = "site/settings";
@@ -38,30 +39,37 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
+    // Deep merge with defaults to ensure all properties exist
     const mergedData = { 
         ...SITE_DEFAULTS, 
-        ...data,
+        ...(data || {}),
         brand: { 
             ...SITE_DEFAULTS.brand, 
-            ...data?.brand,
-            logo: { ...SITE_DEFAULTS.brand.logo, ...data?.brand?.logo },
-            favicon: { ...SITE_DEFAULTS.brand.favicon, ...data?.brand?.favicon },
+            ...(data?.brand || {}),
+            logo: { ...SITE_DEFAULTS.brand.logo, ...(data?.brand?.logo || {}) },
+            favicon: { ...SITE_DEFAULTS.brand.favicon, ...(data?.brand?.favicon || {}) },
         },
-        social: { ...SITE_DEFAULTS.social, ...data?.social },
-        defaultSeo: { ...SITE_DEFAULTS.defaultSeo, ...data?.defaultSeo },
+        social: { ...SITE_DEFAULTS.social, ...(data?.social || {}) },
+        defaultSeo: { ...SITE_DEFAULTS.defaultSeo, ...(data?.defaultSeo || {}) },
     };
 
+    // Use safeParse to avoid throwing errors on the server
     const parsed = SiteSettingsSchema.safeParse(mergedData);
     if (!parsed.success) {
-      console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
+      if (process.env.NODE_ENV !== 'production') {
+        console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
+      }
       return SITE_DEFAULTS; 
     }
     return parsed.data;
   } catch (e) {
-    console.error("[getSiteSettingsRaw] Failed to fetch or parse site settings, returning defaults.", e);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error("[getSiteSettingsRaw] Failed to fetch or parse site settings, returning defaults.", e);
+    }
     return SITE_DEFAULTS;
   }
 }
+
 
 export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key'], {
   tags: [SITE_TAG],
@@ -121,14 +129,14 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
 }
 
 type GetHomePageResult = 
-  | { ok: true; data: HomePage; issues?: ZodIssue[] }
+  | { ok: true; data: HomePage; issues?: undefined }
   | { ok: false; data: HomePage; issues: ZodIssue[] };
 
 function buildHomeFallback(raw: any): HomePage {
-  const heroImage = safeImage(raw?.hero?.image);
-  const introImage = safeImage(raw?.intro?.image);
+  const heroImage = { src: normalizeImageSrc(raw?.hero?.image?.src), alt: raw?.hero?.image?.alt ?? ''};
+  const introImage = { src: normalizeImageSrc(raw?.intro?.image?.src), alt: raw?.intro?.image?.alt ?? ''};
 
-  return {
+  const sanitized = {
     hero: {
       title: raw?.hero?.title || 'From Idea to Intelligent Solution',
       subtitle: raw?.hero?.subtitle || 'Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.',
@@ -146,25 +154,29 @@ function buildHomeFallback(raw: any): HomePage {
     cta: raw?.cta || { text: "Let's build something intelligent together.", button: { label: "Book a Call", href: "/contact" }},
     seo: raw?.seo || {},
   };
+  
+  // This final parse ensures the fallback itself conforms to the schema, preventing downstream errors.
+  return HomepageSchema.parse(sanitized);
 }
 
 export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
-  const data = await getPageBySlug('home');
-  const parsed = HomepageSchema.safeParse(data || {});
+  const raw = await getPageBySlug('home');
+  const normalized = normalizeHome(raw ?? {});
+  const parsed = HomepageSchema.safeParse(normalized);
   
   if (parsed.success) {
     return { ok: true, data: parsed.data };
   }
   
   const issues = zodErrorToIssues(parsed.error);
-  if (process.env.NODE_ENV === 'development' || options.debug) {
-    console.warn("[cms-server] Homepage validation failed. Returning sanitized fallback.", {
-      keys: Object.keys(data || {}),
-      issues: issues,
+  if (process.env.NODE_ENV !== 'production' || options.debug) {
+    console.error("[cms-server] Homepage validation failed. Returning sanitized fallback.", {
+      issues,
     });
   }
   
-  return { ok: false, data: buildHomeFallback(data), issues };
+  // Always return a structurally-sound object, even on failure
+  return { ok: false, data: buildHomeFallback(raw), issues };
 }
 
 
