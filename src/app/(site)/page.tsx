@@ -1,5 +1,4 @@
 
-
 import { getHomePage, getSiteSettings } from '@/lib/cms-server';
 import Hero from '@/components/sections/hero';
 import ServicesOverview from '@/components/sections/services-overview';
@@ -11,6 +10,7 @@ import type { Metadata } from 'next';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
 import type { ZodIssue } from 'zod';
+import { HomePage } from '@/lib/types';
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const site = await getSiteSettings();
 
     // Use sanitized data even if validation fails, it's safer
-    const page = result.data; 
+    const page = result.data as HomePage; 
 
     const seoTitle = page?.seo?.title ? page.seo.title : site.siteTitle;
     const seoDesc = page?.seo?.description ? page.seo.description : site.defaultSeo?.description;
@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const result = await getHomePage();
-  const page = result.data;
+  const page = result.data as HomePage;
 
   // Final check to ensure we always have a valid page object to render
   if (!page) {

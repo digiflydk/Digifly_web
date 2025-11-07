@@ -1,5 +1,6 @@
 
 import type { SiteSettings, HomePage } from '@/lib/types';
+import { HeroSlideSchema } from '../schemas';
 
 export const SITE_DEFAULTS: SiteSettings = {
   siteTitle: 'Digifly',
@@ -27,6 +28,8 @@ export const safeImage = (img?: Partial<Img> | null): Img => ({
   width: img?.width ?? undefined,
   height: img?.height ?? undefined,
 });
+
+export const defaultHeroSlide = HeroSlideSchema.parse({});
 
 export const defaultHomepage: HomePage = {
   hero: { slides: [], rotationDelaySec: 5 },

@@ -21,6 +21,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { defaultHeroSlide } from "@/lib/defaults/siteDefaults";
 
 
 function SortableSlideItem({ id, index, control, remove }: { id: string; index: number; control: any, remove: (index: number) => void }) {
@@ -40,6 +41,7 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
         </button>
       </div>
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+        
         <div className="space-y-2">
             <FormField control={control} name={`hero.slides.${index}.image.src`} render={({ field }) => (
                 <FormItem><FormLabel className="text-xs">Image URL</FormLabel><FormControl><Input {...field} placeholder="/hero.jpg" /></FormControl><FormMessage /></FormItem>
@@ -48,21 +50,55 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
                 <FormItem><FormLabel className="text-xs">Image Alt Text</FormLabel><FormControl><Input {...field} placeholder="Description of image" /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
-         <div className="space-y-2">
+
+        <div className="space-y-2">
             <FormField control={control} name={`hero.slides.${index}.title`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Headline</FormLabel><FormControl><Input {...field} placeholder="Slide-specific headline" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="text-xs">Title</FormLabel><FormControl><Input {...field} placeholder="Slide-specific title" /></FormControl><FormMessage /></FormItem>
             )} />
-            <FormField control={control} name={`hero.slides.${index}.ctaLabel`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">CTA Label</FormLabel><FormControl><Input {...field} placeholder="e.g. Learn More" /></FormControl><FormMessage /></FormItem>
+             <FormField control={control} name={`hero.slides.${index}.subtitle`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">Subtitle</FormLabel><FormControl><Input {...field} placeholder="Brief text for the slide" /></FormControl><FormMessage /></FormItem>
             )} />
-            <FormField control={control} name={`hero.slides.${index}.ctaHref`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">CTA Link</FormLabel><FormControl><Input {...field} placeholder="/services/ai" /></FormControl><FormMessage /></FormItem>
+        </div>
+        
+        <div className="md:col-span-2 space-y-2">
+             <FormField control={control} name={`hero.slides.${index}.body`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">Body</FormLabel><FormControl><Textarea {...field} placeholder="Optional longer text." rows={2} /></FormControl><FormMessage /></FormItem>
+            )} />
+        </div>
+        
+        <div className="space-y-2">
+            <FormField control={control} name={`hero.slides.${index}.primaryCtaLabel`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">Primary CTA Label</FormLabel><FormControl><Input {...field} placeholder="e.g. Learn More" /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={control} name={`hero.slides.${index}.primaryCtaHref`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">Primary CTA Link</FormLabel><FormControl><Input {...field} placeholder="/services" /></FormControl><FormMessage /></FormItem>
+            )} />
+        </div>
+
+        <div className="space-y-2">
+            <FormField control={control} name={`hero.slides.${index}.secondaryCtaLabel`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">Secondary CTA Label</FormLabel><FormControl><Input {...field} placeholder="e.g. View Cases" /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={control} name={`hero.slides.${index}.secondaryCtaHref`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">Secondary CTA Link</FormLabel><FormControl><Input {...field} placeholder="/cases" /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
         <div className="md:col-span-2">
-             <FormField control={control} name={`hero.slides.${index}.subtitle`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Subcopy</FormLabel><FormControl><Textarea {...field} placeholder="Brief text for the slide" rows={2} /></FormControl><FormMessage /></FormItem>
-            )} />
+            <FormField
+              control={control}
+              name={`hero.slides.${index}.visible`}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-start gap-2 pt-2">
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="text-sm !mt-0">Visible</FormLabel>
+                </FormItem>
+              )}
+            />
         </div>
       </div>
       <div className="flex items-center h-10 pt-6">
@@ -136,7 +172,7 @@ export function HomepageForm({ data }: { data: HomePage }) {
                     )}
                 </div>
                  {fields.length < 6 && (
-                    <Button type="button" variant="outline" size="sm" onClick={() => append(HeroSlideSchema.parse({}))}>
+                    <Button type="button" variant="outline" size="sm" onClick={() => append(defaultHeroSlide)}>
                         <Plus className="mr-2 h-4 w-4" /> Add Slide
                     </Button>
                 )}

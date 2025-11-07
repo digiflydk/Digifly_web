@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -7,48 +8,49 @@ import type { HomePage } from "@/lib/types";
 import { MediaImage } from "../ui/media-image";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { RichText } from '../ui/rich-text';
 
 type HeroData = HomePage["hero"];
 
 export default function Hero({ data }: { data: HeroData }) {
-    const { images = [], rotate = true, delaySec = 5, title, subtitle, primaryCta } = data;
+    const { slides = [], rotationDelaySec = 5 } = data;
     const [index, setIndex] = useState(0);
-
-    const validImages = images.filter(img => img && img.src);
-    const hasMultipleImages = validImages.length > 1;
+    
+    const visibleSlides = slides.filter(slide => slide.visible);
+    const hasMultipleImages = visibleSlides.length > 1;
 
     useEffect(() => {
-        if (!hasMultipleImages || !rotate) return;
+        if (!hasMultipleImages) return;
 
         const interval = setInterval(() => {
-            setIndex((prevIndex) => (prevIndex + 1) % validImages.length);
-        }, delaySec * 1000);
+            setIndex((prevIndex) => (prevIndex + 1) % visibleSlides.length);
+        }, rotationDelaySec * 1000);
 
         return () => clearInterval(interval);
-    }, [validImages.length, delaySec, rotate, hasMultipleImages]);
-
-    const currentImage = validImages[index];
+    }, [visibleSlides.length, rotationDelaySec, hasMultipleImages]);
+    
+    const currentSlide = visibleSlides[index];
 
     return (
         <section
-            className="relative -mt-16 w-full pt-16"
+            className="relative -mt-[var(--header-height,64px)] w-full pt-[var(--header-height,64px)]"
             style={{ minHeight: 'var(--hero-desktop-min-h, 70vh)' }}
         >
             <AnimatePresence>
                 <motion.div
-                    key={currentImage?.src || 'placeholder'}
+                    key={currentSlide?.image?.src || 'placeholder'}
                     className="absolute inset-0"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.8, ease: 'easeInOut' }}
                 >
-                    {currentImage?.src ? (
+                    {currentSlide?.image?.src ? (
                         <MediaImage
-                            src={currentImage.src}
-                            alt={currentImage.alt}
+                            src={currentSlide.image.src}
+                            alt={currentSlide.image.alt}
                             fill
-                            priority={images.indexOf(currentImage) === 0}
+                            priority={visibleSlides.indexOf(currentSlide) === 0}
                             className="pointer-events-none object-cover w-full h-full"
                             sizes="(max-width: 768px) 100vw, 70vw"
                         />
@@ -60,18 +62,31 @@ export default function Hero({ data }: { data: HeroData }) {
 
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-purple-900/10 to-transparent" />
             
             <div className="container relative flex items-center py-24 md:py-28 h-full">
                 <div className="max-w-2xl">
-                    <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
-                        {title}
-                    </h1>
-                    <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">{subtitle}</p>
-                    <div className="mt-8">
-                        {primaryCta?.href && primaryCta?.label && (
-                            <Link href={primaryCta.href}>
-                                <Button>{primaryCta.label}</Button>
+                    {currentSlide?.title && (
+                        <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
+                            {currentSlide.title}
+                        </h1>
+                    )}
+                    {currentSlide?.subtitle && (
+                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">{currentSlide.subtitle}</p>
+                    )}
+                    {currentSlide?.body && (
+                        <div className="prose prose-lg mt-4 max-w-none text-muted-foreground">
+                            <p>{currentSlide.body}</p>
+                        </div>
+                    )}
+                    <div className="mt-8 flex flex-wrap gap-4">
+                        {currentSlide?.primaryCtaLabel && currentSlide?.primaryCtaHref && (
+                            <Link href={currentSlide.primaryCtaHref}>
+                                <Button>{currentSlide.primaryCtaLabel}</Button>
+                            </Link>
+                        )}
+                         {currentSlide?.secondaryCtaLabel && currentSlide?.secondaryCtaHref && (
+                            <Link href={currentSlide.secondaryCtaHref}>
+                                <Button variant="secondary">{currentSlide.secondaryCtaLabel}</Button>
                             </Link>
                         )}
                     </div>
@@ -80,7 +95,7 @@ export default function Hero({ data }: { data: HeroData }) {
 
             {hasMultipleImages && (
                 <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-                    {validImages.map((_, i) => (
+                    {visibleSlides.map((_, i) => (
                         <button
                             key={i}
                             onClick={() => setIndex(i)}

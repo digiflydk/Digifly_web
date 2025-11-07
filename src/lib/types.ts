@@ -7,7 +7,8 @@ import {
     DesignSettingsSchema, 
     NavigationSchema, 
     SiteSettingsSchema,
-    BasePageSchema
+    BasePageSchema,
+    HeroSlideSchema
 } from "./schemas";
 
 
@@ -22,6 +23,8 @@ export type NavLink = { label: string; href: string };
 export type Navigation = z.infer<typeof NavigationSchema>;
 
 export type HomePage = z.infer<typeof HomepageSchema>;
+
+export type HeroSlide = z.infer<typeof HeroSlideSchema>;
 
 export type RichTextContent =
   | { type: 'p'; text: string }

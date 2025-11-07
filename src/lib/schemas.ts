@@ -63,11 +63,16 @@ const SeoSchema = z.object({
 
 export const HeroSlideSchema = z.object({
   image: MediaSchema.default({ src: "", alt: "" }),
-  title: z.string().default(""),
-  subtitle: z.string().default(""),
-  ctaLabel: z.string().default(""),
-  ctaHref: z.string().default(""),
+  title: z.string().max(120).default(""),
+  subtitle: z.string().max(160).default(""),
+  body: z.string().max(600).default(""),
+  primaryCtaLabel: z.string().max(40).default(""),
+  primaryCtaHref: z.string().default(""),
+  secondaryCtaLabel: z.string().max(40).default(""),
+  secondaryCtaHref: z.string().default(""),
+  visible: z.boolean().default(true),
 });
+
 
 // Page-specific schemas
 const IntroSchema = z.object({
@@ -80,7 +85,7 @@ const IntroSchema = z.object({
 export const HomepageSchema = z.object({
   hero: z.object({
     slides: z.array(HeroSlideSchema).default([]),
-    rotationDelaySec: z.coerce.number().default(5),
+    rotationDelaySec: z.enum(['3', '5', '8', '10', '15']).transform(Number).default(5),
   }).default({ slides: [], rotationDelaySec: 5 }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({
