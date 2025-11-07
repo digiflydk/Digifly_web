@@ -25,6 +25,24 @@ export const ImageUrlSchema = z.string()
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid file extension. Allowed: png, jpg, jpeg, svg, ico, webp.' });
     }
   });
+  
+export const OgImageUrlSchema = z.string()
+  .trim()
+  .transform(v => normalizeImageSrc(v))
+  .superRefine((v, ctx) => {
+    if (!v) return;
+    const hasGoodPrefix = v.startsWith('https://') || v.startsWith('/');
+    if (!hasGoodPrefix) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Must be https:// or root-relative (/...)' });
+      return;
+    }
+    const bare = v.split(/[?#]/)[0].toLowerCase();
+    const allowed = ['.png','.jpg','.jpeg','.webp'];
+    if (!allowed.some(ext => bare.endsWith(ext))) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'OG Image must be one of: .png, .jpg, .jpeg, .webp' });
+    }
+  });
+
 
 export const MediaSchema = z.object({
     src: ImageUrlSchema.optional().default(''),
@@ -119,9 +137,10 @@ export const SiteSettingsSchema = z.object({
   defaultSeo: z.object({
     description: z.preprocess(
       (v) => (typeof v === "string" ? v.trim() : v),
-      z.string().max(160, "Description must be 160 characters or less").optional().default('')
+      z.string().max(300, "Description must be 300 characters or less").optional().default('')
     ),
     title: z.string().optional().default(''),
+    defaultThumbnailUrl: OgImageUrlSchema.optional().default(''),
   }).optional().default({})
 });
 

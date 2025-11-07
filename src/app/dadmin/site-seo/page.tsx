@@ -13,30 +13,25 @@ import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { Terminal, Link as LinkIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
 import { ZodError } from "zod";
-import { saveSiteSettings } from "@/lib/cms";
+import { getSiteSettings, saveSiteSettings } from "@/lib/cms-api";
+import { SeoPreviewCard } from "@/components/cms/forms/SeoPreviewCard";
+import { SITE_DEFAULTS } from "@/lib/defaults/siteDefaults";
 
 async function loadSettings(): Promise<SiteSettings> {
-    const res = await fetch("/api/cms/site", { cache: "no-store" });
-    const text = await res.text();
     try {
-        const json = JSON.parse(text);
-        if (!res.ok || !json?.ok) {
-            throw new Error(json?.error?.message || `Request failed with status ${res.status}`);
-        }
-        const parsed = SiteSettingsSchema.safeParse(json.data || {});
+        const data = await getSiteSettings();
+        const parsed = SiteSettingsSchema.safeParse(data || {});
         if (!parsed.success) {
             console.error("API data failed validation:", parsed.error);
-            // Even if validation fails, return the default structure to avoid crashing the form
             return SiteSettingsSchema.parse({});
         }
         return parsed.data;
     } catch (e: any) {
-        console.error(`API response was not valid or failed parsing (status ${res.status}). Error: ${e.message}`);
-        // In case of any error, return a default object to prevent crashing the form.
+        console.error(`API response was not valid or failed parsing. Error: ${e.message}`);
         return SiteSettingsSchema.parse({});
     }
 }
@@ -62,7 +57,7 @@ function ImagePreview({ control, name, alt, width, height }: { control: any; nam
                 width={width}
                 height={height}
                 className="object-contain"
-                unoptimized // External URLs may not be in next.config.js
+                unoptimized
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
         </div>
@@ -107,6 +102,17 @@ export default function SiteSeoPageWrapper() {
 }
 
 
+function LiveSeoPreview({ control, siteUrl }: { control: any, siteUrl: string }) {
+    const formData = useWatch({ control });
+
+    const title = formData.siteTitle || SITE_DEFAULTS.siteTitle;
+    const description = formData.defaultSeo?.description || SITE_DEFAULTS.defaultSeo.description;
+    const imageUrl = formData.defaultSeo?.defaultThumbnailUrl || '/og-default.jpg';
+    
+    return <SeoPreviewCard title={title} description={description} imageUrl={imageUrl} siteUrl={siteUrl} />;
+}
+
+
 export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<SiteSettings>({
@@ -118,7 +124,7 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
     setIsSaving(true);
     try {
         const result = await saveSiteSettings(values);
-        if (!result) { // Assuming saveSiteSettings returns null/undefined on error
+        if (!result) { 
             throw new Error("An unknown error occurred during save.");
         }
         toast({ title: "✅ Success", description: "Site settings saved." });
@@ -192,6 +198,20 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
                 <FormMessage />
               </FormItem>
             )} />
+            <FormField control={form.control} name="defaultSeo.defaultThumbnailUrl" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Default Thumbnail (OG Image)</FormLabel>
+                <FormControl><Input {...field} value={field.value ?? ""} placeholder="/og-default.jpg" /></FormControl>
+                <FormDescription>Root-relative (/img.jpg) or absolute (https://...) URL. Recommended size: 1200x630.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <div className="pt-4">
+                <FormLabel>Live Preview</FormLabel>
+                <div className="mt-2 not-prose">
+                    <LiveSeoPreview control={form.control} siteUrl={process.env.NEXT_PUBLIC_SITE_URL || "digifly.app"}/>
+                </div>
+            </div>
           </CardContent>
         </Card>
 

@@ -9,7 +9,7 @@
     {
       "id": "intro-1.jpg",
       "description": "A diverse team collaborating around a whiteboard, sketching out ideas.",
-      "imageUrl": "https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3NjIyNzQ3Njd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHx0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3NjIyNzQ3Njd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "team collaboration"
     },
     {
@@ -29,6 +29,12 @@
       "description": "Close-up of a person interacting with a mobile application.",
       "imageUrl": "https://images.unsplash.com/photo-1601972602237-8c79241e468b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtb2JpbGUlMjBhcHB8ZW58MHx8fHwxNzYyMjY5MjQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "mobile app"
+    },
+    {
+      "id": "og-default.jpg",
+      "description": "Default Open Graph image placeholder",
+      "imageUrl": "https://images.unsplash.com/photo-1562575214-da9fcf59b907?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx0ZWNoJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3NjI0OTg3NTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tech background"
     }
   ]
 }

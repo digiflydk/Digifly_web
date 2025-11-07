@@ -1,11 +1,32 @@
 
+
 import { Metadata } from "next";
 import { getSiteSettings } from "./cms-server";
+import { SITE_DEFAULTS } from "./defaults/siteDefaults";
+import { SiteSettings } from "./types";
+
+function ogImageForPage(
+  pageImage: string | undefined | null,
+  site: SiteSettings
+): string {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteOg = site.defaultSeo?.defaultThumbnailUrl;
+
+  const url = pageImage || siteOg || '/og-default.jpg';
+  
+  if (url.startsWith('/')) {
+    return `${baseUrl}${url}`;
+  }
+  return url;
+}
+
 
 export async function buildSiteMetadata(): Promise<Metadata> {
   const s = await getSiteSettings();
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   
+  const ogImageUrl = ogImageForPage(undefined, s);
+
   return {
     metadataBase: new URL(baseUrl),
     title: {
@@ -18,14 +39,14 @@ export async function buildSiteMetadata(): Promise<Metadata> {
       description: s.defaultSeo?.description || s.social?.tagline,
       url: baseUrl,
       siteName: s.siteTitle,
-      images: ['/og-default.jpg'],
+      images: [ogImageUrl],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title: s.siteTitle,
       description: s.defaultSeo?.description || s.social?.tagline,
-      images: [`${baseUrl}/og-default.jpg`],
+      images: [ogImageUrl],
     },
     alternates: {
       canonical: baseUrl,
@@ -46,8 +67,10 @@ export async function metaDefaults({
   image?: string;
 }): Promise<Metadata> {
   const baseMeta = await buildSiteMetadata();
+  const siteSettings = await getSiteSettings();
   const pageTitle = title ?? baseMeta.title?.default as string;
   const pageDesc = description ?? baseMeta.description as string;
+  const ogImageUrl = ogImageForPage(image, siteSettings);
   
   return {
     ...baseMeta,
@@ -57,13 +80,13 @@ export async function metaDefaults({
       ...baseMeta.openGraph,
       title: pageTitle,
       description: pageDesc,
-      images: image ? [image] : baseMeta.openGraph?.images,
+      images: [ogImageUrl],
     },
     twitter: {
         ...baseMeta.twitter,
         title: pageTitle,
         description: pageDesc,
-        images: image ? [image] : baseMeta.twitter?.images,
+        images: [ogImageUrl],
     }
   };
 }
