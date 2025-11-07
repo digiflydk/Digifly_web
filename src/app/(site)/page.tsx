@@ -11,12 +11,14 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
 import { safeStr } from '@/lib/safe';
 import { HomepageSchema } from '@/lib/schemas';
-import { ZodError } from 'zod';
+import { ZodError, ZodIssue } from 'zod';
 
 export async function generateMetadata(): Promise<Metadata> {
-  try {
-    const page = await getHomePage();
+    const result = await getHomePage();
     const site = await getSiteSettings();
+
+    // Use sanitized data even if validation fails, it's safer
+    const page = result.data; 
 
     const seoTitle = safeStr(page?.seo?.title, safeStr(site.defaultSeo?.title, site.siteTitle));
     const seoDesc = safeStr(page?.seo?.description, site.defaultSeo?.description);
@@ -25,50 +27,30 @@ export async function generateMetadata(): Promise<Metadata> {
       title: seoTitle,
       description: seoDesc,
     });
-  } catch (error) {
-    if (error instanceof ZodError) {
-      console.error("Homepage metadata validation failed:", error.format());
-    }
-    return metaDefaults({
-      title: 'Error Loading Page',
-      description: 'Could not load homepage content due to invalid data.',
-    });
-  }
 }
 
+const DevErrorDisplay = ({ issues }: { issues: ZodIssue[] }) => (
+    <Container className="py-16 text-center">
+        <SectionHeading 
+            title="Homepage Validation Error" 
+            subtitle="The content from the CMS is invalid. Check the server console for details." 
+        />
+         <pre className="mt-4 text-left bg-slate-100 p-4 rounded-md text-xs overflow-auto max-w-4xl mx-auto">
+            {JSON.stringify(issues, null, 2)}
+         </pre>
+    </Container>
+);
+
 export default async function HomePage() {
-  let page;
-  try {
-    page = await getHomePage();
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development' && error instanceof ZodError) {
-      return (
-        <Container className="py-16 text-center">
-            <SectionHeading 
-                title="Homepage Validation Error" 
-                subtitle="The content from the CMS is invalid. Check the server console for details." 
-            />
-             <pre className="mt-4 text-left bg-slate-100 p-4 rounded-md text-xs overflow-auto max-w-4xl mx-auto">
-                {JSON.stringify(error.issues, null, 2)}
-             </pre>
-        </Container>
-      );
-    }
-    // In production, or for non-Zod errors, you might want to render a more generic error
-    // or fallback content. Here we re-throw to let Next.js handle it.
-    throw error;
+  const result = await getHomePage();
+
+  // In development, show a detailed error. In production, it renders the sanitized fallback.
+  if (!result.ok && process.env.NODE_ENV === 'development') {
+    return <DevErrorDisplay issues={result.issues} />;
   }
   
-  if (!page) {
-    return (
-      <Container className="py-16 text-center">
-          <SectionHeading 
-              title="Content Not Found" 
-              subtitle="The homepage content could not be loaded from the CMS." 
-          />
-      </Container>
-    );
-  }
+  // Use the data (either valid or sanitized) for rendering
+  const page = result.data;
 
   // Final check with parse to ensure type safety, though getHomePage should have already validated
   const validatedPage = HomepageSchema.parse(page);

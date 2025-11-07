@@ -1,6 +1,6 @@
 
 'use server';
-import { z } from 'zod';
+import { z, type ZodIssue } from 'zod';
 import {
   SiteSettingsSchema,
   NavigationSchema,
@@ -89,7 +89,12 @@ export async function getNavigation(): Promise<Navigation> {
         const footerSnap = await db.doc('navigation/footer').get();
         
         const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
-        const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
+        let footerData;
+        if (footerSnap.exists) {
+            footerData = footerSnap.data();
+        } else {
+            footerData = { items: [] };
+        }
 
         const header = NavigationSchema.shape.header.parse(mainData?.items || []);
         
@@ -127,15 +132,27 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
     }
 }
 
-export async function getHomePage(): Promise<HomePage> {
-    const data = await getPageBySlug('home');
-    const parsed = HomepageSchema.safeParse(data || {});
-    if (parsed.success) return parsed.data;
-    
-    console.error("Homepage validation failed:", parsed.error.format());
-    // On failure, re-throw a ZodError to be caught by the page component.
-    // This allows for better error display in development.
-    throw new z.ZodError(parsed.error.issues);
+type GetHomePageResult = 
+  | { ok: true; data: HomePage }
+  | { ok: false; data: HomePage; issues: ZodIssue[] };
+
+export async function getHomePage(): Promise<GetHomePageResult> {
+  const data = await getPageBySlug('home');
+  const parsed = HomepageSchema.safeParse(data || {});
+  
+  if (parsed.success) {
+    return { ok: true, data: parsed.data };
+  }
+  
+  console.error("Homepage validation failed:", {
+    keys: Object.keys(data || {}),
+    issues: parsed.error.format(),
+  });
+  
+  // Create a sanitized fallback object
+  const sanitizedData = HomepageSchema.parse({}); // This will use all the .default() values
+  
+  return { ok: false, data: sanitizedData, issues: parsed.error.issues };
 }
 
 
@@ -265,7 +282,8 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
     return getNavigation();
   }
   if (path === 'home') {
-    return getHomePage();
+    const result = await getHomePage();
+    return result.data;
   }
   if (path === 'cases') {
     const slug = searchParams?.get('slug');

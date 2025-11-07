@@ -21,7 +21,6 @@ export const imageSrc = z.string().trim().refine(
   }
 );
 
-
 // Base Schemas
 export const NavLinkSchema = z.object({
   label: z.string(),
@@ -103,7 +102,7 @@ const IntroSchema = z.object({
   tagline: z.string().optional().default(''),
   heading: z.string().default(''),
   body: z.string().default(''),
-  image: MediaSchema.optional(),
+  image: MediaSchema.optional().default({ src: '' }),
 }).default({});
 
 export const HomepageSchema = z.object({
@@ -111,7 +110,7 @@ export const HomepageSchema = z.object({
     title: z.string().min(1),
     subtitle: z.string().optional().default(''),
     primaryCta: NavLinkSchema.optional(),
-    image: MediaSchema.optional(),
+    image: MediaSchema.optional().default({ src: '' }),
   }).default({ title: 'Default Hero Title' }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({
