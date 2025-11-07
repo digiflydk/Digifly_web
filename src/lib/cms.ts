@@ -1,12 +1,10 @@
 
 
-"use server"
+"use client";
 
 import type { HomePage, CaseDoc, Page, Navigation, SiteSettings } from './types';
 import { 
     getHomePage as getHomePageData, 
-    listCases, 
-    getCaseBySlug as getCaseBySlugData, 
     getPageBySlug as getPageBySlugData,
     updatePage as updatePageData,
     getNavigation as getNavigationData, 
@@ -18,7 +16,6 @@ import {
     getSiteSettings as getSiteSettingsData,
     saveSiteSettings as saveSiteSettingsData,
     updateCase as updateCaseData,
-    deleteCase as deleteCaseData,
 } from './cms-server';
 import { z } from 'zod';
 import { NavigationSchema, SiteSettingsSchema, CaseSchema } from './schemas';
@@ -39,13 +36,11 @@ export async function updatePage(slug: string, data: any) {
     return updatePageData(slug, data);
 }
 
-export async function getCases(params?: { published?: boolean; limit?: number }): Promise<CaseDoc[]> {
+export async function getCasesClient(params?: { published?: boolean; limit?: number }): Promise<CaseDoc[]> {
     const qp = new URLSearchParams();
     if (params?.published !== undefined) qp.set('published', String(params.published));
     if (params?.limit) qp.set('limit', String(params.limit));
-    const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const url = `${base}/api/cms/cases?${qp.toString()}`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(`/api/cms/cases?${qp.toString()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`Failed to load cases: ${res.status}`);
     const json = await res.json();
     return json.data ?? [];
@@ -63,20 +58,19 @@ export async function getNavigationMenuCount(): Promise<{ count: number }> {
     return getNavigationMenuCountData();
 }
 
-
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
-    return getCaseBySlugData(slug);
+    return getPageBySlugData(slug);
 }
 
 export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
     return updateCaseData(slug, data);
 }
 
-export async function deleteCase(slug: string): Promise<void> {
-  const res = await fetch(`/api/cms/cases/${slug}`, { method: 'DELETE' });
+export async function deleteCaseClient(id: string): Promise<void> {
+  const res = await fetch(`/api/cms/cases/${id}`, { method: 'DELETE' });
   if (!res.ok) {
     const msg = await res.text().catch(() => '');
-    throw new Error(`Failed to delete case ${slug}: ${res.status} ${msg}`);
+    throw new Error(`Failed to delete case ${id}: ${res.status} ${msg}`);
   }
 }
 

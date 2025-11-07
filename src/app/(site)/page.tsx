@@ -1,5 +1,5 @@
 
-import { getHomePage, getSiteSettings } from '@/lib/cms';
+import { getHomePage, getSiteSettings } from '@/lib/cms-server';
 import Hero from '@/components/sections/hero';
 import ServicesOverview from '@/components/sections/services-overview';
 import CasesGrid from '@/components/sections/cases-grid';

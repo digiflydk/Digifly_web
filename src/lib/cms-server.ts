@@ -13,7 +13,6 @@ import {
   ContactPageSchema,
   BasePageSchema,
 } from './schemas';
-import { ImageUrlSchema } from './validators';
 import { getDb } from '@/lib/firebase-admin';
 import type { HomePage, Navigation, CaseDoc, SiteSettings, Page } from '@/lib/types';
 import {
@@ -26,10 +25,12 @@ import {
   contactPage as defaultContact,
 } from '@/lib/cms-data';
 import { revalidateTag } from 'next/cache';
-import { unstable_cache as nextCache } from 'next/cache';
+import { unstable_cache as nextCache, unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
 import { SITE_DEFAULTS, safeImage } from './defaults/siteDefaults';
 import { normalizeImageSrc } from './cms-normalize';
+import { collection, getDocs, doc, getDoc, deleteDoc } from 'firebase/firestore';
+
 
 const SITE_TAG = "site-settings";
 const SITE_SETTINGS_PATH = "site/settings";
@@ -160,20 +161,6 @@ type GetHomePageResult =
   | { ok: false; data: HomePage; issues: ZodIssue[] };
 
 
-function normalizeHome(doc: any) {
-  return {
-    ...doc,
-    hero: {
-      ...doc?.hero,
-      image: { ...(doc?.hero?.image ?? {}), src: normalizeImageSrc(doc?.hero?.image?.src) },
-    },
-    intro: {
-      ...doc?.intro,
-      image: { ...(doc?.intro?.image ?? {}), src: normalizeImageSrc(doc?.intro?.image?.src) },
-    },
-  };
-}
-
 export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
   const raw = await getPageBySlug('home');
   const normalized = normalizeHome(raw ?? {});
@@ -201,23 +188,20 @@ export async function updatePage(slug: string, data: any) {
     return parsedData;
 }
 
+export async function getCasesServer() {
+  noStore();
+  const db = getDb();
+  const snap = await getDocs(collection(db, 'cases'));
+  const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // Allow partial parse for admin list view to be more resilient
+  const parsed = rows.map(r => CaseSchema.partial().parse(r));
+  return parsed;
+}
+
 export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
-    try {
-        const limit = searchParams?.get('limit') ? parseInt(searchParams.get('limit') as string, 10) : 1000;
-        const db = getDb();
-        const snap = await db.collection('cases').limit(limit).get();
-        if (snap.empty) {
-            return defaultCases as CaseDoc[];
-        }
-        const items = snap.docs.map(d => {
-            const parsed = CaseSchema.safeParse({ id: d.id, slug: d.data().slug, ...d.data() });
-            return parsed.success ? (parsed.data as CaseDoc) : null;
-        }).filter((c): c is CaseDoc => c !== null);
-        return items;
-    } catch(e) {
-        console.warn('Falling back to default cases data.', e);
-        return defaultCases as CaseDoc[];
-    }
+    const data = await getCasesServer();
+    // This is where server-side filtering would happen if needed
+    return data as CaseDoc[];
 }
 
 export async function listCaseSlugs(): Promise<string[]> {
@@ -262,15 +246,18 @@ export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>)
     return { id: docId, slug, ...rest };
 }
 
-export async function deleteCase(slug: string): Promise<void> {
+export async function deleteCaseServer(id: string) {
+    noStore();
     const db = getDb();
-    const querySnap = await db.collection('cases').where('slug', '==', slug).limit(1).get();
-    if (querySnap.empty) {
-      throw new Error(`Case with slug ${slug} not found.`);
+    const ref = doc(db, 'cases', id);
+    const s = await getDoc(ref);
+    if (!s.exists()) {
+        return { ok: false, status: 404, error: "Not Found" };
     }
-    const docId = querySnap.docs[0].id;
-    await db.collection('cases').doc(docId).delete();
-  }
+    await deleteDoc(ref);
+    return { ok: true, status: 200 };
+}
+
 
 export async function getCaseCount(): Promise<{ count: number }> {
     try {
@@ -295,19 +282,19 @@ export async function getNavigationMenuCount(): Promise<{ count: number }> {
 }
 
 export async function getAboutPage(): Promise<any> {
-    return getPageBySlugData('about');
+    return getPageBySlug('about');
 }
 
 export async function getServicesPage(): Promise<any> {
-    return getPageBySlugData('services');
+    return getPageBySlug('services');
 }
 
 export async function getCasesIndexPage(): Promise<any> {
-    return getPageBySlugData('cases-index');
+    return getPageBySlug('cases-index');
 }
 
 export async function getContactPage(): Promise<any> {
-    return getPageBySlugData('contact');
+    return getPageBySlug('contact');
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {

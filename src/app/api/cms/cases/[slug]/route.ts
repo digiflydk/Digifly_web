@@ -1,8 +1,9 @@
 
 
 import { NextRequest, NextResponse } from "next/server";
-import { getCaseBySlug, updateCase, deleteCase } from "@/lib/cms-server";
+import { getCaseBySlug, updateCase, deleteCaseServer } from "@/lib/cms-server";
 import { CaseSchema } from "@/lib/schemas";
+import { ZodError } from "zod";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,7 +36,7 @@ export async function PUT(req: NextRequest, { params }: { params: { slug: string
         const updated = await updateCase(slug, parsed);
         return json({ ok: true, data: updated });
     } catch (e: any) {
-        if (e instanceof Error && 'issues' in e) { // ZodError
+        if (e instanceof ZodError) {
             return json({ ok: false, error: 'Validation Error', details: e.issues }, 422);
         }
         return json({ ok: false, error: 'Server Error', details: e.message }, 500);
@@ -43,14 +44,11 @@ export async function PUT(req: NextRequest, { params }: { params: { slug: string
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { slug: string } }) {
-  const { slug } = params;
+  const { slug: id } = params; // The slug is the ID in this case for client
   try {
-    await deleteCase(slug);
-    return json({ ok: true });
+    const result = await deleteCaseServer(id);
+    return json({ ok: result.ok }, { status: result.status });
   } catch (e: any) {
-    if (e.message.includes('not found')) {
-      return json({ ok: false, error: 'Not found' }, 404);
-    }
     return json({ ok: false, error: 'Server Error', details: e.message }, 500);
   }
 }
