@@ -30,11 +30,16 @@ const SITE_TAG = "site-settings";
 const SITE_DOC_PATH = "site/settings";
 
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
+  try {
     const db = getDb();
     const snap = await db.doc(SITE_DOC_PATH).get();
     const data = snap.exists ? snap.data() : {};
-    // Ensure defaults are applied if doc is empty or fields are missing
     return SiteSettingsSchema.parse(data || {});
+  } catch (e) {
+    console.error("[getSiteSettingsRaw] Failed to fetch or parse site settings, returning defaults.", e);
+    // Return a valid, default-parsed object in case of any error
+    return SiteSettingsSchema.parse({});
+  }
 }
 
 export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key'], {

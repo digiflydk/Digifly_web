@@ -17,18 +17,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 async function loadSettings(): Promise<Partial<SiteSettings>> {
     const res = await fetch("/api/cms/site", { cache: "no-store" });
-    const text = await res.text();
-    try {
-        const json = JSON.parse(text);
-        if (!res.ok || !json?.ok) {
-            throw new Error(json?.error || `Request failed with status ${res.status}`);
-        }
-        return json.data;
-    } catch {
-        throw new Error(
-            `API response was not valid JSON (status ${res.status}). Snippet: ${text.slice(0, 80)}`
-        );
+    const contentType = res.headers.get("content-type") || "";
+
+    if (!contentType.includes("application/json")) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`API response was not valid JSON (status ${res.status}). Snippet: ${text.slice(0, 120)}`);
     }
+
+    const json = await res.json();
+    if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || `Request failed with status ${res.status}`);
+    }
+    return json.data;
 }
 
 async function saveSettings(payload: any) {
@@ -37,18 +37,15 @@ async function saveSettings(payload: any) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
     });
-    const text = await res.text();
-    try {
-        const json = JSON.parse(text);
-        if (!res.ok || !json?.ok) {
-            throw new Error(json?.error || `Request failed with status ${res.status}`);
+    const json = await res.json();
+    if (!res.ok || !json?.ok) {
+        let errorMsg = json?.error || `Request failed with status ${res.status}`;
+        if (json.detail && Array.isArray(json.detail)) {
+            errorMsg += ` - ${json.detail.map((d: any) => d.message).join(', ')}`;
         }
-        return json.data;
-    } catch {
-        throw new Error(
-            `Save failed (/api/cms/site): ${res.status} • ${text.slice(0, 80)}`
-        );
+        throw new Error(errorMsg);
     }
+    return json.data;
 }
 
 
@@ -102,10 +99,10 @@ export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings
     defaultValues: initialData,
   });
 
-  async function onSubmit(values: Partial<SiteSettings>) {
+  async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-      await saveSettings(values as SiteSettings);
+      await saveSettings(values);
       toast({ title: "Success", description: "Site settings saved." });
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Could not save settings.", variant: "destructive" });

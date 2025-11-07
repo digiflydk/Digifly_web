@@ -3,47 +3,47 @@ export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
+import { SiteSettingsSchema } from '@/lib/schemas';
 
-type SitePayload = {
-  siteTitle?: string,
-  tagline?: string,
-  logoUrl?: string,
-  faviconUrl?: string,
-  defaultDescription?: string
-};
+const COL = 'site';
+const DOC = 'settings';
 
-const COL = 'content';
-const DOC = 'site';
+function json(payload: any, status = 200) {
+  return NextResponse.json(payload, {
+    status,
+    headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/json' },
+  });
+}
 
 export async function GET() {
-  const db = getFirestore(getAdminApp());
-  const snap = await db.collection(COL).doc(DOC).get();
-  const site = snap.exists
-    ? snap.data()
-    : { siteTitle: '', tagline: '', logoUrl: '', faviconUrl: '', defaultDescription: '' };
-  return NextResponse.json({ ok: true, site });
+  try {
+    const db = getFirestore(getAdminApp());
+    const snap = await db.collection(COL).doc(DOC).get();
+    const data = snap.exists ? snap.data() : {};
+    const site = SiteSettingsSchema.parse(data);
+    return json({ ok: true, data: site });
+  } catch (e: any) {
+    console.error(`[GET /api/admin/site]`, e);
+    return json({ ok: false, error: 'SERVER_ERROR', detail: e.message }, 500);
+  }
 }
 
 export async function POST(req: Request) {
-  let data: SitePayload;
   try {
-    data = await req.json();
-  } catch {
-    return NextResponse.json({ ok: false, error: 'Invalid JSON' }, { status: 400 });
-  }
+    const body = await req.json().catch(() => null);
+    if (!body) return json({ ok: false, error: 'INVALID_JSON' }, 400);
 
-  const db = getFirestore(getAdminApp());
-  
-  // Create a new object with only the allowed fields.
-  const payloadToSave: SitePayload = {
-    siteTitle: data.siteTitle ?? '',
-    tagline: data.tagline ?? '',
-    logoUrl: data.logoUrl ?? '',
-    faviconUrl: data.faviconUrl ?? '',
-    defaultDescription: data.defaultDescription ?? '',
-  };
-  
-  await db.collection(COL).doc(DOC).set({ ...payloadToSave, updatedAt: Date.now() }, { merge: true });
-  
-  return NextResponse.json({ ok: true });
+    const parsedData = SiteSettingsSchema.parse(body);
+
+    const db = getFirestore(getAdminApp());
+    await db.collection(COL).doc(DOC).set(parsedData, { merge: true });
+    
+    return json({ ok: true, data: parsedData });
+  } catch (e: any) {
+    console.error(`[POST /api/admin/site]`, e);
+     if (e instanceof Error && 'issues' in e) { // ZodError
+      return json({ ok: false, error: 'VALIDATION_ERROR', detail: e.issues }, 422);
+    }
+    return json({ ok: false, error: 'SERVER_ERROR', detail: e.message }, 500);
+  }
 }

@@ -28,6 +28,9 @@ export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
     { label: 'Contact', href: '/contact' },
   ] : [{ label: 'Contact', href: '/contact' }];
 
+  const finalLogoUrl = logoUrl || "/logo.svg";
+  const finalSiteTitle = siteTitle || siteConfig.name;
+
   return (
     <header
       className="fixed inset-x-0 top-0 z-[100] border-b bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/60"
@@ -36,18 +39,18 @@ export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-full">
         <div className="flex items-center min-w-[140px]">
-          <Link href="/" className="header-brand text-[20px]" aria-label={`${siteTitle || siteConfig.name} home`}>
-            {logoUrl ? (
+          <Link href="/" className="header-brand text-[20px]" aria-label={`${finalSiteTitle} home`}>
+            {finalLogoUrl ? (
               <Image
-                src={logoUrl}
-                alt={siteTitle || siteConfig.name}
+                src={finalLogoUrl}
+                alt={finalSiteTitle}
                 width={140}
                 height={28}
                 priority
                 className="h-7 w-auto object-contain"
               />
             ) : (
-              <span className="header-brand text-[20px]">{siteTitle || siteConfig.name}</span>
+              <span className="header-brand text-[20px]">{finalSiteTitle}</span>
             )}
           </Link>
         </div>
@@ -83,7 +86,7 @@ export default function Header({ nav, logoUrl, siteTitle }: HeaderProps) {
                 <SheetContent side="right">
                     <div className="flex flex-col gap-6 pt-12">
                         <Link href="/" className="font-headline text-lg font-bold text-primary" onClick={() => setMobileMenuOpen(false)}>
-                            {siteTitle || siteConfig.name}
+                            {finalSiteTitle}
                         </Link>
                         <nav className="flex flex-col gap-4">
                             {navLinks.map(link => (
