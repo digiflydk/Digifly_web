@@ -16,7 +16,7 @@ import {
     getCaseCount as getCaseCountData,
     getPageCount as getPageCountData,
     getNavigationMenuCount as getNavigationMenuCountData,
-    updateSiteSeo as updateSiteSettingsData,
+    saveSiteSettings as updateSiteSettingsData,
     getSiteSettings as getSiteSettingsData
 } from './cms-server';
 import { z } from 'zod';

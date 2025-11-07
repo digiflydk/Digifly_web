@@ -15,73 +15,40 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-async function safeGetSite(): Promise<Partial<SiteSettings>> {
-  const ctrl = new AbortController();
-  const timeoutId = setTimeout(() => ctrl.abort(), 8000); // 8s hard timeout
-
-  try {
-    const res = await fetch('/api/cms/site', {
-      method: 'GET',
-      cache: 'no-store',
-      next: { revalidate: 0 },
-      signal: ctrl.signal,
-    });
-    clearTimeout(timeoutId);
-    
-    const ct = res.headers.get('content-type') || '';
-    if (!ct.includes('application/json')) {
-      const txt = await res.text().catch(() => '');
-      throw new Error(`API response was not valid JSON (status ${res.status}). Snippet: ${txt.slice(0,120)}`);
+async function loadSettings(): Promise<Partial<SiteSettings>> {
+    const res = await fetch("/api/cms/site", { cache: "no-store" });
+    const text = await res.text();
+    try {
+        const json = JSON.parse(text);
+        if (!res.ok || !json?.ok) {
+            throw new Error(json?.error || `Request failed with status ${res.status}`);
+        }
+        return json.data;
+    } catch {
+        throw new Error(
+            `API response was not valid JSON (status ${res.status}). Snippet: ${text.slice(0, 80)}`
+        );
     }
-
-    const data = await res.json();
-
-    if (!res.ok || !data?.ok) {
-      const msg = data?.error
-        ? `${res.status} • ${data.error}${data.detail ? ` • ${JSON.stringify(data.detail)}` : ''}`
-        : `${res.status} • ${res.statusText || 'Unknown error'}`;
-      throw new Error(`Load failed (/api/cms/site): ${msg}`);
-    }
-    return data.site;
-  } catch (e: any) {
-    clearTimeout(timeoutId);
-    if (e.name === 'AbortError') {
-      throw new Error(`Load failed: Request timed out after 8 seconds.`);
-    }
-    throw e;
-  }
 }
 
-async function saveSettings(payload: Partial<SiteSettings>): Promise<any> {
-    const url = "/api/cms/site";
-    const res = await fetch(url, {
-        method: 'PUT',
+async function saveSettings(payload: any) {
+    const res = await fetch("/api/cms/site", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
     });
-
     const text = await res.text();
-    const isJson = res.headers.get("content-type")?.includes("application/json");
-    const data = isJson && text ? JSON.parse(text) : null;
-
-    if (!res.ok || data?.ok === false) {
-        let errorMsg = `Save failed (${url}): ${res.status}`;
-        if (data?.error) {
-            errorMsg += ` • ${data.error}`;
-        } else if (!isJson && text) {
-            errorMsg += ` • ${text.slice(0, 200)}`;
-        } else {
-            errorMsg += ` • ${res.statusText}`;
+    try {
+        const json = JSON.parse(text);
+        if (!res.ok || !json?.ok) {
+            throw new Error(json?.error || `Request failed with status ${res.status}`);
         }
-        if (data?.detail) {
-            const detail = Array.isArray(data.detail) 
-                ? data.detail.map((d: any) => `${d.path.join('.')}: ${d.message}`).join(', ')
-                : String(data.detail);
-            errorMsg += ` (${detail})`;
-        }
-        throw new Error(errorMsg);
+        return json.data;
+    } catch {
+        throw new Error(
+            `Save failed (/api/cms/site): ${res.status} • ${text.slice(0, 80)}`
+        );
     }
-    return data;
 }
 
 
@@ -91,7 +58,7 @@ export default function SiteSeoPageWrapper() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    safeGetSite()
+    loadSettings()
       .then(data => {
         const parsedData = SiteSettingsSchema.partial().parse(data || {});
         setInitialData(parsedData);

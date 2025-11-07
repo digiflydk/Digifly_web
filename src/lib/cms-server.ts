@@ -12,7 +12,7 @@ import {
   ContactPageSchema,
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { SiteSettings, HomePage, Navigation, CaseDoc } from '@/lib/types';
+import type { HomePage, Navigation, CaseDoc, SiteSettings } from '@/lib/types';
 import {
   navigation as defaultNav,
   homePage as defaultHomePage,
@@ -27,18 +27,29 @@ import { unstable_cache as nextCache } from 'next/cache';
 
 
 const SITE_TAG = "site-settings";
+const SITE_DOC_PATH = "site/settings";
 
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const db = getDb();
-    const snap = await db.collection('site').doc('settings').get();
+    const snap = await db.doc(SITE_DOC_PATH).get();
     const data = snap.exists ? snap.data() : {};
+    // Ensure defaults are applied if doc is empty or fields are missing
     return SiteSettingsSchema.parse(data || {});
 }
-
 
 export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key'], {
   tags: [SITE_TAG],
 });
+
+export async function saveSiteSettings(data: any): Promise<SiteSettings> {
+  const parsedData = SiteSettingsSchema.parse(data);
+  const db = getDb();
+  await db.doc(SITE_DOC_PATH).set(parsedData, { merge: true });
+  revalidateTag(SITE_TAG);
+  // Re-fetch to return the saved (and potentially merged) data
+  const snap = await db.doc(SITE_DOC_PATH).get();
+  return snap.data() as SiteSettings;
+}
 
 export async function getNavigation(): Promise<Navigation> {
     try {
@@ -47,7 +58,7 @@ export async function getNavigation(): Promise<Navigation> {
         const footerSnap = await db.doc('navigation/footer').get();
         
         const mainData = mainSnap.exists ? mainSnap.data() : {};
-        const footerData = footerSnap.exists ? footerSnap.data() : {};
+        const footerData = footerSnap.exists ? footerData.data() : {};
 
         const header = NavigationSchema.shape.header.parse(mainData?.items || []);
         const footerLinks = (footerData?.items || []).map((item: any) => ({
@@ -194,13 +205,8 @@ export async function getContactPage(): Promise<any> {
 }
 
 export async function getSiteSeo() {
+    // This function is now just an alias for getSiteSettings
     return getSiteSettings();
-}
-
-export async function updateSiteSeo(data: z.infer<typeof SiteSettingsSchema>) {
-  const db = getDb();
-  await db.collection("site").doc("settings").set(data, { merge: true });
-  revalidateTag(SITE_TAG);
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
