@@ -6,15 +6,16 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import RichText from "@/components/ui/rich-text";
 import { metaDefaults } from "@/lib/seo";
 import { Metadata } from "next";
-import { parseCase } from "@/lib/schemas";
+import { CaseSchema, parseCase } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
 import SafeImage from "@/components/media/SafeImage";
+import { z } from "zod";
 
+type CaseDoc = z.infer<typeof CaseSchema>;
 type Params = { slug: string };
 
 export const revalidate = 300; // 5 min
 export const dynamicParams = true;
-
 
 export async function generateStaticParams() {
   const slugs = await listCaseSlugs();
@@ -45,7 +46,7 @@ export default async function CasePage({ params }: { params: Promise<Params> }) 
   if (!raw) {
     notFound();
   }
-  const doc = parseCase(raw);
+  const doc = parseCase(raw) as CaseDoc;
 
   return (
     <article className="py-16 md:py-24">
@@ -59,23 +60,25 @@ export default async function CasePage({ params }: { params: Promise<Params> }) 
           />
         </div>
 
-        <div className="aspect-[16/9] md:aspect-[2/1] max-w-5xl mx-auto my-12 overflow-hidden rounded-2xl shadow-xl">
-            <SafeImage
-                src={doc.cover.src}
-                alt={doc.cover.alt}
-                titleFallback={doc.title}
-                width={1200}
-                height={600}
-                className="w-full h-full object-cover"
-            />
-        </div>
+        {doc.cover.src && (
+          <div className="aspect-[16/9] md:aspect-[2/1] max-w-5xl mx-auto my-12 overflow-hidden rounded-2xl shadow-xl">
+              <SafeImage
+                  src={doc.cover.src}
+                  alt={doc.cover.alt}
+                  titleFallback={doc.title}
+                  width={1200}
+                  height={600}
+                  className="w-full h-full object-cover"
+              />
+          </div>
+        )}
 
         <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
             <div className="md:col-span-2">
-                <RichText content={doc.content.body} />
+                <RichText content={doc.content?.body} />
             </div>
             <aside>
-                {doc.metrics.length > 0 && (
+                {doc.metrics && doc.metrics.length > 0 && (
                     <div className="sticky top-24 rounded-xl border-2 p-6 shadow-md bg-background">
                         <h3 className="font-headline text-xl font-semibold mb-4">Key Results</h3>
                         <div className="space-y-4">

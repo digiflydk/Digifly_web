@@ -6,10 +6,8 @@ import {
     getHomePage as getHomePageData, 
     listCases, 
     getCaseBySlug as getCaseBySlugData, 
-    getAboutPage as getAboutPageData, 
-    getServicesPage as getServicesPageData, 
-    getCasesIndexPage as getCasesIndexPageData, 
-    getContactPage as getContactPageData, 
+    getPageBySlug as getPageBySlugData,
+    updatePage as updatePageData,
     getNavigation as getNavigationData, 
     updateNavigation as updateNavigationData, 
     updateHomepage as updateHomepageData,
@@ -17,17 +15,26 @@ import {
     getPageCount as getPageCountData,
     getNavigationMenuCount as getNavigationMenuCountData,
     getSiteSettings as getSiteSettingsData,
-    saveSiteSettings as saveSiteSettingsData
+    saveSiteSettings as saveSiteSettingsData,
+    updateCase as updateCaseData
 } from './cms-server';
 import { z } from 'zod';
-import { NavigationSchema, SiteSettingsSchema } from './schemas';
+import { NavigationSchema, SiteSettingsSchema, CaseSchema } from './schemas';
 
 export async function getNavigation(): Promise<Navigation> {
   return await getNavigationData();
 }
 
-export async function getHomePage(): Promise<HomePage> {
+export async function getHomePage(): Promise<HomePage | null> {
   return await getHomePageData();
+}
+
+export async function getPageBySlug(slug: string): Promise<any | null> {
+    return getPageBySlugData(slug);
+}
+
+export async function updatePage(slug: string, data: any) {
+    return updatePageData(slug, data);
 }
 
 export async function getCases(options?: {limit?: number}): Promise<CaseDoc[]> {
@@ -55,20 +62,24 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     return getCaseBySlugData(slug);
 }
 
+export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
+    return updateCaseData(slug, data);
+}
+
 export async function getAboutPage(): Promise<Page<{ body: any }> | null> {
-    return getAboutPageData();
+    return getPageBySlugData('about');
 }
 
 export async function getServicesPage(): Promise<Page<{ services: any[] }> | null> {
-    return getServicesPageData();
+    return getPageBySlugData('services');
 }
 
 export async function getCasesIndexPage(): Promise<Page<{}> | null> {
-    return getCasesIndexPageData();
+    return getPageBySlugData('cases-index');
 }
 
 export async function getContactPage(): Promise<Page<{}> | null> {
-    return getContactPageData();
+    return getPageBySlugData('contact');
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {

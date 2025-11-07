@@ -1,3 +1,4 @@
+
 import { getHomePage, getSiteSettings } from '@/lib/cms';
 import Hero from '@/components/sections/hero';
 import ServicesOverview from '@/components/sections/services-overview';
@@ -9,12 +10,15 @@ import type { Metadata } from 'next';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
 import { safeStr } from '@/lib/safe';
+import { HomepageSchema } from '@/lib/schemas';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await getHomePage();
+  const rawPage = await getHomePage();
   const site = await getSiteSettings();
 
-  const seoTitle = safeStr(page.seo?.title, safeStr(site.defaultSeo?.description, site.siteTitle));
+  const page = HomepageSchema.parse(rawPage || {});
+
+  const seoTitle = safeStr(page.seo?.title, safeStr(site.defaultSeo?.title, site.siteTitle));
   const seoDesc = safeStr(page.seo?.description, site.defaultSeo?.description);
   
   return metaDefaults({
@@ -24,7 +28,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const page = await getHomePage();
+  const rawPage = await getHomePage();
+  const page = HomepageSchema.parse(rawPage || {});
 
   if (!page) {
     return (
@@ -34,19 +39,18 @@ export default async function HomePage() {
     );
   }
 
-
   return (
     <>
       <Hero data={page.hero} />
-      <IntroWhyHowWhat data={page.intro} />
-      <ServicesOverview items={page.servicesPreview} />
+      {page.intro && <IntroWhyHowWhat data={page.intro} />}
+      {page.servicesPreview && page.servicesPreview.length > 0 && <ServicesOverview items={page.servicesPreview} />}
       <CasesGrid 
         ids={page.featuredCases}
         title="Our Work in Action"
         subtitle="See how we translate complex problems into elegant, effective solutions."
         showAllLink
       />
-      {page.cta && (
+      {page.cta && page.cta.button?.href && (
         <CtaBanner text={page.cta.text} button={page.cta.button} />
       )}
     </>

@@ -2,34 +2,33 @@
 import { z } from "zod";
 
 // Reusable Zod helpers for common validation patterns.
-const httpUrl = z.string().url("Must be a valid URL (e.g., https://...)");
-const pathUrl = z.string().regex(/^\/[^\s]*$/, 'Must start with "/"');
-
-// New reusable validator for image sources.
-// Accepts: empty string, absolute URL, or root-relative path.
-// Validates file extension.
+// This validator now correctly handles URLs with query parameters.
 export const imageSrc = z.string().trim().refine(
-  (v) => v === '' || v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/'),
-  { message: 'Must be an absolute URL (https://...) or a root-relative path (/...)' }
-).refine(
-  (v) => v === '' || /\.(png|jpg|jpeg|svg|ico)$/i.test(new URL(v, 'https://dummy.base').pathname),
-  { message: 'Only .png, .jpg, .jpeg, .svg, or .ico files are allowed' }
+  (v) => {
+    if (v === '') return true; // Allow empty string
+    // Check if it's a valid URL or a root-relative path
+    if (v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/')) {
+      try {
+        // Use a dummy base for relative paths to allow URL constructor to parse the pathname
+        const url = new URL(v, 'https://dummy.base');
+        // Test the pathname against the regex, ignoring query params
+        return /\.(png|jpg|jpeg|svg|ico)$/i.test(url.pathname);
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  },
+  {
+    message: 'Must be a valid URL or root-relative path ending in .png, .jpg, .jpeg, .svg, or .ico',
+  }
 );
 
-
-// Optional URL – treats empty string as undefined
-export const optionalUrl = z.preprocess(
-  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
-  z.string().url("Must be a valid URL (e.g., https://...)").optional()
-);
-
-// Literal empty string or valid URL
-export const urlOrEmpty = z.union([z.string().url(), z.literal("")]);
 
 // Base Schemas
 export const NavLinkSchema = z.object({
   label: z.string(),
-  href: z.union([httpUrl, pathUrl]),
+  href: z.string(),
 });
 
 export const MediaSchema = z.object({
@@ -51,12 +50,12 @@ export const BrandSchema = z.object({
       src: imageSrc.default(''),
       width: z.number().optional(),
       height: z.number().optional(),
-      alt: z.string().default('Digifly Logo'),
+      alt: z.string().optional().default('Digifly Logo'),
   }).default({ src: '', alt: 'Digifly Logo' }),
   favicon: z.object({ 
     src: imageSrc.default("") 
   }).default({src: ""}),
-}).default();
+}).default({});
 
 export const DesignSettingsSchema = z.object({
   brand: BrandSchema.optional(),
@@ -95,13 +94,9 @@ export const CaseSchema = z.object({
   slug: z.string(),
   title: z.string(),
   summary: z.string().default(""),
-  seo: SeoSchema.default({}),
-  cover: z.object({
-    src: z.string(),
-    alt: z.string().default(""),
-    hint: z.string().optional(),
-  }),
-  content: PageContentSchema,
+  seo: SeoSchema.optional(),
+  cover: MediaSchema.default({}),
+  content: PageContentSchema.optional(),
   metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
   updatedAt: z.number().optional(),
 });
@@ -139,7 +134,7 @@ export const BasePageSchema = z.object({
   title: z.string(),
   subtitle: z.string().optional().default(""),
   seo: SeoSchema.optional(),
-  content: PageContentSchema,
+  content: PageContentSchema.optional(),
 });
 
 export const AboutPageSchema = BasePageSchema.extend({
@@ -178,22 +173,15 @@ export const SiteSettingsSchema = z.object({
   siteTitle: z.string().min(1, 'Site Title is required').default('Digifly'),
   social: z.object({
     tagline: z.string().optional().default('')
-  }).default({}),
-  brand: z.object({
-    logo: z.object({
-      src: imageSrc.default(''),
-      alt: z.string().optional().default('Site Logo'),
-    }).default({ src: '', alt: 'Site Logo'}),
-    favicon: z.object({
-      src: imageSrc.default(''),
-    }).default({ src: ''}),
-  }).default(),
+  }).optional().default({}),
+  brand: BrandSchema.optional().default({}),
   defaultSeo: z.object({
     description: z.preprocess(
       (v) => (typeof v === "string" ? v.trim() : v),
       z.string().max(160, "Description must be 160 characters or less").optional().default('')
-    )
-  }).default({})
+    ),
+    title: z.string().optional().default(''),
+  }).optional().default({})
 });
 
 export const NavItemSchema = z.object({
@@ -207,10 +195,9 @@ export const NavItemSchema = z.object({
 
 export const allSchemas = {
     SiteSettingsSchema,
-    PageDocSchema: BasePageSchema,
-    NavSchema: NavigationSchema,
-    CaseListSchema: z.array(CaseSchema),
-    CaseDocSchema: CaseSchema,
+    BasePageSchema,
+    NavigationSchema,
+    CaseSchema,
 };
 
 export type CaseDoc = z.infer<typeof CaseSchema>;

@@ -10,9 +10,10 @@ import {
   ServicesPageSchema,
   CasesIndexSchema,
   ContactPageSchema,
+  BasePageSchema,
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { HomePage, Navigation, CaseDoc, SiteSettings } from '@/lib/types';
+import type { HomePage, Navigation, CaseDoc, SiteSettings, Page } from '@/lib/types';
 import {
   navigation as defaultNav,
   homePage as defaultHomePage,
@@ -101,21 +102,42 @@ export async function getNavigation(): Promise<Navigation> {
     }
 }
 
-export async function getHomePage(): Promise<HomePage> {
+export async function getPageBySlug(slug: string): Promise<any | null> {
     try {
         const db = getDb();
-        const snap = await db.doc('pages/home').get();
-        const data = snap.exists ? snap.data() : {};
-        const parsed = HomepageSchema.safeParse(data);
-        if (parsed.success) {
-             return parsed.data as HomePage;
-        };
-        console.warn("Homepage validation failed, falling back to defaults.", parsed.error);
-        return defaultHomePage;
+        const snap = await db.doc(`pages/${slug}`).get();
+        if (!snap.exists) {
+            // Fallback for known pages, useful during development/seeding
+            const fallbacks: Record<string, any> = {
+                home: defaultHomePage,
+                about: defaultAbout,
+                services: defaultServices,
+                'cases-index': defaultCasesIndex,
+                contact: defaultContact,
+            };
+            return fallbacks[slug] || null;
+        }
+        return snap.data();
     } catch (e) {
-        console.warn('Falling back to default homepage data.', e);
-        return defaultHomePage;
+        console.error(`[getPageBySlug] Failed to fetch page '${slug}', returning null.`, e);
+        return null;
     }
+}
+
+export async function getHomePage(): Promise<HomePage | null> {
+    const data = await getPageBySlug('home');
+    if (!data) return null;
+    const parsed = HomepageSchema.safeParse(data);
+    if (parsed.success) return parsed.data;
+    console.error("Homepage validation failed:", parsed.error.format());
+    return defaultHomePage;
+}
+
+export async function updatePage(slug: string, data: any) {
+    const db = getDb();
+    const parsedData = BasePageSchema.parse(data);
+    await db.doc(`pages/${slug}`).set(parsedData, { merge: true });
+    return parsedData;
 }
 
 export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
@@ -140,11 +162,11 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
 export async function listCaseSlugs(): Promise<string[]> {
     try {
         const db = getDb();
-        const snap = await db.collection('cases').select('slug').get();
+        const snap = await db.collection('cases').select().get();
         if (snap.empty) {
             return defaultCases.map(c => c.slug);
         }
-        return snap.docs.map(d => d.get('slug')).filter(Boolean);
+        return snap.docs.map(d => d.id).filter(Boolean);
     } catch (e) {
         return [];
     }
@@ -166,6 +188,13 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     }
 }
 
+export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
+    const db = getDb();
+    const { slug: _slug, ...rest } = data; // remove slug from data object
+    await db.collection('cases').doc(slug).set(rest, { merge: true });
+    return { slug, ...rest };
+}
+
 export async function getCaseCount(): Promise<{ count: number }> {
     try {
         const db = getDb();
@@ -181,7 +210,7 @@ export async function getPageCount(): Promise<{ count: number }> {
         const snap = await db.collection('pages').count().get();
         return { count: snap.data().count };
     } catch {
-        return { count: 4 }; // home, about, services, contact
+        return { count: 5 }; // home, about, services, cases-index, contact
     }
 }
 export async function getNavigationMenuCount(): Promise<{ count: number }> {
@@ -189,47 +218,19 @@ export async function getNavigationMenuCount(): Promise<{ count: number }> {
 }
 
 export async function getAboutPage(): Promise<any> {
-    try {
-        const db = getDb();
-        const snap = await db.doc('pages/about').get();
-        return AboutPageSchema.parse(snap.data() || {});
-    } catch (e) {
-        console.warn('Falling back to default about page data.', e);
-        return defaultAbout;
-    }
+    return getPageBySlug('about');
 }
 
 export async function getServicesPage(): Promise<any> {
-    try {
-        const db = getDb();
-        const snap = await db.doc('pages/services').get();
-        return ServicesPageSchema.parse(snap.data() || {});
-    } catch (e) {
-        console.warn('Falling back to default services page data.', e);
-        return defaultServices;
-    }
+    return getPageBySlug('services');
 }
 
 export async function getCasesIndexPage(): Promise<any> {
-    try {
-        const db = getDb();
-        const snap = await db.doc('pages/cases-index').get();
-        return CasesIndexSchema.parse(snap.data() || {});
-    } catch (e) {
-        console.warn('Falling back to default cases index page data.', e);
-        return defaultCasesIndex;
-    }
+    return getPageBySlug('cases-index');
 }
 
 export async function getContactPage(): Promise<any> {
-    try {
-        const db = getDb();
-        const snap = await db.doc('pages/contact').get();
-        return ContactPageSchema.parse(snap.data() || {});
-    } catch (e) {
-        console.warn('Falling back to default contact page data.', e);
-        return defaultContact;
-    }
+    return getPageBySlug('contact');
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
@@ -248,6 +249,12 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'health') {
     return { ok: true, ts: Date.now() };
   }
+  
+  if (path.startsWith('pages/')) {
+    const slug = path.replace('pages/', '');
+    return getPageBySlug(slug);
+  }
+
   if (path === 'navigation') {
     return getNavigation();
   }
@@ -255,6 +262,10 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
     return getHomePage();
   }
   if (path === 'cases') {
+    const slug = searchParams?.get('slug');
+    if (slug) {
+        return getCaseBySlug(slug);
+    }
     return listCases(searchParams);
   }
    if (path === 'about') {

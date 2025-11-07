@@ -16,25 +16,30 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
+import { ZodError, z } from "zod";
 
-async function loadSettings(): Promise<Partial<SiteSettings>> {
+async function loadSettings(): Promise<SiteSettings> {
     const res = await fetch("/api/cms/site", { cache: "no-store" });
     const text = await res.text();
     try {
         const json = JSON.parse(text);
         if (!res.ok || !json?.ok) {
+            // If the doc doesn't exist, the API returns a 404. We'll start with a clean default object.
             if (res.status === 404 && json?.error === 'not_found') {
-                return SiteSettingsSchema.parse({}); // Return default empty object
+                return SiteSettingsSchema.parse({}); 
             }
             throw new Error(json?.error || `Request failed with status ${res.status}`);
         }
-        return json.data;
+        // Always parse the data to ensure it conforms to the schema, providing defaults for missing fields.
+        return SiteSettingsSchema.parse(json.data || {});
     } catch {
-        throw new Error(`API response was not valid JSON (status ${res.status}). Snippet: ${text.slice(0, 120)}`);
+        // If parsing fails or it's not JSON, we still want to render the form with defaults.
+        console.error(`API response was not valid JSON or failed parsing (status ${res.status}). Snippet: ${text.slice(0, 120)}`);
+        return SiteSettingsSchema.parse({});
     }
 }
 
-async function saveSettings(payload: any) {
+async function saveSettings(payload: SiteSettings) {
     const res = await fetch("/api/cms/site", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -63,65 +68,43 @@ function ImagePreview({ control, name, alt, width, height }: { control: any; nam
         return <div className="h-10 w-24 bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400">No preview</div>;
     }
     
-    // Check for both absolute and relative URLs
-    const isInvalid = !src.startsWith('http') && !src.startsWith('/');
+    // Use a regex to check for both absolute and relative URLs
+    const isValidSrc = /^(https?:\/\/|\/)/.test(src);
 
-    if (isInvalid) {
+    if (!isValidSrc) {
         return <div className="h-10 w-24 bg-red-100 rounded flex items-center justify-center text-xs text-red-500 text-center p-1">Invalid Path</div>;
     }
 
     return (
-        <div className="p-2 border rounded-md">
+        <div className="p-2 border rounded-md bg-slate-50">
             <Image
                 src={src}
                 alt={alt}
                 width={width}
                 height={height}
                 className="object-contain"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                unoptimized // External URLs may not be in next.config.js
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
         </div>
     );
 }
 
 export default function SiteSeoPageWrapper() {
-  const [initialData, setInitialData] = useState<Partial<SiteSettings> | null>(null);
+  const [initialData, setInitialData] = useState<SiteSettings | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadSettings()
       .then(data => {
-        // Use safeParse to handle potentially invalid data without crashing
-        const parsedResult = SiteSettingsSchema.partial().safeParse(data || {});
-        if (parsedResult.success) {
-          setInitialData(parsedResult.data);
-        } else {
-          // If parsing fails, we can log it and start with a blank form
-          console.error("Initial data from API failed validation:", parsedResult.error);
-          setInitialData({}); // Use default empty object
-          setError("Warning: Received invalid data from server. Starting with a blank slate.");
-        }
+        setInitialData(data);
       })
       .catch(err => {
         setError(err.message);
-        setInitialData({}); // Ensure form can still render on API failure
+        setInitialData(SiteSettingsSchema.parse({}));
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
   }, []);
 
-  if (isLoading) {
-    return (
-        <div className="space-y-8">
-            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
-            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
-            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-24 w-full" /></CardContent></Card>
-        </div>
-    );
-  }
-  
   if (error && !initialData) {
     return (
       <Alert variant="destructive">
@@ -132,11 +115,21 @@ export default function SiteSeoPageWrapper() {
     )
   }
 
-  return <SiteSeoForm initialData={initialData || {}} />;
+  if (!initialData) {
+     return (
+        <div className="space-y-8">
+            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-24 w-full" /></CardContent></Card>
+        </div>
+    );
+  }
+
+  return <SiteSeoForm initialData={initialData} />;
 }
 
 
-export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings> }) {
+export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<SiteSettings>({
     resolver: zodResolver(SiteSettingsSchema),
@@ -149,7 +142,11 @@ export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings
       await saveSettings(values);
       toast({ title: "Success", description: "Site settings saved." });
     } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Could not save settings.", variant: "destructive" });
+        if (e.message.includes('VALIDATION_ERROR') || e instanceof ZodError) {
+             toast({ title: "Validation Error", description: "Please check the form for errors.", variant: "destructive" });
+        } else {
+            toast({ title: "Error", description: e.message || "Could not save settings.", variant: "destructive" });
+        }
     } finally {
       setIsSaving(false);
     }
