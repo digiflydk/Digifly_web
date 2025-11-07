@@ -14,7 +14,7 @@ const menuItems = [
   { href: "/dadmin/navigation", label: "Navigation", icon: Link2 },
   { href: "/dadmin/homepage", label: "Homepage", icon: LayoutTemplate },
   { href: "/dadmin/cases", label: "Case Studies", icon: Briefcase },
-  { href: "/dadmin/pages", label: "Pages", icon: FileText, disabled: true },
+  { href: "/dadmin/pages", label: "Pages", icon: FileText },
 ];
 
 const devMenuItems = [

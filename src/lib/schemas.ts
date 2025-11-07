@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 import { ImageUrlSchema } from './validators';
 
@@ -70,14 +69,18 @@ const SeoSchema = z.object({
 });
 
 export const CaseSchema = z.object({
-  slug: z.string(),
-  title: z.string(),
-  summary: z.string().default(""),
+  id: z.string().optional(),
+  slug: z.string().min(1, "Slug is required."),
+  title: z.string().min(1, "Title is required."),
+  summary: z.string().optional().default(""),
+  published: z.boolean().default(false),
+  order: z.number().optional().default(0),
   seo: SeoSchema.optional(),
   cover: MediaSchema,
   content: PageContentSchema.optional(),
   metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
-  updatedAt: z.number().optional(),
+  updatedAt: z.any().optional(),
+  createdAt: z.any().optional(),
 });
 
 // Page-specific schemas
