@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 // URL schema already present in project; if not, keep this minimal variant:
@@ -7,6 +6,25 @@ export const UrlSchema = z
   .url()
   .or(z.string().startsWith("/"))
   .or(z.literal(""));
+
+/** HOMEPAGE */
+export const HomepageSlideSchema = z.object({
+  image: z.object({ src: UrlSchema.default(""), alt: z.string().default("") }).default({ src: "", alt: "" }),
+  heading: z.string().default(""),
+  subheading: z.string().default(""),
+  body: z.string().default(""),
+  cta: z.object({ label: z.string().default(""), href: UrlSchema.default("") }).default({ label: "", href: "" }),
+});
+
+export const HomepageSchema = z.object({
+  hero: z.object({
+    slides: z.array(HomepageSlideSchema).max(6).default([]),
+    rotationDelaySec: z.enum(["3","5","8","10","15"]).default("5"),
+  }).default({ slides: [], rotationDelaySec: "5" }),
+});
+
+export type HomePage = z.infer<typeof HomepageSchema>;
+
 
 export const CaseSchema = z.object({
   status: z.enum(["draft", "published"]).default("draft"),
@@ -25,200 +43,3 @@ export const CaseSchema = z.object({
 });
 
 export type CaseDoc = z.infer<typeof CaseSchema> & { id?: string };
-
-
-export const zNavLink = z.object({
-  label: z.string(),
-  href: z.string().url().or(z.string().startsWith("/")),
-});
-
-export const ImageUrlSchema = z.string()
-  .trim()
-  .superRefine((v, ctx) => {
-    if (!v) return; // empty is allowed
-    const hasGoodPrefix = v.startsWith('https://') || v.startsWith('/');
-    if (!hasGoodPrefix) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Must be https:// or root-relative (/...)' });
-      return;
-    }
-    const bare = v.split(/[?#]/)[0].toLowerCase();
-    const allowed = ['.png','.jpg','.jpeg','.svg','.ico','.webp'];
-    if (!allowed.some(ext => bare.endsWith(ext))) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid file extension. Allowed: png, jpg, jpeg, svg, ico, webp.' });
-    }
-  });
-  
-export const OgImageUrlSchema = z.string()
-  .trim()
-  .superRefine((v, ctx) => {
-    if (!v) return;
-    const hasGoodPrefix = v.startsWith('https://') || v.startsWith('/');
-    if (!hasGoodPrefix) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Must be https:// or root-relative (/...)' });
-      return;
-    }
-    const bare = v.split(/[?#]/)[0].toLowerCase();
-    const allowed = ['.png','.jpg','.jpeg','.webp'];
-    if (!allowed.some(ext => bare.endsWith(ext))) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'OG Image must be one of: .png, .jpg, .jpeg, .webp' });
-    }
-  });
-
-
-export const MediaSchema = z.object({
-    src: ImageUrlSchema.optional().default(''),
-    alt: z.string().optional().default(''),
-    hint: z.string().optional(),
-    width: z.number().optional(),
-    height: z.number().optional(),
-}).default({});
-
-export const RichTextSchema = z.array(
-  z.union([
-    z.object({ type: z.literal('p'), text: z.string() }),
-    z.object({ type: z.literal('list'), items: z.array(z.string()) }),
-  ])
-).default([]);
-
-export const BrandSchema = z.object({
-  name: z.string().optional().default('Digifly'),
-  logo: z.object({
-      src: ImageUrlSchema.optional().default(''),
-      width: z.number().optional(),
-      height: z.number().optional(),
-      alt: z.string().optional().default('Digifly Logo'),
-  }).optional().default({ src: '' }),
-  favicon: z.object({ 
-    src: ImageUrlSchema.optional().default('/favicon.ico'),
-  }).optional().default({ src: '/favicon.ico' }),
-}).optional().default({});
-
-const PageContentSchema = z.object({
-  body: RichTextSchema,
-}).default({ body: [] });
-
-const SeoSchema = z.object({
-  title: z.string().optional().default(''),
-  description: z.string().optional().default(''),
-});
-
-const HrefSchema = z.string().trim()
-  .refine(v => v === "" || v.startsWith("/") || v.startsWith("https://") || v.startsWith("http://"),
-    "CTA href must be empty or start with /, http://, or https://").optional();
-
-export const HeroSlideSchema = z.object({
-  image: MediaSchema.default({ src: "", alt: "" }),
-  heading: z.string().max(120).optional().default(""),
-  subheading: z.string().max(160).optional().default(""),
-  body: z.string().max(400).optional().default(""),
-  cta: z.object({
-    label: z.string().max(40).optional().default(""),
-    href: HrefSchema.default(""),
-  }).optional().default({ label: "", href: "" }),
-  visible: z.boolean().default(true),
-});
-
-
-// Page-specific schemas
-const IntroSchema = z.object({
-  tagline: z.string().optional(),
-  heading: z.string().default(''),
-  body: z.string().default(''),
-  image: MediaSchema.optional(),
-}).default({});
-
-export const HomepageSchema = z.object({
-  hero: z.object({
-    slides: z.array(HeroSlideSchema).max(6).default([]),
-    rotationDelaySec: z.coerce.number().refine(v => [3, 5, 8, 10, 15].includes(v), {
-      message: "Must be one of 3, 5, 8, 10, 15",
-    }).default(5),
-  }).default({ slides: [], rotationDelaySec: 5 }),
-  intro: IntroSchema,
-  servicesPreview: z.array(z.object({
-    title: z.string(),
-    bullets: z.array(z.string()),
-    href: z.string(),
-  })).default([]),
-  featuredCases: z.array(z.string()).default([]),
-  cta: z.object({
-    text: z.string(),
-    button: zNavLink,
-  }).optional(),
-  seo: SeoSchema.optional(),
-});
-
-// Other Schemas
-export const SiteSettingsSchema = z.object({
-  siteTitle: z.string().min(1, 'Site Title is required').default('Digifly'),
-  social: z.object({
-    tagline: z.string().optional().default('')
-  }).optional().default({}),
-  brand: BrandSchema,
-  defaultSeo: z.object({
-    description: z.preprocess(
-      (v) => (typeof v === "string" ? v.trim() : v),
-      z.string().max(300, "Description must be 300 characters or less").optional().default('')
-    ),
-    title: z.string().optional().default(''),
-    defaultThumbnailUrl: OgImageUrlSchema.optional().default(''),
-  }).optional().default({})
-});
-
-export const NavigationSchema = z.object({
-  header: z.array(zNavLink).default([]),
-  footer: z.object({
-      columns: z.array(z.object({
-        title: z.string(),
-        links: z.array(zNavLink)
-      })).default([{ title: 'Links', links: [] }])
-  }).default({ columns: [] })
-});
-
-export const BasePageSchema = z.object({
-  title: z.string(),
-  subtitle: z.string().optional().default(""),
-  seo: SeoSchema.optional(),
-  content: PageContentSchema.optional(),
-});
-
-export const AboutPageSchema = BasePageSchema.extend({
-  title: z.string().default('About Digifly'),
-  seo: SeoSchema.optional(),
-  content: PageContentSchema.default({ body: [] }),
-});
-
-export const ServicesPageSchema = z.object({
-  title: z.string().default('Services'),
-  subtitle: z.string().default(""),
-  seo: SeoSchema.optional(),
-  content: z.object({
-      services: z.array(z.object({
-        id: z.string(),
-        title: z.string(),
-        description: z.string(),
-        bullets: z.array(z.string()),
-      })).default([]),
-  }).default({ services: [] }),
-});
-
-export const CasesIndexSchema = z.object({
-  title: z.string().default('Our Work'),
-  subtitle: z.string().default(""),
-  seo: SeoSchema.optional(),
-});
-
-export const ContactPageSchema = z.object({
-  title: z.string().default('Contact Us'),
-  subtitle: z.string().default(""),
-  seo: SeoSchema.optional(),
-});
-
-export const allSchemas = {
-    SiteSettingsSchema,
-    BasePageSchema,
-    NavigationSchema,
-    CaseSchema,
-};
-
-export const parseCase = (data: unknown) => CaseSchema.parse(data);

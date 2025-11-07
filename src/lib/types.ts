@@ -8,7 +8,7 @@ import {
     BasePageSchema,
     HeroSlideSchema
 } from "./schemas";
-export type { CaseDoc } from "./schemas";
+export type { CaseDoc, HomePage } from "./schemas";
 
 
 export type Media = { src: string; alt?: string; hint?: string };
@@ -20,8 +20,6 @@ export type DesignSettings = z.infer<typeof DesignSettingsSchema>;
 export type NavLink = { label: string; href: string };
 
 export type Navigation = z.infer<typeof NavigationSchema>;
-
-export type HomePage = z.infer<typeof HomepageSchema>;
 
 export type HeroSlide = z.infer<typeof HeroSlideSchema>;
 

@@ -1,5 +1,4 @@
-
-import type { CaseDoc } from "./schemas";
+import type { CaseDoc, HomePage } from "./schemas";
 
 const BASE =
   typeof window === "undefined"
@@ -42,4 +41,19 @@ export async function updateCaseById(id: string, payload: CaseDoc) {
 }
 export async function deleteCaseById(id: string) {
   await ok<{ ok: true }>(await fetch(api(`/cases/${id}`), { method: "DELETE" }));
+}
+
+
+/** Homepage */
+export async function getHomepage() {
+  return ok<{ ok: true; data: HomePage }>(await fetch(api("/pages/home"), { cache: "no-store" }));
+}
+export async function updateHomepage(payload: HomePage) {
+  await ok<{ ok: true }>(
+    await fetch(api("/pages/home"), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+  );
 }

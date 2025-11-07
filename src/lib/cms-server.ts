@@ -11,7 +11,6 @@ import {
   ServicesPageSchema,
   CasesIndexSchema,
   ContactPageSchema,
-  BasePageSchema,
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { HomePage, Navigation, CaseDoc, SiteSettings, Page } from '@/lib/types';
@@ -23,7 +22,7 @@ import {
   casesIndexPage as defaultCasesIndex,
   contactPage as defaultContact,
 } from '@/lib/cms-data';
-import { revalidateTag, revalidatePath } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { unstable_cache as nextCache, unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
 import { SITE_DEFAULTS, defaultHomepage, normalizeHome } from './defaults/siteDefaults';
@@ -89,7 +88,7 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const parsedData = SiteSettingsSchema.parse(data);
   const db = getDb();
   await db.doc(CMS_PATHS.site).set(parsedData, { merge: true });
-  revalidateTag(SITE_TAG);
+  revalidatePath('/', 'layout');
   return parsedData;
 }
 
@@ -166,9 +165,9 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
 
 export async function updatePage(slug: string, data: any) {
     const db = getDb();
-    const parsedData = BasePageSchema.parse(data);
-    await db.doc(CMS_PATHS.page(slug)).set(parsedData, { merge: true });
-    return parsedData;
+    // A generic page update should be handled with care, or use specific schemas
+    await db.doc(CMS_PATHS.page(slug)).set(data, { merge: true });
+    return data;
 }
 
 export async function getCasesServer() {
@@ -213,14 +212,14 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
 }
 
 export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
-    const { id, slug: newSlug, ...rest } = data; // remove id/slug
+    const { slug: newSlug, ...rest } = data; // remove slug
     const querySnap = await getDb().collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
     if(querySnap.empty){
         throw new Error(`Case with slug ${slug} not found`);
     }
     const docId = querySnap.docs[0].id;
-    await getDb().collection(CMS_PATHS.cases).doc(docId).set(rest, { merge: true });
-    return { id: docId, slug, ...rest };
+    await getDb().collection(CMS_PATHS.cases).doc(docId).set({...rest, slug: newSlug }, { merge: true });
+    return { id: docId, slug: newSlug, ...rest };
 }
 
 export async function deleteCaseServer(id: string) {
@@ -256,19 +255,23 @@ export async function getNavigationMenuCount(): Promise<{ count: number }> {
 }
 
 export async function getAboutPage(): Promise<any> {
-    return getPageBySlug('about');
+    const raw = await getPageBySlug('about');
+    return AboutPageSchema.parse(raw || {});
 }
 
 export async function getServicesPage(): Promise<any> {
-    return getPageBySlug('services');
+    const raw = await getPageBySlug('services');
+    return ServicesPageSchema.parse(raw || {});
 }
 
 export async function getCasesIndexPage(): Promise<any> {
-    return getPageBySlug('cases-index');
+    const raw = await getPageBySlug('cases-index');
+    return CasesIndexSchema.parse(raw || {});
 }
 
 export async function getContactPage(): Promise<any> {
-    return getPageBySlug('contact');
+    const raw = await getPageBySlug('contact');
+    return ContactPageSchema.parse(raw || {});
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {

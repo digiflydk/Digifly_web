@@ -3,18 +3,18 @@
 
 import { useState, useEffect } from "react";
 import { HomepageForm } from "@/components/cms/forms/HomepageForm";
-import type { HomePage } from "@/lib/types";
+import { getHomepage, updateHomepage } from "@/lib/cms-api";
+import type { HomePage } from "@/lib/schemas";
 import { defaultHomepage } from "@/lib/defaults/siteDefaults";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import type { ZodIssue } from "zod";
-import { getHomepage, updateHomepage } from "@/lib/cms-api";
 import { toast } from "@/hooks/use-toast";
 
 
 export default function HomepageAdminPage() {
-    const [data, setData] = useState<HomePage>(defaultHomepage);
+    const [data, setData] = useState<HomePage | null>(null);
     const [issues, setIssues] = useState<ZodIssue[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -23,17 +23,14 @@ export default function HomepageAdminPage() {
         let mounted = true;
         (async () => {
             try {
-                // getHomepage is now an isomorphic helper
                 const result = await getHomepage();
                 if (!mounted) return;
 
-                if (!result) {
+                if (!result || !result.data) {
                     throw new Error("Homepage data is null or undefined.");
                 }
-
-                // The API now guarantees a valid structure or a well-defined error
-                setData(result);
-                setIssues([]); // Clear previous issues on successful load
+                
+                setData(result.data);
                 
             } catch (err: any) {
                 if (mounted) {
@@ -84,6 +81,8 @@ export default function HomepageAdminPage() {
             </Alert>
         );
     }
+    
+    if (!data) return null;
 
     return (
       <>

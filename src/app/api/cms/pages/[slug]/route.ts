@@ -1,54 +1,24 @@
-
-
-import { NextRequest, NextResponse } from "next/server";
-import { getPageBySlug, updatePage, getHomePage, updateHomepage } from "@/lib/cms-server";
+import { NextResponse } from "next/server";
+import { getDb } from "@/lib/firebase-admin";
 import { HomepageSchema } from "@/lib/schemas";
-import { ZodError } from "zod";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+type Ctx = { params: { slug: string } };
 
-const json = (data: any, status = 200) => NextResponse.json(data, { status, headers: { 'Cache-Control': 'no-store' }});
+const col = () => getDb().collection("pages");
 
-export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
-    const { slug } = params;
-    
-    if (slug === 'home') {
-        const result = await getHomePage();
-        if (!result.ok) {
-            return json({ ok: false, error: 'VALIDATION_ERROR', issues: result.issues }, 422);
-        }
-        return json({ ok: true, data: result.data });
-    }
-
-    try {
-        const data = await getPageBySlug(slug);
-        if (!data) return json({ ok: false, error: 'Not Found' }, 404);
-        return json({ ok: true, data });
-    } catch (e: any) {
-        return json({ ok: false, error: 'Server Error', details: e.message }, 500);
-    }
+export async function GET(_: Request, { params }: Ctx) {
+  const ref = col().doc(params.slug);
+  const snap = await ref.get();
+  if (!snap.exists) return NextResponse.json({ ok: true, data: null });
+  const data = snap.data();
+  // For home, validate to guard regressions
+  if (params.slug === "home") HomepageSchema.parse(data);
+  return NextResponse.json({ ok: true, data });
 }
 
-
-export async function PUT(req: NextRequest, { params }: { params: { slug: string } }) {
-    const { slug } = params;
-    
-    try {
-        const body = await req.json();
-        
-        if (slug === 'home') {
-            const updated = await updateHomepage(body);
-            return json({ ok: true, data: updated });
-        }
-
-        const updated = await updatePage(slug, body);
-        return json({ ok: true, data: updated });
-
-    } catch (e: any) {
-        if (e instanceof ZodError) {
-            return json({ ok: false, error: 'Validation Error', details: e.issues }, 422);
-        }
-        return json({ ok: false, error: 'Server Error', details: e.message }, 500);
-    }
+export async function PUT(req: Request, { params }: Ctx) {
+  const body = await req.json();
+  if (params.slug === "home") HomepageSchema.parse(body);
+  await col().doc(params.slug).set(body, { merge: true });
+  return NextResponse.json({ ok: true });
 }
