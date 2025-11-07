@@ -1,22 +1,16 @@
 
+
+// Re-export all API helpers
 export * from "./cms-api";
 
-// Re-export server actions for client components that need them
+// Re-export server actions for client components that might need them (use with caution)
 export {
-  getHomePage,
-  getPageBySlug,
   updatePage,
   getNavigation,
   updateNavigation,
-  updateHomepage,
   getCaseCount,
   getPageCount,
   getNavigationMenuCount,
-  getSiteSettings,
   saveSiteSettings,
   updateCase,
-  getAboutPage,
-  getServicesPage,
-  getCasesIndexPage,
-  getContactPage,
 } from './cms-server';

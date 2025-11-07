@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -24,12 +25,13 @@ export default function Hero({ data }: { data: HeroData }) {
 
         const interval = setInterval(() => {
             setIndex((prevIndex) => (prevIndex + 1) % visibleSlides.length);
-        }, rotationDelaySec * 1000);
+        }, Number(rotationDelaySec) * 1000);
 
         return () => clearInterval(interval);
     }, [visibleSlides.length, rotationDelaySec, hasMultipleImages]);
     
     const currentSlide = visibleSlides[index];
+    if (!currentSlide) return null;
 
     return (
         <section
@@ -38,14 +40,14 @@ export default function Hero({ data }: { data: HeroData }) {
         >
             <AnimatePresence>
                 <motion.div
-                    key={currentSlide?.image?.src || index}
+                    key={currentSlide.image?.src || index}
                     className="absolute inset-0"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.8, ease: 'easeInOut' }}
                 >
-                    {currentSlide?.image?.src ? (
+                    {currentSlide.image?.src ? (
                         <MediaImage
                             src={currentSlide.image.src}
                             alt={currentSlide.image.alt}
@@ -65,21 +67,21 @@ export default function Hero({ data }: { data: HeroData }) {
             
             <div className="container relative flex items-center py-24 md:py-28 h-full">
                 <div className="max-w-2xl">
-                    {currentSlide?.heading && (
+                    {currentSlide.heading && (
                         <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
                             {currentSlide.heading}
                         </h1>
                     )}
-                    {currentSlide?.subheading && (
+                    {currentSlide.subheading && (
                         <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">{currentSlide.subheading}</p>
                     )}
-                    {currentSlide?.body && (
+                    {currentSlide.body && (
                         <div className="prose prose-lg mt-4 max-w-none text-muted-foreground">
                             <p>{currentSlide.body}</p>
                         </div>
                     )}
                     <div className="mt-8 flex flex-wrap gap-4">
-                        {currentSlide?.cta?.label && currentSlide?.cta?.href && (
+                        {currentSlide.cta?.label && currentSlide.cta?.href && (
                             <Link href={currentSlide.cta.href}>
                                 <Button>{currentSlide.cta.label}</Button>
                             </Link>

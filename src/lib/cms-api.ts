@@ -1,7 +1,8 @@
 
+
 // Isomorphic (server/client) fetch helpers for the CMS API
 
-import type { CaseDoc } from './types';
+import type { CaseDoc, HomePage } from './types';
 
 type Json<T> = { data: T } | { ok: true } | { error: string };
 
@@ -52,4 +53,24 @@ export async function deleteCase(id: string): Promise<boolean> {
     throw new Error(`Failed to delete case ${id}: ${msg}`);
   }
   return true;
+}
+
+export async function getHomepage(): Promise<HomePage> {
+    const res = await fetch('/api/cms/pages/home', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`getHomepage failed: ${res.status}`);
+    const json = await res.json();
+    return json.data;
+}
+
+export async function updateHomepage(payload: HomePage) {
+    const res = await fetch('/api/cms/pages/home', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+        const json = await res.json().catch(()=>null);
+        throw new Error(json?.error?.message || 'Save failed');
+    }
+    return await res.json();
 }

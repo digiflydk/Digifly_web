@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm, useFieldArray } from "react-hook-form";
@@ -10,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { HomepageSchema, HeroSlideSchema } from "@/lib/schemas";
-import { updateHomepage } from "@/lib/cms";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 import type { HomePage } from "@/lib/types";
@@ -102,12 +102,16 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
 }
 
 
-export function HomepageForm({ data }: { data: HomePage }) {
+export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: HomePage) => Promise<boolean> }) {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<z.infer<typeof HomepageSchema>>({
     resolver: zodResolver(HomepageSchema),
     defaultValues: data,
   });
+  
+  useEffect(() => {
+    form.reset(data);
+  }, [data, form]);
 
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
@@ -116,15 +120,11 @@ export function HomepageForm({ data }: { data: HomePage }) {
 
   async function onSubmit(values: z.infer<typeof HomepageSchema>) {
     setIsSaving(true);
-    try {
-      await updateHomepage(values);
-      toast({ title: "Success", description: "Homepage saved." });
+    const success = await onSave(values);
+    if (success) {
       form.reset(values);
-    } catch (e) {
-      toast({ title: "Error", description: "Could not save homepage.", variant: "destructive" });
-    } finally {
-      setIsSaving(false);
     }
+    setIsSaving(false);
   }
 
   function handleDragEnd(event: DragEndEvent) {

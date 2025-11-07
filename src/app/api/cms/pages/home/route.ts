@@ -1,8 +1,8 @@
 
 
-import { getHomePage } from "@/lib/cms-server";
+import { getHomePage, updateHomepage } from "@/lib/cms-server";
 import { NextResponse, NextRequest } from "next/server";
-import { ZodIssue } from "zod";
+import { ZodError, ZodIssue } from "zod";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   
   try {
     const result = await getHomePage({ debug });
-    
+    // This now returns a result object with {ok, data, issues?}
     if (!result.ok) {
         return json({ ok: false, error: 'VALIDATION_ERROR', issues: result.issues }, 422);
     }
@@ -24,10 +24,20 @@ export async function GET(req: NextRequest) {
     return json({ ok: true, data: result.data });
 
   } catch (error: any) {
-     if (error?.code === "HOMEPAGE_VALIDATION_ERROR") {
-      return json({ ok: false, error: error.code, issues: error.details as ZodIssue[] }, 422);
-    }
     console.error(`[GET /api/cms/pages/home]`, error);
     return json({ ok: false, error: 'SERVER_ERROR', detail: error.message }, 500);
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const updated = await updateHomepage(body);
+    return json({ ok: true, data: updated });
+  } catch(e: any) {
+    if (e instanceof ZodError) {
+      return json({ ok: false, error: 'VALIDATION_ERROR', issues: e.issues }, 422);
+    }
+    return json({ ok: false, error: 'SERVER_ERROR', detail: e.message }, 500);
   }
 }

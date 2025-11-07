@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,6 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import type { ZodIssue } from "zod";
+import { getHomepage, updateHomepage } from "@/lib/cms";
+import { toast } from "@/hooks/use-toast";
+
 
 export default function HomepageAdminPage() {
     const [data, setData] = useState<HomePage>(defaultHomepage);
@@ -36,12 +40,14 @@ export default function HomepageAdminPage() {
                     return;
                 }
                 
-                const parsed = HomepageSchema.safeParse(json);
+                // Although the API normalizes, we safe-parse again on the client
+                // as a final guard against malformed data reaching the form.
+                const parsed = HomepageSchema.safeParse(json.data);
                 if (parsed.success) {
                     setData(parsed.data);
                     setIssues([]);
                 } else {
-                    console.error("Homepage client validation failed:", parsed.error);
+                    console.error("Homepage client validation failed:", parsed.error.format());
                     setIssues(parsed.error.issues);
                     setData(defaultHomepage); // Fallback to allow fixing
                 }
@@ -58,6 +64,17 @@ export default function HomepageAdminPage() {
         })();
         return () => { mounted = false; };
     }, []);
+    
+    const handleSave = async (formData: HomePage) => {
+        try {
+            await updateHomepage(formData);
+            toast({ title: 'Success', description: 'Homepage saved successfully.' });
+            return true;
+        } catch (e: any) {
+            toast({ title: 'Error', description: e.message || "Failed to save homepage.", variant: 'destructive' });
+            return false;
+        }
+    };
 
     if (isLoading) {
         return (
@@ -93,7 +110,7 @@ export default function HomepageAdminPage() {
                 </AlertDescription>
             </Alert>
         )}
-        <HomepageForm data={data} />
+        <HomepageForm data={data} onSave={handleSave} />
       </>
     );
 }

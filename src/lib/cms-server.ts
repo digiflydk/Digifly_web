@@ -1,4 +1,5 @@
 
+
 'use server';
 import { z, type ZodIssue } from 'zod';
 import {
@@ -145,14 +146,7 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
   const raw = await getPageBySlug('home');
   const normalized = normalizeHome(raw ?? {});
   
-  const merged = {
-    ...defaultHomepage,
-    ...normalized,
-    hero: { ...defaultHomepage.hero, ...(normalized?.hero || {}) },
-    intro: { ...defaultHomepage.intro, ...(normalized?.intro || {}) },
-  };
-
-  const parsed = HomepageSchema.safeParse(merged);
+  const parsed = HomepageSchema.safeParse(normalized);
   
   if (parsed.success) {
     return { ok: true, data: parsed.data };
@@ -166,7 +160,7 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
   }
   
   // On failure, return the merged data which is at least shape-complete
-  return { ok: false, data: buildHomeFallback(merged), issues };
+  return { ok: false, data: buildHomeFallback(normalized), issues };
 }
 
 
@@ -286,7 +280,9 @@ export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
 
 export async function updateHomepage(data: HomePage) {
     const db = getDb();
-    await db.doc('pages/home').set(data, { merge: true });
+    const parsed = HomepageSchema.parse(normalizeHome(data));
+    await db.doc('pages/home').set(parsed, { merge: true });
+    return parsed;
 }
 
 export async function getCmsData(path: string, searchParams?: URLSearchParams) {
