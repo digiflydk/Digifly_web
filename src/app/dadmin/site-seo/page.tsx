@@ -5,7 +5,7 @@
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
@@ -59,8 +59,15 @@ async function saveSettings(payload: any) {
 function ImagePreview({ control, name, alt, width, height }: { control: any; name: "brand.logo.src" | "brand.favicon.src"; alt: string; width: number; height: number; }) {
     const src = useWatch({ control, name });
 
-    if (!src || typeof src !== 'string' || !src.startsWith('http')) {
+    if (!src || typeof src !== 'string' ) {
         return <div className="h-10 w-24 bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400">No preview</div>;
+    }
+    
+    // Check for both absolute and relative URLs
+    const isInvalid = !src.startsWith('http') && !src.startsWith('/');
+
+    if (isInvalid) {
+        return <div className="h-10 w-24 bg-red-100 rounded flex items-center justify-center text-xs text-red-500 text-center p-1">Invalid Path</div>;
     }
 
     return (
@@ -85,11 +92,20 @@ export default function SiteSeoPageWrapper() {
   useEffect(() => {
     loadSettings()
       .then(data => {
-        const parsedData = SiteSettingsSchema.partial().parse(data || {});
-        setInitialData(parsedData);
+        // Use safeParse to handle potentially invalid data without crashing
+        const parsedResult = SiteSettingsSchema.partial().safeParse(data || {});
+        if (parsedResult.success) {
+          setInitialData(parsedResult.data);
+        } else {
+          // If parsing fails, we can log it and start with a blank form
+          console.error("Initial data from API failed validation:", parsedResult.error);
+          setInitialData({}); // Use default empty object
+          setError("Warning: Received invalid data from server. Starting with a blank slate.");
+        }
       })
       .catch(err => {
         setError(err.message);
+        setInitialData({}); // Ensure form can still render on API failure
       })
       .finally(() => {
         setIsLoading(false);
@@ -106,7 +122,7 @@ export default function SiteSeoPageWrapper() {
     );
   }
   
-  if (error) {
+  if (error && !initialData) {
     return (
       <Alert variant="destructive">
         <Terminal className="h-4 w-4" />
@@ -168,9 +184,10 @@ export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings
               <FormItem>
                 <FormLabel>Logo URL</FormLabel>
                  <div className="flex items-start gap-4">
-                  <FormControl className="flex-1"><Input type="url" {...field} value={field.value ?? ""} placeholder="https://.../logo.svg" /></FormControl>
+                  <FormControl className="flex-1"><Input type="text" {...field} value={field.value ?? ""} placeholder="https://.../logo.svg" /></FormControl>
                   <ImagePreview control={form.control} name="brand.logo.src" alt="Logo Preview" width={120} height={40} />
                 </div>
+                <FormDescription>Accepts https://... or /path/to/logo.svg</FormDescription>
                 <FormMessage />
               </FormItem>
             )} />
@@ -178,9 +195,10 @@ export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings
               <FormItem>
                 <FormLabel>Favicon URL</FormLabel>
                 <div className="flex items-start gap-4">
-                  <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://.../favicon.ico" /></FormControl>
+                  <FormControl><Input type="text" {...field} value={field.value ?? ""} placeholder="/favicon.ico" /></FormControl>
                   <ImagePreview control={form.control} name="brand.favicon.src" alt="Favicon Preview" width={32} height={32} />
                 </div>
+                <FormDescription>Accepts https://... or /path/to/favicon.ico</FormDescription>
                 <FormMessage />
               </FormItem>
             )} />

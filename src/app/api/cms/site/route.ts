@@ -18,9 +18,15 @@ export async function GET() {
   try {
     const data = await getSiteSettings();
     if (!data) {
-        return json({ ok: false, error: 'not_found' }, 404);
+        return json({ ok: false, error: 'not_found', message: 'site/settings document not found in Firestore.' }, 404);
     }
-    return json({ ok: true, data });
+    // Validate the data before sending it to the client.
+    const parsed = SiteSettingsSchema.safeParse(data);
+    if (!parsed.success) {
+      console.error("[GET /api/cms/site] Data from Firestore is invalid:", parsed.error.format());
+      return json({ ok: false, error: 'validation_error', details: parsed.error.format() }, 500);
+    }
+    return json({ ok: true, data: parsed.data });
   } catch (err: any) {
     console.error(`[GET /api/cms/site]`, err);
     return json({ ok: false, error: "SERVER_ERROR", detail: err.message }, 500);
@@ -41,6 +47,6 @@ export async function PUT(req: Request) {
       return json({ ok: false, error: 'VALIDATION_ERROR', details: err.issues }, 422);
     }
     console.error(`[PUT /api/cms/site]`, err);
-    return json({ ok: false, error: "Failed to save site settings" }, 400);
+    return json({ ok: false, error: "Failed to save site settings", detail: err.message }, 500);
   }
 }

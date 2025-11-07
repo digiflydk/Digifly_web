@@ -4,7 +4,18 @@ import { z } from "zod";
 // Reusable Zod helpers for common validation patterns.
 const httpUrl = z.string().url("Must be a valid URL (e.g., https://...)");
 const pathUrl = z.string().regex(/^\/[^\s]*$/, 'Must start with "/"');
-export const imageSrc = z.union([httpUrl, pathUrl]);
+
+// New reusable validator for image sources.
+// Accepts: empty string, absolute URL, or root-relative path.
+// Validates file extension.
+export const imageSrc = z.string().trim().refine(
+  (v) => v === '' || v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/'),
+  { message: 'Must be an absolute URL (https://...) or a root-relative path (/...)' }
+).refine(
+  (v) => v === '' || /\.(png|jpg|jpeg|svg|ico)$/i.test(new URL(v, 'https://dummy.base').pathname),
+  { message: 'Only .png, .jpg, .jpeg, .svg, or .ico files are allowed' }
+);
+
 
 // Optional URL – treats empty string as undefined
 export const optionalUrl = z.preprocess(
@@ -15,14 +26,6 @@ export const optionalUrl = z.preprocess(
 // Literal empty string or valid URL
 export const urlOrEmpty = z.union([z.string().url(), z.literal("")]);
 
-const imageUrlRegex = /\.(png|jpg|jpeg|svg|ico)$/i;
-
-// A valid image URL can be a full URL or a relative path starting with /
-const validImageUrl = z.string()
-  .refine((v) => v.startsWith('http') || v.startsWith('/'), "Must be a valid URL or a relative path starting with /")
-  .refine((v) => v === '' || imageUrlRegex.test(v), "URL must end in .png, .jpg, .svg, or .ico, or be empty.");
-
-
 // Base Schemas
 export const NavLinkSchema = z.object({
   label: z.string(),
@@ -30,7 +33,7 @@ export const NavLinkSchema = z.object({
 });
 
 export const MediaSchema = z.object({
-    src: imageSrc.default('/og-default.jpg'),
+    src: imageSrc.default(''),
     alt: z.string().optional().default(''),
     hint: z.string().optional(),
 });
@@ -45,14 +48,14 @@ export const RichTextSchema = z.array(
 export const BrandSchema = z.object({
   name: z.string().default('Digifly'),
   logo: z.object({
-      src: z.string().default('/logo.svg'),
+      src: imageSrc.default(''),
       width: z.number().optional(),
       height: z.number().optional(),
       alt: z.string().default('Digifly Logo'),
-  }).default({ src: '/logo.svg', alt: 'Digifly Logo' }),
+  }).default({ src: '', alt: 'Digifly Logo' }),
   favicon: z.object({ 
-    src: imageSrc.default("/favicon.ico") 
-  }).default({src: "/favicon.ico"}),
+    src: imageSrc.default("") 
+  }).default({src: ""}),
 }).default();
 
 export const DesignSettingsSchema = z.object({
@@ -178,12 +181,12 @@ export const SiteSettingsSchema = z.object({
   }).default({}),
   brand: z.object({
     logo: z.object({
-      src: validImageUrl.default('/logo.svg'),
+      src: imageSrc.default(''),
       alt: z.string().optional().default('Site Logo'),
-    }).default({ src: '/logo.svg', alt: 'Site Logo'}),
+    }).default({ src: '', alt: 'Site Logo'}),
     favicon: z.object({
-      src: validImageUrl.default('/favicon.ico'),
-    }).default({ src: '/favicon.ico'}),
+      src: imageSrc.default(''),
+    }).default({ src: ''}),
   }).default(),
   defaultSeo: z.object({
     description: z.preprocess(
