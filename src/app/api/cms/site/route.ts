@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { getSiteSettings, saveSiteSettings } from "@/lib/cms-server";
 import { SiteSettingsSchema } from "@/lib/schemas";
+import { ZodError } from "zod";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,10 @@ const json = (payload: any, status = 200) =>
 
 export async function GET() {
   try {
-    const data = await getSiteSettings(); // This now returns a valid object, never null
+    const data = await getSiteSettings();
+    if (!data) {
+        return json({ ok: false, error: 'not_found' }, 404);
+    }
     return json({ ok: true, data });
   } catch (err: any) {
     console.error(`[GET /api/cms/site]`, err);
@@ -33,8 +37,8 @@ export async function PUT(req: Request) {
     const saved = await saveSiteSettings(parsedData);
     return json({ ok: true, data: saved });
   } catch (err: any) {
-    if (err instanceof Error && 'issues' in err) { // ZodError
-      return json({ ok: false, error: 'VALIDATION_ERROR', detail: err.issues }, 422);
+    if (err instanceof ZodError) {
+      return json({ ok: false, error: 'VALIDATION_ERROR', details: err.issues }, 422);
     }
     console.error(`[PUT /api/cms/site]`, err);
     return json({ ok: false, error: "Failed to save site settings" }, 400);

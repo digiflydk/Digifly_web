@@ -13,18 +13,7 @@ import {
 
 export type Media = { src: string; alt?: string; hint?: string };
 
-export type Brand = {
-  name?: string;
-  logo: {
-    src: string;
-    width?: number;
-    height?: number;
-    alt?: string;
-  };
-  favicon?: {
-    src: string;
-  };
-};
+export type Brand = z.infer<typeof import('./schemas').BrandSchema>;
 
 export type DesignSettings = z.infer<typeof DesignSettingsSchema>;
 

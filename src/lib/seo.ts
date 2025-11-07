@@ -1,38 +1,36 @@
 
-import { siteConfig } from "@/config/site";
 import { Metadata } from "next";
 import { getSiteSettings } from "./cms-server";
-
-type Og = { title: string; description?: string; url?: string; images?: string[] };
 
 export async function buildSiteMetadata(): Promise<Metadata> {
   const s = await getSiteSettings();
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  
   return {
     metadataBase: new URL(baseUrl),
     title: {
-      default: s.siteTitle || 'Digifly',
-      template: `%s | ${s.siteTitle || 'Digifly'}`,
+      default: s.siteTitle,
+      template: `%s | ${s.siteTitle}`,
     },
-    description: s.defaultDescription || s.tagline || 'Digital solutions.',
+    description: s.defaultSeo.description || s.social.tagline,
     openGraph: {
-      title: s.siteTitle || 'Digifly',
-      description: s.defaultDescription || s.tagline || 'Digital solutions.',
+      title: s.siteTitle,
+      description: s.defaultSeo.description || s.social.tagline,
       url: baseUrl,
-      siteName: s.siteTitle || 'Digifly',
+      siteName: s.siteTitle,
       images: ['/og-default.jpg'],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: s.siteTitle || 'Digifly',
-      description: s.defaultDescription || s.tagline || 'Digital solutions.',
+      title: s.siteTitle,
+      description: s.defaultSeo.description || s.social.tagline,
       images: [`${baseUrl}/og-default.jpg`],
     },
     alternates: {
       canonical: baseUrl,
     },
-    icons: s.faviconUrl ? { icon: [{ url: s.faviconUrl }] } : { icon: '/favicon.ico' },
+    icons: { icon: [{ url: s.brand.favicon.src }] },
     manifest: '/manifest.webmanifest',
   };
 }

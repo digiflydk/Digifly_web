@@ -110,7 +110,7 @@ export const HomepageSchema = z.object({
     subtitle: z.string().optional().default(''),
     primaryCta: NavLinkSchema.optional(),
     image: MediaSchema.optional(),
-  }),
+  }).default({ title: 'Default Hero Title' }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({
     title: z.string(),

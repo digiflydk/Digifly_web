@@ -17,21 +17,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 async function loadSettings(): Promise<Partial<SiteSettings>> {
     const res = await fetch("/api/cms/site", { cache: "no-store" });
-    const contentType = res.headers.get("content-type") || "";
-
-    if (!contentType.includes("application/json")) {
-        const text = await res.text().catch(() => '');
+    const text = await res.text();
+    try {
+        const json = JSON.parse(text);
+        if (!res.ok || !json?.ok) {
+            if (res.status === 404 && json?.error === 'not_found') {
+                return SiteSettingsSchema.parse({}); // Return default empty object
+            }
+            throw new Error(json?.error || `Request failed with status ${res.status}`);
+        }
+        return json.data;
+    } catch {
         throw new Error(`API response was not valid JSON (status ${res.status}). Snippet: ${text.slice(0, 120)}`);
     }
-
-    const json = await res.json();
-    if (!res.ok || !json?.ok) {
-        if (res.status === 404 && json?.error === 'not_found') {
-            return SiteSettingsSchema.parse({}); // Return default empty object
-        }
-        throw new Error(json?.error || `Request failed with status ${res.status}`);
-    }
-    return json.data;
 }
 
 async function saveSettings(payload: any) {
@@ -40,17 +38,21 @@ async function saveSettings(payload: any) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
     });
-    const json = await res.json();
-    if (!res.ok || !json?.ok) {
-        let errorMsg = json?.error || `Request failed with status ${res.status}`;
-        if (json.detail && Array.isArray(json.detail)) {
-            errorMsg += ` - ${json.detail.map((d: any) => d.message).join(', ')}`;
+    const text = await res.text();
+    try {
+        const json = JSON.parse(text);
+        if (!res.ok || !json?.ok) {
+            let errorMsg = json?.error || `Request failed with status ${res.status}`;
+            if (json.details && Array.isArray(json.details)) {
+                errorMsg += ` - ${json.details.map((d: any) => d.message).join(', ')}`;
+            }
+            throw new Error(errorMsg);
         }
-        throw new Error(errorMsg);
+        return json.data;
+    } catch {
+        throw new Error(`Save failed (/api/cms/site): ${res.status} • ${text.slice(0,80)}`);
     }
-    return json.data;
 }
-
 
 export default function SiteSeoPageWrapper() {
   const [initialData, setInitialData] = useState<Partial<SiteSettings> | null>(null);
@@ -142,14 +144,14 @@ export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings
             <FormField control={form.control} name="brand.logo.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Logo URL</FormLabel>
-                <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://... or /logo.svg" /></FormControl>
+                <FormControl><Input type="text" {...field} value={field.value ?? ""} placeholder="https://... or /logo.svg" /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="brand.favicon.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Favicon URL</FormLabel>
-                <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://... or /favicon.ico" /></FormControl>
+                <FormControl><Input type="text" {...field} value={field.value ?? ""} placeholder="https://... or /favicon.ico" /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />

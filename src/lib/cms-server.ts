@@ -54,7 +54,7 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   revalidateTag(SITE_TAG);
   // Re-fetch to return the saved (and potentially merged) data
   const snap = await db.doc(SITE_DOC_PATH).get();
-  return snap.data() as SiteSettings;
+  return SiteSettingsSchema.parse(snap.data() || {});
 }
 
 export async function getNavigation(): Promise<Navigation> {
@@ -208,11 +208,6 @@ export async function getContactPage(): Promise<any> {
         console.warn('Falling back to default contact page data.', e);
         return defaultContact;
     }
-}
-
-export async function getSiteSeo() {
-    // This function is now just an alias for getSiteSettings
-    return getSiteSettings();
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
