@@ -1,4 +1,5 @@
 
+
 import { z } from "zod";
 import { normalizeImageSrc } from "./cms-normalize";
 
@@ -9,6 +10,7 @@ export const NavLinkSchema = z.object({
 });
 
 export const ImageUrlSchema = z.string()
+  .trim()
   .transform(v => normalizeImageSrc(v))
   .superRefine((v, ctx) => {
     if (!v) return; // empty is allowed
