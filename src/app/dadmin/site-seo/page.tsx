@@ -23,7 +23,8 @@ import { SITE_DEFAULTS } from "@/lib/defaults/siteDefaults";
 
 async function loadSettings(): Promise<SiteSettings> {
     try {
-        const data = await getSiteSettings();
+        const result = await getSiteSettings();
+        const data = result.data;
         const parsed = SiteSettingsSchema.safeParse(data || {});
         if (!parsed.success) {
             console.error("API data failed validation:", parsed.error);

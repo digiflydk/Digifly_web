@@ -1,4 +1,5 @@
-import type { CaseDoc, HomePage } from "./schemas";
+
+import type { CaseDoc, HomePage, SiteSettings, Navigation } from "./schemas";
 
 const BASE =
   typeof window === "undefined"
@@ -10,9 +11,18 @@ function api(p: string) {
 }
 
 async function ok<T>(r: Response): Promise<T> {
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  return r.json() as Promise<T>;
+  if (!r.ok) {
+    const text = await r.text().catch(() => '');
+    const message = `[cms-api] ${r.status} ${r.statusText} for ${r.url}${text ? ` • ${text.slice(0, 100)}` : ''}`;
+    throw new Error(message);
+  }
+  const json = await r.json();
+  if (json.ok === false) {
+    throw new Error(json.error || 'API returned ok:false');
+  }
+  return json as Promise<T>;
 }
+
 
 // CASES
 export async function listCases() {
@@ -31,7 +41,7 @@ export async function getCaseById(id: string) {
   );
 }
 export async function updateCaseById(id: string, payload: CaseDoc) {
-  await ok<{ ok: true }>(
+  return ok<{ ok: true }>(
     await fetch(api(`/cases/${id}`), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -40,7 +50,7 @@ export async function updateCaseById(id: string, payload: CaseDoc) {
   );
 }
 export async function deleteCaseById(id: string) {
-  await ok<{ ok: true }>(await fetch(api(`/cases/${id}`), { method: "DELETE" }));
+  return ok<{ ok: true }>(await fetch(api(`/cases/${id}`), { method: "DELETE" }));
 }
 
 
@@ -49,11 +59,37 @@ export async function getHomepage() {
   return ok<{ ok: true; data: HomePage }>(await fetch(api("/pages/home"), { cache: "no-store" }));
 }
 export async function updateHomepage(payload: HomePage) {
-  await ok<{ ok: true }>(
+  return ok<{ ok: true }>(
     await fetch(api("/pages/home"), {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }),
   );
+}
+
+/** Site Settings */
+export async function getSiteSettings() {
+    return ok<{ok: true; data: SiteSettings}>(await fetch(api('/site'), { cache: 'no-store' }));
+}
+
+export async function saveSiteSettings(payload: SiteSettings) {
+    return ok<{ok: true, data: SiteSettings}>(await fetch(api('/site'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    }));
+}
+
+/** Navigation */
+export async function getNavigation() {
+    return ok<{ok: true, data: Navigation}>(await fetch(api('/navigation')));
+}
+
+export async function updateNavigation(payload: Navigation) {
+    return ok<{ok: true}>(await fetch(api('/navigation'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }));
 }
