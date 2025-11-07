@@ -1,7 +1,7 @@
 
-
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,13 +10,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { HomepageSchema, HeroSlideSchema } from "@/lib/schemas";
-import { toast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
-import type { HomePage } from "@/lib/types";
+import { HomepageSchema } from "@/lib/schemas";
+import type { HomePage, HeroSlide } from "@/lib/types";
 import { GripVertical, Plus, Trash } from "lucide-react";
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,7 +42,7 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
         
         <div className="space-y-2">
             <FormField control={control} name={`hero.slides.${index}.image.src`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Image URL</FormLabel><FormControl><Input {...field} placeholder="/hero.jpg" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="text-xs">Image URL</FormLabel><FormControl><Input {...field} placeholder="/media/hero.jpg" /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={control} name={`hero.slides.${index}.image.alt`} render={({ field }) => (
                 <FormItem><FormLabel className="text-xs">Image Alt Text</FormLabel><FormControl><Input {...field} placeholder="Description of image" /></FormControl><FormMessage /></FormItem>
@@ -177,7 +175,7 @@ export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: 
                         name="hero.rotationDelaySec"
                         render={({ field }) => (
                             <FormItem>
-                                <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
+                                <Select onValueChange={(value) => field.onChange(Number(value))} value={String(field.value)}>
                                     <FormControl>
                                     <SelectTrigger className="w-[120px]">
                                         <SelectValue placeholder="Delay" />

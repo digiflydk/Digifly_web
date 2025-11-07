@@ -1,5 +1,4 @@
 
-
 'use server';
 import { z, type ZodIssue } from 'zod';
 import {
@@ -23,15 +22,15 @@ import {
   casesIndexPage as defaultCasesIndex,
   contactPage as defaultContact,
 } from '@/lib/cms-data';
-import { revalidateTag } from 'next/cache';
+import { revalidateTag, revalidatePath } from 'next/cache';
 import { unstable_cache as nextCache, unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-import { SITE_DEFAULTS, defaultHomepage } from './defaults/siteDefaults';
-import { normalizeHome } from './cms-normalize';
+import { SITE_DEFAULTS, defaultHomepage, normalizeHome } from './defaults/siteDefaults';
+import { CMS_PATHS } from './constants';
 
 
 const SITE_TAG = "site-settings";
-const SITE_SETTINGS_PATH = "site/settings";
+
 
 function buildHomeFallback(raw: any): HomePage {
   return HomepageSchema.parse({
@@ -48,7 +47,7 @@ function buildHomeFallback(raw: any): HomePage {
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
   try {
     const db = getDb();
-    const settingsSnap = await db.doc(SITE_SETTINGS_PATH).get();
+    const settingsSnap = await db.doc(CMS_PATHS.site).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
     const mergedData = { 
@@ -88,7 +87,7 @@ export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key
 export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const parsedData = SiteSettingsSchema.parse(data);
   const db = getDb();
-  await db.doc(SITE_SETTINGS_PATH).set(parsedData, { merge: true });
+  await db.doc(CMS_PATHS.site).set(parsedData, { merge: true });
   revalidateTag(SITE_TAG);
   return parsedData;
 }
@@ -96,8 +95,8 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
 export async function getNavigation(): Promise<Navigation> {
     try {
         const db = getDb();
-        const mainSnap = await db.doc('navigation/main').get();
-        const footerSnap = await db.doc('navigation/footer').get();
+        const mainSnap = await db.doc(CMS_PATHS.navigation.main).get();
+        const footerSnap = await db.doc(CMS_PATHS.navigation.footer).get();
         
         const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
         const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
@@ -119,7 +118,7 @@ export async function getNavigation(): Promise<Navigation> {
 export async function getPageBySlug(slug: string): Promise<any | null> {
     try {
         const db = getDb();
-        const snap = await db.doc(`pages/${slug}`).get();
+        const snap = await db.doc(CMS_PATHS.page(slug)).get();
         if (!snap.exists) {
             const fallbacks: Record<string, any> = {
                 home: defaultHomepage,
@@ -143,6 +142,7 @@ type GetHomePageResult =
 
 
 export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
+  noStore();
   const raw = await getPageBySlug('home');
   const normalized = normalizeHome(raw ?? {});
   
@@ -159,7 +159,6 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
     });
   }
   
-  // On failure, return the merged data which is at least shape-complete
   return { ok: false, data: buildHomeFallback(normalized), issues };
 }
 
@@ -167,13 +166,13 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
 export async function updatePage(slug: string, data: any) {
     const db = getDb();
     const parsedData = BasePageSchema.parse(data);
-    await db.doc(`pages/${slug}`).set(parsedData, { merge: true });
+    await db.doc(CMS_PATHS.page(slug)).set(parsedData, { merge: true });
     return parsedData;
 }
 
 export async function getCasesServer() {
   noStore();
-  const snap = await getDb().collection('cases').get();
+  const snap = await getDb().collection(CMS_PATHS.cases).get();
   const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   const parsed = rows.map(r => CaseSchema.partial().parse(r));
   return parsed;
@@ -186,7 +185,7 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
 
 export async function listCaseSlugs(): Promise<string[]> {
     try {
-        const snap = await getDb().collection('cases').select('slug').get();
+        const snap = await getDb().collection(CMS_PATHS.cases).select('slug').get();
         if (snap.empty) {
             return defaultCases.map(c => c.slug);
         }
@@ -198,7 +197,7 @@ export async function listCaseSlugs(): Promise<string[]> {
 
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     try {
-        const snap = await getDb().collection('cases').where('slug', '==', slug).limit(1).get();
+        const snap = await getDb().collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
         if (snap.empty) {
              const fallback = defaultCases.find(c => c.slug === slug);
             return (fallback as CaseDoc) || null;
@@ -214,18 +213,18 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
 
 export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
     const { id, slug: newSlug, ...rest } = data; // remove id/slug
-    const querySnap = await getDb().collection('cases').where('slug', '==', slug).limit(1).get();
+    const querySnap = await getDb().collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
     if(querySnap.empty){
         throw new Error(`Case with slug ${slug} not found`);
     }
     const docId = querySnap.docs[0].id;
-    await getDb().collection('cases').doc(docId).set(rest, { merge: true });
+    await getDb().collection(CMS_PATHS.cases).doc(docId).set(rest, { merge: true });
     return { id: docId, slug, ...rest };
 }
 
 export async function deleteCaseServer(id: string) {
     noStore();
-    const ref = getDb().collection('cases').doc(id);
+    const ref = getDb().collection(CMS_PATHS.cases).doc(id);
     const s = await ref.get();
     if (!s.exists) {
         return { ok: false, status: 404, error: "Not Found" };
@@ -237,7 +236,7 @@ export async function deleteCaseServer(id: string) {
 
 export async function getCaseCount(): Promise<{ count: number }> {
     try {
-        const snap = await getDb().collection('cases').count().get();
+        const snap = await getDb().collection(CMS_PATHS.cases).count().get();
         return { count: snap.data().count };
     } catch {
         return { count: defaultCases.length };
@@ -273,19 +272,22 @@ export async function getContactPage(): Promise<any> {
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
     const db = getDb();
-    await db.doc('navigation/main').set({ items: data.header }, { merge: true });
+    await db.doc(CMS_PATHS.navigation.main).set({ items: data.header }, { merge: true });
     const footerLinks = data.footer.columns.flatMap(c => c.links);
-    await db.doc('navigation/footer').set({ items: footerLinks }, { merge: true });
+    await db.doc(CMS_PATHS.navigation.footer).set({ items: footerLinks }, { merge: true });
 }
 
 export async function updateHomepage(data: HomePage) {
     const db = getDb();
-    const parsed = HomepageSchema.parse(normalizeHome(data));
-    await db.doc('pages/home').set(parsed, { merge: true });
+    const normalized = normalizeHome(data);
+    const parsed = HomepageSchema.parse(normalized);
+    await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
+    revalidatePath('/');
     return parsed;
 }
 
 export async function getCmsData(path: string, searchParams?: URLSearchParams) {
+  noStore();
   if (path === 'health') {
     return { ok: true, ts: Date.now() };
   }

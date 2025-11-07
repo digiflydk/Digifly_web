@@ -1,5 +1,4 @@
 
-
 import type { SiteSettings, HomePage, HeroSlide } from '@/lib/types';
 import { HeroSlideSchema } from '../schemas';
 
@@ -43,11 +42,12 @@ export const defaultHomepage: HomePage = {
   hero: { 
     slides: [
       {
-        ...defaultHeroSlide,
+        image: { src: "/media/hero-1.jpg", alt: "Abstract hero image" },
         heading: "From Idea to Intelligent Solution",
         subheading: "Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.",
+        body: "",
         cta: { label: "Start Your Project", href: "/contact" },
-        image: { src: "/media/hero-1.jpg", alt: "Abstract hero image" },
+        visible: true,
       }
     ],
     rotationDelaySec: 5 
@@ -64,3 +64,34 @@ export const defaultHomepage: HomePage = {
     description: 'Default homepage description.'
   }
 };
+
+
+// DGF-125 Fix: Central normalization function
+export function normalizeHome(data: any): Partial<HomePage> {
+    if (!data || typeof data !== 'object') {
+        return defaultHomepage;
+    }
+
+    const d = { ...defaultHomepage, ...data };
+    
+    // Ensure hero object and slides array exist
+    d.hero = { ...defaultHomepage.hero, ...(d.hero || {}) };
+    d.hero.slides = Array.isArray(d.hero.slides) ? d.hero.slides : [];
+
+    // Normalize rotation delay
+    const n = Number(d.hero.rotationDelaySec);
+    if (![3, 5, 8, 10, 15].includes(n)) {
+        d.hero.rotationDelaySec = 5;
+    } else {
+        d.hero.rotationDelaySec = n;
+    }
+    
+    // Ensure other top-level fields are at least present
+    d.intro = { ...defaultHomepage.intro, ...(d.intro || {}) };
+    d.servicesPreview = Array.isArray(d.servicesPreview) ? d.servicesPreview : [];
+    d.featuredCases = Array.isArray(d.featuredCases) ? d.featuredCases : [];
+    d.cta = { ...defaultHomepage.cta, ...(d.cta || {}) };
+    d.seo = { ...defaultHomepage.seo, ...(d.seo || {}) };
+
+    return d;
+}

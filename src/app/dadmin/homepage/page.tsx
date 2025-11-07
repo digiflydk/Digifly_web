@@ -5,13 +5,12 @@
 import { useState, useEffect } from "react";
 import { HomepageForm } from "@/components/cms/forms/HomepageForm";
 import type { HomePage } from "@/lib/types";
-import { HomepageSchema } from "@/lib/schemas";
 import { defaultHomepage } from "@/lib/defaults/siteDefaults";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import type { ZodIssue } from "zod";
-import { getHomepage, updateHomepage } from "@/lib/cms";
+import { getHomepage, updateHomepage } from "@/lib/cms-api";
 import { toast } from "@/hooks/use-toast";
 
 
@@ -25,32 +24,18 @@ export default function HomepageAdminPage() {
         let mounted = true;
         (async () => {
             try {
-                const res = await fetch("/api/cms/pages/home");
-                const json = await res.json();
-                
+                // getHomepage is now an isomorphic helper
+                const result = await getHomepage();
                 if (!mounted) return;
 
-                if (!res.ok) {
-                    if (json.issues) {
-                        setIssues(json.issues);
-                    } else {
-                        throw new Error(json.error || `Request failed with status ${res.status}`);
-                    }
-                    setData(defaultHomepage); // Fallback to allow fixing
-                    return;
+                if (!result) {
+                    throw new Error("Homepage data is null or undefined.");
                 }
+
+                // The API now guarantees a valid structure or a well-defined error
+                setData(result);
+                setIssues([]); // Clear previous issues on successful load
                 
-                // Although the API normalizes, we safe-parse again on the client
-                // as a final guard against malformed data reaching the form.
-                const parsed = HomepageSchema.safeParse(json.data);
-                if (parsed.success) {
-                    setData(parsed.data);
-                    setIssues([]);
-                } else {
-                    console.error("Homepage client validation failed:", parsed.error.format());
-                    setIssues(parsed.error.issues);
-                    setData(defaultHomepage); // Fallback to allow fixing
-                }
             } catch (err: any) {
                 if (mounted) {
                     setError(err.message);
@@ -86,7 +71,7 @@ export default function HomepageAdminPage() {
         );
     }
     
-    if (error) {
+    if (error && !data) {
         return (
             <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />
