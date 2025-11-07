@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -40,6 +39,11 @@ export default function HomepageAdminPage() {
                 if (mounted) {
                     setError(err.message);
                     setData(defaultHomepage);
+                    toast({
+                      title: "Failed to load data",
+                      description: err.message,
+                      variant: "destructive",
+                    });
                 }
             } finally {
                 if (mounted) {

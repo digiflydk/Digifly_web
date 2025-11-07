@@ -88,7 +88,8 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const parsedData = SiteSettingsSchema.parse(data);
   const db = getDb();
   await db.doc(CMS_PATHS.site).set(parsedData, { merge: true });
-  revalidateTag(SITE_TAG);
+  // This revalidation is often handled by API routes, but can be here too if direct server action
+  // revalidateTag(SITE_TAG); 
   return parsedData;
 }
 
