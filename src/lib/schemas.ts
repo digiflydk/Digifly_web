@@ -1,17 +1,39 @@
 
-
 import { z } from "zod";
-import { normalizeImageSrc } from "./cms-normalize";
 
-// Reusable Schemas
-export const NavLinkSchema = z.object({
+// URL schema already present in project; if not, keep this minimal variant:
+export const UrlSchema = z
+  .string()
+  .url()
+  .or(z.string().startsWith("/"))
+  .or(z.literal(""));
+
+export const CaseSchema = z.object({
+  status: z.enum(["draft", "published"]).default("draft"),
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
+  excerpt: z.string().max(300).default(""),
+  cover: z
+    .object({
+      src: UrlSchema.default(""),
+      alt: z.string().default(""),
+    })
+    .default({ src: "", alt: "" }),
+  content: z.any().optional(),
+  tags: z.array(z.string()).default([]),
+  publishedAt: z.string().optional(),
+});
+
+export type CaseDoc = z.infer<typeof CaseSchema> & { id?: string };
+
+
+export const zNavLink = z.object({
   label: z.string(),
-  href: z.string(),
+  href: z.string().url().or(z.string().startsWith("/")),
 });
 
 export const ImageUrlSchema = z.string()
   .trim()
-  .transform(v => normalizeImageSrc(v))
   .superRefine((v, ctx) => {
     if (!v) return; // empty is allowed
     const hasGoodPrefix = v.startsWith('https://') || v.startsWith('/');
@@ -28,7 +50,6 @@ export const ImageUrlSchema = z.string()
   
 export const OgImageUrlSchema = z.string()
   .trim()
-  .transform(v => normalizeImageSrc(v))
   .superRefine((v, ctx) => {
     if (!v) return;
     const hasGoodPrefix = v.startsWith('https://') || v.startsWith('/');
@@ -122,7 +143,7 @@ export const HomepageSchema = z.object({
   featuredCases: z.array(z.string()).default([]),
   cta: z.object({
     text: z.string(),
-    button: NavLinkSchema,
+    button: zNavLink,
   }).optional(),
   seo: SeoSchema.optional(),
 });
@@ -145,11 +166,11 @@ export const SiteSettingsSchema = z.object({
 });
 
 export const NavigationSchema = z.object({
-  header: z.array(NavLinkSchema).default([]),
+  header: z.array(zNavLink).default([]),
   footer: z.object({
       columns: z.array(z.object({
         title: z.string(),
-        links: z.array(NavLinkSchema)
+        links: z.array(zNavLink)
       })).default([{ title: 'Links', links: [] }])
   }).default({ columns: [] })
 });
@@ -193,21 +214,6 @@ export const ContactPageSchema = z.object({
   seo: SeoSchema.optional(),
 });
 
-export const CaseSchema = z.object({
-  id: z.string().optional(),
-  slug: z.string().min(1, "Slug is required."),
-  title: z.string().min(1, "Title is required."),
-  summary: z.string().optional().default(""),
-  published: z.boolean().default(false),
-  order: z.number().optional().default(0),
-  seo: SeoSchema.optional(),
-  cover: MediaSchema,
-  content: PageContentSchema.optional(),
-  metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
-  updatedAt: z.any().optional(),
-  createdAt: z.any().optional(),
-});
-
 export const allSchemas = {
     SiteSettingsSchema,
     BasePageSchema,
@@ -215,5 +221,4 @@ export const allSchemas = {
     CaseSchema,
 };
 
-export type CaseDoc = z.infer<typeof CaseSchema>;
 export const parseCase = (data: unknown) => CaseSchema.parse(data);

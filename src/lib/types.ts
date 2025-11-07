@@ -1,15 +1,14 @@
 
-
 import { z } from "zod";
 import { 
     HomepageSchema, 
-    CaseSchema, 
     DesignSettingsSchema, 
     NavigationSchema, 
     SiteSettingsSchema,
     BasePageSchema,
     HeroSlideSchema
 } from "./schemas";
+export type { CaseDoc } from "./schemas";
 
 
 export type Media = { src: string; alt?: string; hint?: string };
@@ -29,8 +28,6 @@ export type HeroSlide = z.infer<typeof HeroSlideSchema>;
 export type RichTextContent =
   | { type: 'p'; text: string }
   | { type: 'list'; items: string[] };
-
-export type CaseDoc = z.infer<typeof CaseSchema>;
 
 export type Page<T> = Omit<z.infer<typeof BasePageSchema>, "content"> & {
   content: T;
