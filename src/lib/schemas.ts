@@ -85,7 +85,7 @@ export const CaseSchema = z.object({
 
 // Page-specific schemas
 const IntroSchema = z.object({
-  tagline: z.string().optional().default(''),
+  tagline: z.string().optional().default('Why • How • What'),
   heading: z.string().default(''),
   body: z.string().default(''),
   image: MediaSchema.optional(),
@@ -93,11 +93,13 @@ const IntroSchema = z.object({
 
 export const HomepageSchema = z.object({
   hero: z.object({
-    title: z.string().min(1, "Hero title is required"),
+    title: z.string().min(1, "Hero title is required").default('From Idea to Intelligent Solution'),
     subtitle: z.string().optional().default(''),
     primaryCta: NavLinkSchema.optional(),
-    image: MediaSchema,
-  }).default({ title: 'Default Hero Title', image: { src: '' } }),
+    images: z.array(MediaSchema).max(6).default([]),
+    rotate: z.boolean().default(true),
+    delaySec: z.enum([3, 5, 8, 10, 15]).default(5),
+  }).default({ images: [], rotate: true, delaySec: 5, title: '' }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({
     title: z.string(),
@@ -110,7 +112,18 @@ export const HomepageSchema = z.object({
     button: NavLinkSchema,
   }).optional(),
   seo: SeoSchema.optional(),
+})
+.transform(data => {
+  // @ts-ignore - backward compatibility for old single image
+  const oldImageSrc = data.hero?.image?.src;
+  if (oldImageSrc && (!data.hero.images || data.hero.images.length === 0)) {
+    data.hero.images = [{ src: oldImageSrc, alt: data.hero.image.alt || '' }];
+  }
+  // @ts-ignore
+  if (data.hero.image) delete data.hero.image;
+  return data;
 });
+
 
 export const BasePageSchema = z.object({
   title: z.string(),
