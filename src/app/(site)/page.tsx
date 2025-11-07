@@ -64,7 +64,7 @@ export default async function HomePage() {
 
   return (
     <>
-      {!result.ok && process.env.NODE_ENV === 'development' && (
+      {!result.ok && process.env.NODE_ENV === 'development' && result.issues.length > 0 && (
           <DevErrorDisplay issues={result.issues} />
       )}
       <Hero data={page.hero} />
