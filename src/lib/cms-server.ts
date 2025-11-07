@@ -27,7 +27,7 @@ import {
 import { revalidateTag } from 'next/cache';
 import { unstable_cache as nextCache } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-import { SITE_DEFAULTS } from './defaults/siteDefaults';
+import { SITE_DEFAULTS, safeImage } from './defaults/siteDefaults';
 
 const SITE_TAG = "site-settings";
 const SITE_SETTINGS_PATH = "site/settings";
@@ -120,30 +120,28 @@ type GetHomePageResult =
   | { ok: false; data: HomePage; issues: ZodIssue[] };
 
 function buildHomeFallback(raw: any): HomePage {
-  const sanitized = HomepageSchema.parse({}); // Start with a default, valid object
-  
-  if (raw && typeof raw === 'object') {
-    sanitized.hero.title = raw.hero?.title || sanitized.hero.title;
-    sanitized.hero.subtitle = raw.hero?.subtitle || sanitized.hero.subtitle;
-    
-    // Ensure image objects exist before setting properties
-    if (raw.hero?.image) {
-        sanitized.hero.image = sanitized.hero.image || {};
-        const parsedSrc = ImageUrlSchema.safeParse(raw.hero.image.src);
-        sanitized.hero.image.src = parsedSrc.success ? parsedSrc.data : '';
-        sanitized.hero.image.alt = raw.hero.image.alt || '';
-    }
-    if (raw.intro?.image) {
-        sanitized.intro.image = sanitized.intro.image || {};
-        const parsedSrc = ImageUrlSchema.safeParse(raw.intro.image.src);
-        sanitized.intro.image.src = parsedSrc.success ? parsedSrc.data : '';
-        sanitized.intro.image.alt = raw.intro.image.alt || '';
-    }
-  }
+  const heroImage = safeImage(raw?.hero?.image);
+  const introImage = safeImage(raw?.intro?.image);
 
-  return sanitized;
+  return {
+    hero: {
+      title: raw?.hero?.title || 'From Idea to Intelligent Solution',
+      subtitle: raw?.hero?.subtitle || 'Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.',
+      primaryCta: raw?.hero?.primaryCta || { label: 'Start Your Project', href: '/contact' },
+      image: heroImage,
+    },
+    intro: {
+      tagline: raw?.intro?.tagline || 'Why • How • What',
+      heading: raw?.intro?.heading || 'We turn complexity into clarity.',
+      body: raw?.intro?.body || "We combine analytical strength with deep technological expertise to create elegant, effective solutions. Our process is transparent, collaborative, and always focused on delivering measurable results for your business.",
+      image: introImage,
+    },
+    servicesPreview: raw?.servicesPreview || [],
+    featuredCases: raw?.featuredCases || [],
+    cta: raw?.cta || { text: "Let's build something intelligent together.", button: { label: "Book a Call", href: "/contact" }},
+    seo: raw?.seo || {},
+  };
 }
-
 
 export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
   const data = await getPageBySlug('home');

@@ -16,3 +16,14 @@ export const SITE_DEFAULTS: SiteSettings = {
     title: ''
   }
 } as const;
+
+
+// DGF-109: New normalizer for safely handling image objects
+export type Img = { src: string; alt?: string; width?: number; height?: number };
+
+export const safeImage = (img?: Partial<Img> | null): Img => ({
+  src: (img?.src ?? '').toString(),
+  alt: img?.alt ?? '',
+  width: img?.width ?? undefined,
+  height: img?.height ?? undefined,
+});

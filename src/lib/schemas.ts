@@ -9,9 +9,11 @@ export const NavLinkSchema = z.object({
 });
 
 export const MediaSchema = z.object({
-    src: ImageUrlSchema.optional().default(''),
+    src: ImageUrlSchema,
     alt: z.string().optional().default(''),
     hint: z.string().optional(),
+    width: z.number().optional(),
+    height: z.number().optional(),
 }).default({ src: '', alt: '' });
 
 export const RichTextSchema = z.array(
@@ -83,7 +85,7 @@ const IntroSchema = z.object({
   tagline: z.string().optional().default(''),
   heading: z.string().default(''),
   body: z.string().default(''),
-  image: MediaSchema.optional(),
+  image: MediaSchema.optional(), // DGF-109: Now optional
 }).default({});
 
 export const HomepageSchema = z.object({
@@ -91,7 +93,7 @@ export const HomepageSchema = z.object({
     title: z.string().min(1),
     subtitle: z.string().optional().default(''),
     primaryCta: NavLinkSchema.optional(),
-    image: MediaSchema.optional(),
+    image: MediaSchema.optional(), // DGF-109: Now optional
   }).default({ title: 'Default Hero Title' }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({
