@@ -1,16 +1,12 @@
-
-// Isomorphic (server/client) fetch helpers for the CMS API
+// Isomorphic (client-safe) fetch helpers for the CMS API
 import type { CaseDoc, HomePage, Navigation, SiteSettings } from './types';
 import { HomepageSchema, SiteSettingsSchema, NavigationSchema } from './schemas';
-import { headers } from "next/headers";
 
-// Get dynamic base URL — works both locally and in Cloud Workstations
-function getBaseUrl(): string {
-  if (typeof window !== 'undefined') return ""; // client should use relative paths
-  const h = headers();
-  const proto = h.get("x-forwarded-proto") ?? "http";
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  if (host) return `${proto}://${host}`;
+// Get client-side base URL
+function getClientBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
   return process.env.NEXT_PUBLIC_SITE_URL ?? "";
 }
 
@@ -18,16 +14,15 @@ export async function fetchCmsApi<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
+  const base = getClientBaseUrl();
   const isAbsolute = /^https?:\/\//i.test(path);
   const isApiRoute = path.startsWith("/api/");
-  const base = getBaseUrl();
-
   const url = isAbsolute
     ? path
     : isApiRoute
     ? `${base}${path}`
     : `${base}/api/cms/${path.replace(/^\/+/, "")}`;
-
+  
   const res = await fetch(url, {
     cache: "no-store",
     ...init,
@@ -39,7 +34,7 @@ export async function fetchCmsApi<T>(
 
   if (!res.ok) {
     const snippet = await res.text().catch(() => "");
-    throw new Error(`[cms-api] fetch failed for "${url}": ${res.status} ${res.statusText} ${snippet.slice(0, 100)}`);
+    throw new Error(`[cms-api:client] fetch failed for "${url}": ${res.statusText} ${snippet}`);
   }
   
   const jsonResponse = await res.json();
