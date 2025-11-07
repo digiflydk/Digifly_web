@@ -1,4 +1,5 @@
 
+
 {
   "name": "nextn",
   "version": "1.2.0",
@@ -19,6 +20,7 @@
     "test:pw:report": "npx playwright show-report qa/report/html",
     "ci": "npm run typecheck && npm run build",
     "cms:seed": "tsx scripts/cms-seed.ts",
+    "cms:migrate:site": "tsx scripts/migrate-site-config-to-settings.ts",
     "pretest:qa": "node qa/ensure-qa-config.js",
     "build:local": "npm run cms-seed && next build",
     "predeploy": "npm run typecheck && npm run build:local",

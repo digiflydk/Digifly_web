@@ -1,57 +1,47 @@
 
-import { NextResponse } from 'next/server';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAdminApp } from '@/lib/firebase-admin';
+export const runtime = "nodejs";
+import { NextRequest, NextResponse } from "next/server";
+import { getFirestore } from "firebase-admin/firestore";
+import { getAdminApp } from "@/lib/firebase-admin";
+import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+const COLLECTION = "site";
+const DOC = "settings";
 
-const json = (data: any, status = 200) =>
+const json = (data: any, status: number = 200) =>
   NextResponse.json(data, {
     status,
-    headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/json; charset=utf-8' },
+    headers: { "Cache-Control": "no-store" },
   });
-
-const COL = 'config';
-const DOC = 'site';
 
 export async function GET() {
   try {
     const db = getFirestore(getAdminApp());
-    const snap = await db.collection(COL).doc(DOC).get();
-    const site = snap.exists
-      ? snap.data()
-      : { siteTitle: '', tagline: '', logoUrl: '', faviconUrl: '', defaultDescription: '' };
+    const snap = await db.collection(COLLECTION).doc(DOC).get();
+    const site = snap.exists ? snap.data() : {};
     return json({ ok: true, site });
   } catch (e: any) {
-    console.error('[GET /api/cms/site]', e);
-    return json({ ok: false, error: 'SERVER_ERROR', detail: String(e?.message ?? e) }, 500);
+    console.error(`[GET /api/cms/site]`, e);
+    return json({ ok: false, error: "SERVER_ERROR", detail: e.message }, 500);
   }
 }
 
-export async function POST(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null);
-    if (!body) return json({ ok: false, error: 'INVALID_JSON' }, 400);
+    if (!body) return json({ ok: false, error: "INVALID_JSON" }, 400);
 
-    const { siteTitle, tagline, logoUrl, faviconUrl, defaultDescription } = body as any;
-
+    const parsed = SiteSettingsSchema.safeParse(body);
+    if (!parsed.success) {
+      return json({ ok: false, error: "VALIDATION_ERROR", detail: parsed.error.issues }, 422);
+    }
+    
     const db = getFirestore(getAdminApp());
-    await db.collection(COL).doc(DOC).set(
-      {
-        siteTitle: siteTitle ?? '',
-        tagline: tagline ?? '',
-        logoUrl: logoUrl ?? '',
-        faviconUrl: faviconUrl ?? '',
-        defaultDescription: defaultDescription ?? '',
-        updatedAt: Date.now(),
-      },
-      { merge: true }
-    );
+    await db.collection(COLLECTION).doc(DOC).set(parsed.data, { merge: true });
+    
     return json({ ok: true });
   } catch (e: any) {
-    console.error('[POST /api/cms/site]', e);
-    return json({ ok: false, error: 'SERVER_ERROR', detail: String(e?.message ?? e) }, 500);
+    console.error(`[PUT /api/cms/site]`, e);
+    return json({ ok: false, error: "SERVER_ERROR", detail: e.message }, 500);
   }
 }

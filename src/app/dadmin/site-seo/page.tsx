@@ -15,9 +15,9 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-async function loadSiteSettings(): Promise<SiteSettings> {
+async function safeGetSite(): Promise<SiteSettings> {
   const ctrl = new AbortController();
-  const timeoutId = setTimeout(() => ctrl.abort(), 8000);
+  const timeoutId = setTimeout(() => ctrl.abort(), 8000); // 8s hard timeout
 
   try {
     const res = await fetch('/api/cms/site', {
@@ -52,15 +52,49 @@ async function loadSiteSettings(): Promise<SiteSettings> {
   }
 }
 
+async function saveSettings(payload: SiteSettings): Promise<any> {
+    const url = "/api/cms/site";
+    const res = await fetch(url, {
+        method: 'PUT',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+
+    const text = await res.text();
+    const isJson = res.headers.get("content-type")?.includes("application/json");
+    const data = isJson && text ? JSON.parse(text) : null;
+
+    if (!res.ok || data?.ok === false) {
+        let errorMsg = `Save failed (${url}): ${res.status}`;
+        if (data?.error) {
+            errorMsg += ` • ${data.error}`;
+        } else if (!isJson && text) {
+            errorMsg += ` • ${text.slice(0, 200)}`;
+        } else {
+            errorMsg += ` • ${res.statusText}`;
+        }
+        if (data?.detail) {
+            const detail = Array.isArray(data.detail) 
+                ? data.detail.map((d: any) => `${d.path.join('.')}: ${d.message}`).join(', ')
+                : String(data.detail);
+            errorMsg += ` (${detail})`;
+        }
+        throw new Error(errorMsg);
+    }
+    return data;
+}
+
+
 export default function SiteSeoPageWrapper() {
   const [initialData, setInitialData] = useState<SiteSettings | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadSiteSettings()
+    safeGetSite()
       .then(data => {
-        setInitialData(SiteSettingsSchema.parse(data || {}));
+        const parsedData = SiteSettingsSchema.partial().parse(data || {});
+        setInitialData(parsedData as SiteSettings);
       })
       .catch(err => {
         setError(err.message);
@@ -74,7 +108,7 @@ export default function SiteSeoPageWrapper() {
     return (
         <div className="space-y-8">
             <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
-            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-24 w-full" /></CardContent></Card>
         </div>
     );
   }
@@ -89,47 +123,21 @@ export default function SiteSeoPageWrapper() {
     )
   }
 
-  if (!initialData) {
-      return (
-        <Alert variant="destructive">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>Could not load initial site settings. The data is missing.</AlertDescription>
-        </Alert>
-      );
-  }
-
-  return (
-    <SiteSeoForm initialData={initialData} />
-  );
+  return <SiteSeoForm initialData={initialData || {}} />;
 }
 
 
-export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
+export function SiteSeoForm({ initialData }: { initialData: Partial<SiteSettings> }) {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<SiteSettings>({
-    resolver: zodResolver(SiteSettingsSchema),
+    resolver: zodResolver(SiteSettingsSchema.partial()),
     defaultValues: initialData,
   });
 
-  async function onSubmit(values: SiteSettings) {
+  async function onSubmit(values: Partial<SiteSettings>) {
     setIsSaving(true);
     try {
-      const url = "/api/cms/site";
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      const text = await res.text();
-      const isJson = res.headers.get("content-type")?.includes("application/json");
-      const data = isJson && text ? JSON.parse(text) : null;
-
-      if (!res.ok || data?.ok === false) {
-        const msg = data?.error ?? `${res.status} ${res.statusText}${!isJson && text ? ` • ${text.slice(0,200)}` : ""}`;
-        throw new Error(`Save failed (${url}): ${msg}`);
-      }
-      
+      await saveSettings(values as SiteSettings);
       toast({ title: "Success", description: "Site settings saved." });
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Could not save settings.", variant: "destructive" });
@@ -147,14 +155,14 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
             <FormField control={form.control} name="siteTitle" render={({ field }) => (
               <FormItem>
                 <FormLabel>Site Title</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
+                <FormControl><Input {...field} value={field.value ?? ""} placeholder="e.g., Digifly" /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField control={form.control} name="tagline" render={({ field }) => (
+            <FormField control={form.control} name="social.tagline" render={({ field }) => (
               <FormItem>
                 <FormLabel>Tagline</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
+                <FormControl><Input {...field} value={field.value ?? ""} placeholder="e.g., Strategy, Software & AI" /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -163,17 +171,17 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
         <Card>
           <CardHeader><CardTitle>Branding</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <FormField control={form.control} name="logoUrl" render={({ field }) => (
+            <FormField control={form.control} name="brand.logo.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Logo URL</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
+                <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://..." /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField control={form.control} name="faviconUrl" render={({ field }) => (
+            <FormField control={form.control} name="brand.favicon.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Favicon URL</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
+                <FormControl><Input type="url" {...field} value={field.value ?? ""} placeholder="https://.../favicon.ico" /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -182,17 +190,17 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
         <Card>
           <CardHeader><CardTitle>Default SEO</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <FormField control={form.control} name="defaultDescription" render={({ field }) => (
+            <FormField control={form.control} name="defaultSeo.description" render={({ field }) => (
               <FormItem>
                 <FormLabel>Default Meta Description</FormLabel>
-                <FormControl><Textarea {...field} value={field.value ?? ""} /></FormControl>
+                <FormControl><Textarea {...field} value={field.value ?? ""} placeholder="A concise summary for search engines." /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
           </CardContent>
         </Card>
 
-        <div className="sticky bottom-0 bg-slate-50/90 py-4">
+        <div className="sticky bottom-0 bg-slate-50/90 py-4 dark:bg-slate-900/90">
           <Button type="submit" disabled={isSaving}>
             {isSaving ? "Saving..." : "Save Settings"}
           </Button>

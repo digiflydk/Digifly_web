@@ -1,4 +1,5 @@
 
+
 import { z } from "zod";
 
 // tiny helper for defaults
@@ -36,13 +37,15 @@ export const zRichText = RichTextSchema;
 export const BrandSchema = z.object({
   name: z.string().default('Digifly'),
   logo: z.object({
-      src: z.string().min(1, "logo src required"),
+      src: z.string().url().or(z.string().startsWith('/')).min(1, "logo src required"),
       width: z.number().optional(),
       height: z.number().optional(),
-      alt: z.string().optional(),
-  }).default({ src: '/logo.svg', alt: 'Digifly logo' }),
-  favicon: z.object({ src: z.string().min(1).default("/favicon.ico") }).default({src: "/favicon.ico"}),
-}).default({ logo: { src: '/logo.svg' } });
+      alt: z.string().optional().default('Digifly Logo'),
+  }).default({ src: '/logo.svg' }),
+  favicon: z.object({ 
+    src: z.string().url().or(z.string().startsWith('/')).min(1).default("/favicon.ico") 
+  }).default({src: "/favicon.ico"}),
+}).default();
 export const zBrand = BrandSchema;
 
 
@@ -191,12 +194,27 @@ export const ContactPageSchema = z.object({
 export const zContactPage = ContactPageSchema;
 
 export const SiteSettingsSchema = z.object({
-  siteTitle: z.string().min(1),
-  tagline: z.string().optional(),
-  logoUrl: z.string().url().optional().or(z.literal('')),
-  faviconUrl: z.string().url().optional().or(z.literal('')),
-  defaultDescription: z.string().optional(),
+  siteTitle: z.string(),
+  social: z.object({
+    tagline: z.string().optional()
+  }).optional(),
+  brand: z.object({
+    name: z.string().default("Digifly"),
+    logo: z.object({ 
+        src: z.string().url(), 
+        alt: z.string().default("Digifly Logo"), 
+        width: z.number().optional(), 
+        height: z.number().optional() 
+    }),
+    favicon: z.object({ 
+        src: z.string().url().or(z.literal("/favicon.ico")) 
+    })
+  }).optional(),
+  defaultSeo: z.object({
+    description: z.string().max(320).optional()
+  }).optional()
 });
+export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
 export const zSiteSettings = SiteSettingsSchema;
 
 
