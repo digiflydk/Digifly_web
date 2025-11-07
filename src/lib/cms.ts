@@ -1,16 +1,26 @@
 
 
-// Re-export all API helpers
-export * from "./cms-api";
+// Isomorphic (client-side) fetch helpers for the CMS API
+// For server-side fetching, use `cms-server.ts` directly.
 
-// Re-export server actions for client components that might need them (use with caution)
+import { 
+    getHomepage, 
+    updateHomepage, 
+    getCases, 
+    deleteCase, 
+    getNavigation,
+    updateNavigation,
+    getSiteSettings,
+    saveSiteSettings
+} from './cms-api';
+
 export {
-  updatePage,
-  getNavigation,
-  updateNavigation,
-  getCaseCount,
-  getPageCount,
-  getNavigationMenuCount,
-  saveSiteSettings,
-  updateCase,
-} from './cms-server';
+    getHomepage,
+    updateHomepage,
+    getCases,
+    deleteCase,
+    getNavigation,
+    updateNavigation,
+    getSiteSettings,
+    saveSiteSettings
+};

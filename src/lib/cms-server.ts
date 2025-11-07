@@ -1,4 +1,5 @@
 
+
 'use server';
 import { z, type ZodIssue } from 'zod';
 import {
@@ -88,8 +89,7 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const parsedData = SiteSettingsSchema.parse(data);
   const db = getDb();
   await db.doc(CMS_PATHS.site).set(parsedData, { merge: true });
-  // This revalidation is often handled by API routes, but can be here too if direct server action
-  // revalidateTag(SITE_TAG); 
+  revalidateTag(SITE_TAG);
   return parsedData;
 }
 
@@ -173,10 +173,10 @@ export async function updatePage(slug: string, data: any) {
 
 export async function getCasesServer() {
   noStore();
-  const snap = await getDb().collection(CMS_PATHS.cases).get();
+  const db = getDb();
+  const snap = await db.collection(CMS_PATHS.cases).get();
   const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  const parsed = rows.map(r => CaseSchema.partial().parse(r));
-  return parsed;
+  return z.array(CaseSchema.partial()).parse(rows);
 }
 
 export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {

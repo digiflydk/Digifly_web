@@ -1,5 +1,6 @@
 
-import { getCases } from '@/lib/cms';
+
+import { getCasesServer } from '@/lib/cms-server';
 import { Container } from '@/components/layout/container';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -46,7 +47,7 @@ type CasesGridProps = {
 }
 
 export default async function CasesGrid({ ids, title, subtitle, showAllLink = false }: CasesGridProps) {
-  let allCases = await getCases();
+  let allCases = await getCasesServer();
   const cases = ids
     ? allCases.filter(c => ids.includes(c.slug))
     : allCases;
