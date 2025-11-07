@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { HomepageSchema, HeroSlideSchema } from "@/lib/schemas";
 import { toast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { HomePage } from "@/lib/types";
 import { GripVertical, Plus, Trash } from "lucide-react";
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
