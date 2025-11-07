@@ -25,7 +25,7 @@ export async function getNavigation(): Promise<Navigation> {
   return await getNavigationData();
 }
 
-export async function getHomePage(): Promise<HomePage | null> {
+export async function getHomePage() {
   return await getHomePageData();
 }
 

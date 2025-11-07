@@ -17,6 +17,7 @@ import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
 import { ZodError } from "zod";
+import { saveSiteSettings } from "@/lib/cms";
 
 async function loadSettings(): Promise<SiteSettings> {
     const res = await fetch("/api/cms/site", { cache: "no-store" });
@@ -24,43 +25,19 @@ async function loadSettings(): Promise<SiteSettings> {
     try {
         const json = JSON.parse(text);
         if (!res.ok || !json?.ok) {
-            // The API now returns a default object on 404, so we just need to handle other errors.
-            throw new Error(json?.error || `Request failed with status ${res.status}`);
+            throw new Error(json?.error?.message || `Request failed with status ${res.status}`);
         }
-        // Always parse the data to ensure it conforms to the schema, providing defaults for missing fields.
         const parsed = SiteSettingsSchema.safeParse(json.data || {});
         if (!parsed.success) {
             console.error("API data failed validation:", parsed.error);
-            throw new ZodError(parsed.error.issues);
+            // Even if validation fails, return the default structure to avoid crashing the form
+            return SiteSettingsSchema.parse({});
         }
         return parsed.data;
     } catch (e: any) {
         console.error(`API response was not valid or failed parsing (status ${res.status}). Error: ${e.message}`);
         // In case of any error, return a default object to prevent crashing the form.
         return SiteSettingsSchema.parse({});
-    }
-}
-
-
-async function saveSettings(payload: SiteSettings) {
-    const res = await fetch("/api/cms/site", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-    });
-    const text = await res.text();
-    try {
-        const json = JSON.parse(text);
-        if (!res.ok || data?.ok === false) {
-            let errorMsg = json?.error || `Request failed with status ${res.status}`;
-            if (json.details && Array.isArray(json.details)) {
-                errorMsg += ` - ${json.details.map((d: any) => d.message).join(', ')}`;
-            }
-            throw new Error(errorMsg);
-        }
-        return json.data;
-    } catch {
-        throw new Error(`Save failed (/api/cms/site): ${res.status} • ${text.slice(0,80)}`);
     }
 }
 
@@ -121,8 +98,7 @@ export default function SiteSeoPageWrapper() {
      return (
         <div className="space-y-8">
             <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
-            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
-            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-24 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-24 w-full" /></CardContent></Card>
         </div>
     );
   }
@@ -141,10 +117,13 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-      await saveSettings(values);
-      toast({ title: "Success", description: "Site settings saved." });
+        const result = await saveSiteSettings(values);
+        if (!result) { // Assuming saveSiteSettings returns null/undefined on error
+            throw new Error("An unknown error occurred during save.");
+        }
+        toast({ title: "✅ Success", description: "Site settings saved." });
     } catch (e: any) {
-        if (e.message.includes('VALIDATION_ERROR') || e instanceof ZodError) {
+        if (e instanceof ZodError) {
              toast({ title: "Validation Error", description: "Please check the form for errors.", variant: "destructive" });
         } else {
             toast({ title: "Error", description: e.message || "Could not save settings.", variant: "destructive" });

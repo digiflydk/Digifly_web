@@ -60,8 +60,8 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const db = getDb();
   await db.doc(SITE_SETTINGS_PATH).set(parsedData, { merge: true });
   revalidateTag(SITE_TAG);
-  const snap = await db.doc(SITE_SETTINGS_PATH).get();
-  return SiteSettingsSchema.parse(snap.data() || {});
+  // Return the saved data to confirm what was written
+  return parsedData;
 }
 
 export async function getNavigation(): Promise<Navigation> {
@@ -115,16 +115,21 @@ type GetHomePageResult =
   | { ok: false; data: HomePage; issues: ZodIssue[] };
 
 function buildHomeFallback(raw: any): HomePage {
-  const sanitized: HomePage = HomepageSchema.parse({}); // Get a default object
-  sanitized.hero.title = raw?.hero?.title || 'Welcome';
-  sanitized.hero.subtitle = raw?.hero?.subtitle || '';
+  const sanitized = HomepageSchema.parse({}); // Start with a default, valid object
   
-  if (raw?.hero?.image?.src) {
-    sanitized.hero.image = { src: raw.hero.image.src, alt: raw.hero.image.alt || '' };
-  }
-  
-  if (raw?.intro?.image?.src) {
-    sanitized.intro!.image = { src: raw.intro.image.src, alt: raw.intro.image.alt || '' };
+  if (raw && typeof raw === 'object') {
+    sanitized.hero.title = raw.hero?.title || sanitized.hero.title;
+    sanitized.hero.subtitle = raw.hero?.subtitle || sanitized.hero.subtitle;
+    if (raw.hero?.image?.src) {
+        const parsedImg = SiteSettingsSchema.shape.brand.shape.logo.shape.src.safeParse(raw.hero.image.src);
+        sanitized.hero.image.src = parsedImg.success ? parsedImg.data : '';
+        sanitized.hero.image.alt = raw.hero.image.alt || '';
+    }
+    if (raw.intro?.image?.src) {
+        const parsedImg = SiteSettingsSchema.shape.brand.shape.logo.shape.src.safeParse(raw.intro.image.src);
+        sanitized.intro.image.src = parsedImg.success ? parsedImg.data : '';
+        sanitized.intro.image.alt = raw.intro.image.alt || '';
+    }
   }
 
   return sanitized;

@@ -21,7 +21,7 @@ export async function GET() {
     return json({ ok: true, data });
   } catch (err: any) {
     console.error(`[GET /api/cms/site]`, err);
-    return json({ ok: false, error: "SERVER_ERROR", detail: err.message }, 500);
+    return json({ ok: false, error: { code: 'SERVER_ERROR', message: err.message } }, 500);
   }
 }
 
@@ -29,16 +29,16 @@ export async function PUT(req: Request) {
   try {
     const body = await req.json().catch(() => null);
     if (!body) {
-      return json({ ok: false, error: 'INVALID_JSON' }, 400);
+      return json({ ok: false, error: { code: 'INVALID_JSON', message: 'Invalid JSON body' } }, 400);
     }
     const parsedData = SiteSettingsSchema.parse(body);
     const saved = await saveSiteSettings(parsedData);
     return json({ ok: true, data: saved });
   } catch (err: any) {
     if (err instanceof ZodError) {
-      return json({ ok: false, error: 'VALIDATION_ERROR', details: err.issues }, 422);
+      return json({ ok: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid data provided', issues: err.issues } }, 422);
     }
     console.error(`[PUT /api/cms/site]`, err);
-    return json({ ok: false, error: "Failed to save site settings", detail: err.message }, 500);
+    return json({ ok: false, error: { code: 'SERVER_ERROR', message: err.message || 'Failed to save site settings' } }, 500);
   }
 }
