@@ -5,11 +5,11 @@ import { z } from "zod";
 // It correctly parses URLs with query strings to check file extensions.
 export const imageSrc = z.string().trim().refine(
   (v) => {
-    if (v === '') return true; // Allow empty string for clearing a value.
-    if (!v.startsWith('http') && !v.startsWith('/')) return false; // Must be absolute or root-relative.
-    
+    if (v === '') return true; // Allow empty string
+    if (!v.startsWith('http') && !v.startsWith('/')) return false; // Must be absolute or root-relative
     try {
       // Use a dummy base for relative paths to allow URL parsing.
+      // The pathname will correctly exclude query strings.
       const url = new URL(v, 'https://dummy.base');
       return /\.(png|jpg|jpeg|svg|ico)$/i.test(url.pathname);
     } catch {

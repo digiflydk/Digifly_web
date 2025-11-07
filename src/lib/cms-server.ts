@@ -65,8 +65,11 @@ export async function getNavigation(): Promise<Navigation> {
         const mainSnap = await db.doc('navigation/main').get();
         const footerSnap = await db.doc('navigation/footer').get();
         
-        const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
-        const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
+        let mainData;
+        let footerData;
+
+        mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
+        footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
 
         const header = NavigationSchema.shape.header.parse(mainData?.items || []);
         
@@ -108,9 +111,11 @@ export async function getHomePage(): Promise<HomePage> {
     const data = await getPageBySlug('home');
     const parsed = HomepageSchema.safeParse(data || {});
     if (parsed.success) return parsed.data;
+    
     console.error("Homepage validation failed:", parsed.error.format());
-    // Return a default valid object on failure
-    return HomepageSchema.parse({});
+    // On failure, re-throw a ZodError to be caught by the page component.
+    // This allows for better error display in development.
+    throw new z.ZodError(parsed.error.issues);
 }
 
 
