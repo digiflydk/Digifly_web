@@ -1,0 +1,151 @@
+
+"use client";
+
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { NavLinkSchema } from "@/lib/schemas";
+import { useState } from "react";
+import { GripVertical, Plus, Trash } from "lucide-react";
+import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
+const FormSchema = z.object({
+  items: z.array(NavLinkSchema),
+});
+
+type NavEditorProps = {
+  title: string;
+  description?: string;
+  items: z.infer<typeof NavLinkSchema>[];
+  onSave: (items: z.infer<typeof NavLinkSchema>[]) => Promise<boolean>;
+};
+
+function SortableItem({ id, index, control, remove }: { id: string; index: number; control: any, remove: (index: number) => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 'auto',
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className={`flex gap-2 items-start p-2 rounded-md ${isDragging ? 'bg-slate-50 shadow-lg' : ''}`}>
+      <div className="flex items-center h-10">
+        <button type="button" {...attributes} {...listeners} className="p-2 text-slate-500 cursor-grab focus:cursor-grabbing focus:bg-slate-100 rounded">
+            <GripVertical className="h-5 w-5" />
+        </button>
+      </div>
+      <FormField control={control} name={`items.${index}.label`} render={({ field }) => (
+        <FormItem className="flex-1"><FormControl><Input {...field} placeholder="Link Label" /></FormControl></FormItem>
+      )} />
+      <FormField control={control} name={`items.${index}.href`} render={({ field }) => (
+        <FormItem className="flex-1"><FormControl><Input {...field} placeholder="/path-or-url" /></FormControl></FormItem>
+      )} />
+      <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-destructive hover:text-destructive-foreground hover:bg-destructive h-10 w-10">
+        <Trash className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+export function NavEditor({ title, description, items, onSave }: NavEditorProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: { items },
+  });
+
+  const { fields, append, remove, move } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
+  async function onSubmit(values: z.infer<typeof FormSchema>) {
+    setIsSaving(true);
+    const success = await onSave(values.items);
+    if (success) {
+      form.reset(values); // Re-sync form state with successfully saved data
+    }
+    setIsSaving(false);
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = fields.findIndex(item => item.id === active.id);
+      const newIndex = fields.findIndex(item => item.id === over.id);
+      move(oldIndex, newIndex);
+    }
+  }
+  
+  const confirmDelete = () => {
+    if (deleteIndex !== null) {
+      remove(deleteIndex);
+      setDeleteIndex(null);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <DndContext sensors={[]} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
+              <SortableContext items={fields} strategy={verticalListSortingStrategy}>
+                <div className="space-y-2">
+                  {fields.map((field, index) => (
+                    <SortableItem key={field.id} id={field.id} index={index} control={form.control} remove={() => setDeleteIndex(index)} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+
+            <div className="flex justify-between items-center pt-4">
+              <Button type="button" variant="outline" size="sm" onClick={() => append({ label: "", href: "/" })}>
+                <Plus className="mr-2 h-4 w-4" /> Add Link
+              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" disabled={!form.formState.isDirty} onClick={() => form.reset()}>Reset</Button>
+                <Button type="submit" disabled={isSaving || !form.formState.isDirty}>
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+
+       <AlertDialog open={deleteIndex !== null} onOpenChange={(open) => !open && setDeleteIndex(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this navigation link. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
+  );
+}

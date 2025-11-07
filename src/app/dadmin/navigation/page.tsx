@@ -2,10 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getNavigation } from "@/lib/cms";
-import { NavigationForm } from "@/components/cms/forms/NavigationForm";
+import { getNavigation, updateNavigation } from "@/lib/cms";
+import { NavEditor } from "./NavEditor";
 import type { Navigation } from "@/lib/types";
-
+import { toast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function NavigationPage() {
     const [data, setData] = useState<Navigation | null>(null);
@@ -14,17 +15,44 @@ export default function NavigationPage() {
         getNavigation().then(setData);
     }, []);
 
+    const handleSave = async (values: Navigation) => {
+        try {
+          await updateNavigation(values);
+          toast({ title: "Success", description: "Navigation saved." });
+          // Optionally re-fetch or just trust the state
+          setData(values);
+          return true;
+        } catch (e) {
+          toast({ title: "Error", description: "Could not save navigation.", variant: "destructive" });
+          return false;
+        }
+    };
+    
     if (!data) {
-        return <div>Loading...</div>
+        return (
+            <div className="space-y-4">
+                <Skeleton className="h-10 w-1/4" />
+                <Skeleton className="h-64 w-full" />
+            </div>
+        );
     }
 
     return (
-      <>
-        <header className="mb-6">
-            <h1 className="text-xl font-semibold">Navigation</h1>
-            <p className="text-sm text-slate-500">Manage primary and footer menus.</p>
-        </header>
-        <NavigationForm data={data} />
-      </>
+      <div className="space-y-8">
+        <NavEditor 
+            title="Primary Navigation"
+            items={data.header}
+            onSave={(newItems) => handleSave({ ...data, header: newItems })}
+        />
+        <NavEditor 
+            title="Footer Navigation"
+            description="Manage the single column of links in the footer."
+            items={data.footer.columns[0]?.links ?? []}
+            onSave={(newItems) => handleSave({ 
+                ...data, 
+                footer: { columns: [{ title: "Links", links: newItems }] } 
+            })}
+        />
+      </div>
     );
 }
