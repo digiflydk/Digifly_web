@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const DevErrorDisplay = ({ issues }: { issues: ZodIssue[] }) => {
-    if (issues.length === 0) return null;
+    if (process.env.NODE_ENV === 'production' || issues.length === 0) return null;
     return (
         <div className="fixed bottom-4 right-4 max-w-md w-full z-50">
             <Alert variant="destructive">
@@ -67,7 +67,7 @@ export default async function HomePage() {
 
   return (
     <>
-      {!result.ok && process.env.NODE_ENV === 'development' && (
+      {!result.ok && (
           <DevErrorDisplay issues={result.issues} />
       )}
       <Hero data={page.hero} />

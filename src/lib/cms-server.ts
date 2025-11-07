@@ -41,7 +41,12 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const mergedData = { 
         ...SITE_DEFAULTS, 
         ...data,
-        brand: { ...SITE_DEFAULTS.brand, ...data?.brand },
+        brand: { 
+            ...SITE_DEFAULTS.brand, 
+            ...data?.brand,
+            logo: { ...SITE_DEFAULTS.brand.logo, ...data?.brand?.logo },
+            favicon: { ...SITE_DEFAULTS.brand.favicon, ...data?.brand?.favicon },
+        },
         social: { ...SITE_DEFAULTS.social, ...data?.social },
         defaultSeo: { ...SITE_DEFAULTS.defaultSeo, ...data?.defaultSeo },
     };
@@ -148,7 +153,7 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
   const parsed = HomepageSchema.safeParse(data || {});
   
   if (parsed.success) {
-    return { ok: true, data: parsed.data, issues: [] };
+    return { ok: true, data: parsed.data };
   }
   
   const issues = zodErrorToIssues(parsed.error);
