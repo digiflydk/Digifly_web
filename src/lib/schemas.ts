@@ -90,12 +90,10 @@ const IntroSchema = z.object({
 
 export const HomepageSchema = z.object({
   hero: z.object({
-    slides: z.array(HeroSlideSchema).default([]),
-    rotationDelaySec: z.coerce.number()
-      .refine(v => [3, 5, 8, 10, 15].includes(v), {
-        message: "Must be one of 3, 5, 8, 10, 15",
-      })
-      .default(5),
+    slides: z.array(HeroSlideSchema).max(6).default([]),
+    rotationDelaySec: z.coerce.number().refine(v => [3, 5, 8, 10, 15].includes(v), {
+      message: "Must be one of 3, 5, 8, 10, 15",
+    }).default(5),
   }).default({ slides: [], rotationDelaySec: 5 }),
   intro: IntroSchema,
   servicesPreview: z.array(z.object({

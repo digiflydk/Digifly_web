@@ -30,6 +30,25 @@ export default function Hero({ data }: { data: HeroData }) {
         return () => clearInterval(interval);
     }, [visibleSlides.length, rotationDelaySec, hasMultipleImages]);
     
+    if (visibleSlides.length === 0) {
+        return (
+             <section
+                className="relative -mt-[var(--header-height,64px)] w-full pt-[var(--header-height,64px)] bg-slate-100"
+                style={{ minHeight: 'var(--hero-desktop-min-h, 70vh)' }}
+            >
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+                <div className="container relative flex items-center py-24 md:py-28 h-full">
+                    <div className="max-w-2xl">
+                         <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
+                           Welcome
+                        </h1>
+                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">Hero content is not configured.</p>
+                    </div>
+                </div>
+            </section>
+        )
+    }
+
     const currentSlide = visibleSlides[index];
     if (!currentSlide) return null;
 
@@ -57,7 +76,7 @@ export default function Hero({ data }: { data: HeroData }) {
                             sizes="(max-width: 768px) 100vw, 70vw"
                         />
                     ) : (
-                        <div className="w-full h-full bg-slate-100" />
+                         <div className="w-full h-full bg-slate-100" />
                     )}
                 </motion.div>
             </AnimatePresence>

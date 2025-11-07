@@ -7,12 +7,12 @@ import type { CaseDoc, HomePage, Navigation } from './types';
 type ApiResponse<T> = { data: T; ok: true } | { error: string; ok: false, issues?: any[] };
 
 async function fetchCmsApi<T>(path: string, options: RequestInit = {}): Promise<T> {
-    // Relative URL is fine for client-side, but server needs absolute.
-    const baseUrl = typeof window === 'undefined' ? (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000') : '';
+    // Server components must use an absolute URL for fetch.
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const url = `${baseUrl}/api/cms/${path}`;
 
     try {
-        const res = await fetch(url, { ...options, cache: 'no-store' });
+        const res = await fetch(url, { ...options, next: { revalidate: 0 } });
         const json: ApiResponse<T> = await res.json();
         
         if (!res.ok || json.ok === false) {
@@ -33,7 +33,8 @@ export async function getCases(params?: { published?: boolean; limit?: number })
   const qp = new URLSearchParams();
   if (params?.published !== undefined) qp.set('published', String(params.published));
   if (params?.limit) qp.set('limit', String(params.limit));
-  return fetchCmsApi<CaseDoc[]>(`cases?${qp.toString()}`);
+  const result = await fetchCmsApi<{data: CaseDoc[]}>(`cases?${qp.toString()}`);
+  return result.data;
 }
 
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
@@ -41,7 +42,7 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
 }
 
 export async function deleteCase(id: string): Promise<{ ok: true }> {
-  // This is a client-side action, so relative URL is fine
+  // This is a client-side action, so relative URL is fine, but we'll use the helper for consistency.
   const res = await fetch(`/api/cms/cases/${id}`, { method: 'DELETE' });
   if (!res.ok) {
     const msg = await res.text().catch(() => `status ${res.status}`);
@@ -54,12 +55,13 @@ export async function getHomepage(): Promise<HomePage> {
     return fetchCmsApi<HomePage>('pages/home');
 }
 
-export async function updateHomepage(payload: HomePage): Promise<{ ok: true, data: HomePage }> {
-    return fetchCmsApi<{ ok: true, data: HomePage }>('pages/home', {
+export async function updateHomepage(payload: HomePage): Promise<HomePage> {
+    const response = await fetchCmsApi<{ ok: true, data: HomePage }>('pages/home', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
+    return response.data;
 }
 
 export async function getNavigation(): Promise<Navigation> {
