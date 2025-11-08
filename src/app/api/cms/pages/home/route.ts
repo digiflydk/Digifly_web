@@ -1,7 +1,7 @@
 
 "use server";
 
-import { getHomePage, updateHomepage } from "@/lib/cms-api";
+import { getHomepage, updateHomepage } from "@/lib/cms-api";
 import { NextResponse, NextRequest } from "next/server";
 import { ZodError, ZodIssue } from "zod";
 
@@ -13,7 +13,7 @@ const json = (data: any, status = 200) =>
 
 export async function GET(req: NextRequest) {
   try {
-    const data = await getHomePage({ debug: req.nextUrl.searchParams.get('debug') === '1' });
+    const data = await getHomepage({ debug: req.nextUrl.searchParams.get('debug') === '1' });
     return json(data);
   } catch (error: any) {
     console.error(`[GET /api/cms/pages/home]`, error);

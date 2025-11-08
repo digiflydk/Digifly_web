@@ -89,12 +89,12 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
     return snap.data();
 }
 
-type GetHomePageResult = 
+type GetHomepageResult = 
   | { ok: true; data: HomePage; issues?: undefined }
   | { ok: false; error: string; data: HomePage; issues: ZodIssue[] };
 
 
-export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
+export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomepageResult> {
   noStore();
   try {
     const raw = await getPageBySlug('home');
@@ -113,8 +113,6 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
       });
     }
 
-    // Even on validation failure, we still want to return data the frontend can attempt to render.
-    // The schema defaults will fill in missing required fields.
     const safeFallback = HomepageSchema.parse(normalized);
     
     return { ok: false, error: "Validation failed, returning best-effort data.", data: safeFallback, issues };
@@ -124,9 +122,8 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
   }
 }
 
-// Backward-compat alias (no breaking imports elsewhere)
-export const getHomepage = getHomePage;
-
+// backward compatibility alias
+export const getHomePage = getHomepage;
 
 export async function updatePage(slug: string, data: any) {
     const db = await getDb();
@@ -172,13 +169,13 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     return parsed.data as CaseDoc;
 }
 
-export async function updateCaseById(id: string, data: Partial<CaseDoc>) {
+export async function updateCase(id: string, data: Partial<CaseDoc>) {
     const db = await getDb();
     await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
     return { id, ...data };
 }
 
-export async function deleteCaseServer(id: string) {
+export async function deleteCase(id: string) {
     noStore();
     const db = await getDb();
     const ref = db.collection(CMS_PATHS.cases).doc(id);
@@ -270,15 +267,6 @@ export async function createCase(data: Partial<CaseDoc>) {
     return { id: ref.id, ...payload };
 }
 
-
-export async function deleteCase(id: string) {
-    return deleteCaseServer(id);
-}
-
-export async function updateCase(id: string, data: Partial<CaseDoc>) {
-    return updateCaseById(id, data);
-}
-
 export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   noStore();
   if (path === 'health') {
@@ -287,7 +275,7 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   
   if (path === 'pages/home') {
     const debug = searchParams?.get('debug') === '1';
-    const result = await getHomePage({ debug });
+    const result = await getHomepage({ debug });
     // API should return consistent structure
     return result;
   }
@@ -301,7 +289,7 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
     return getNavigation();
   }
   if (path === 'home') {
-    const result = await getHomePage();
+    const result = await getHomepage();
     if (!result.ok) throw new Error(result.error);
     return result.data;
   }
@@ -325,11 +313,4 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
     return getContactPage();
   }
   return null;
-}
-function buildHomeFallback(normalized: Partial<HomePage>): HomePage {
-  const parsed = HomepageSchema.safeParse(normalized);
-  if (parsed.success) {
-    return parsed.data;
-  }
-  return defaultHomepage;
 }
