@@ -1,3 +1,4 @@
+
 'use server';
 import { z, type ZodIssue } from 'zod';
 import {
@@ -59,7 +60,7 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
     return parsed.data;
   } catch (e) {
     if (process.env.NODE_ENV !== 'production') {
-      console.error("[getSiteSettingsRaw] Failed to fetch or parse site settings, returning defaults.", e);
+      console.warn("[getSiteSettingsRaw] Firebase not available, returning defaults.", e);
     }
     return SITE_DEFAULTS;
   }
@@ -96,7 +97,7 @@ export async function getNavigation(): Promise<Navigation> {
         
         return NavigationSchema.parse({ header, footer: { columns: [{ title: "Links", links: footerLinks }] } });
     } catch(e) {
-        console.warn('Falling back to default navigation.', e);
+        console.warn('[cms-server] Firebase not available for navigation, falling back to defaults.', e);
         return defaultNav;
     }
 }
@@ -117,7 +118,7 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
         }
         return snap.data();
     } catch (e) {
-        console.error(`[getPageBySlug] Failed to fetch page '${slug}', returning null.`, e);
+        console.warn(`[cms-server] Firebase not available for page '${slug}', returning null.`, e);
         return null;
     }
 }
@@ -145,7 +146,19 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
     });
   }
   
-  return { ok: false, data: buildHomeFallback(normalized), issues };
+  // Create a fallback that's still valid according to the schema
+  const fallbackData = {
+    ...defaultHomepage,
+    ...normalized,
+    hero: {
+      ...defaultHomepage.hero,
+      ...(normalized.hero || {}),
+      slides: Array.isArray(normalized.hero?.slides) ? normalized.hero.slides.map((s: any) => ({...defaultHomepage.hero.slides[0], ...s})) : [],
+    }
+  };
+  const safeFallback = HomepageSchema.parse(fallbackData);
+
+  return { ok: false, data: safeFallback, issues };
 }
 
 
@@ -158,10 +171,15 @@ export async function updatePage(slug: string, data: any) {
 
 export async function getCasesServer() {
   noStore();
-  const db = await getDb();
-  const snap = await db.collection(CMS_PATHS.cases).get();
-  const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  return z.array(CaseSchema.partial()).parse(rows);
+  try {
+    const db = await getDb();
+    const snap = await db.collection(CMS_PATHS.cases).get();
+    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return z.array(CaseSchema.partial()).parse(rows);
+  } catch (e) {
+    console.warn('[cms-server] Firebase not available for cases, returning defaults.', e);
+    return defaultCases;
+  }
 }
 
 export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
@@ -292,7 +310,7 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
     const debug = searchParams?.get('debug') === '1';
     const result = await getHomePage({ debug });
     // In API route, always return a JSON object, not just the data part
-    return { ...result, data: result.ok ? result.data : buildHomeFallback(result.data) };
+    return { ...result, data: result.ok ? result.data : result.data };
   }
   
   if (path.startsWith('pages/')) {
@@ -328,3 +346,13 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
+function buildHomeFallback(normalized: Partial<HomePage>): HomePage {
+  const parsed = HomepageSchema.safeParse(normalized);
+  if (parsed.success) {
+    return parsed.data;
+  }
+  // Fallback to defaultHomepage if even the normalized data fails
+  return defaultHomepage;
+}
+
+    
