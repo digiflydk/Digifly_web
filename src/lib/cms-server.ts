@@ -326,5 +326,3 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
-
-    

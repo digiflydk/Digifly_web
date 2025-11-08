@@ -33,5 +33,3 @@ export async function POST(req: NextRequest) {
     return json({ ok: false, error: "Failed to update homepage" }, { status: 500 });
   }
 }
-
-    
