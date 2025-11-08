@@ -3,7 +3,7 @@
 
 import { getHomepage, updateHomepage } from "@/lib/cms-server";
 import { NextResponse, NextRequest } from "next/server";
-import { ZodError } from 'zod';
+import { ZodError, ZodIssue } from "zod";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
