@@ -84,46 +84,44 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
     const db = await getDb();
     const snap = await db.doc(CMS_PATHS.page(slug)).get();
     if (!snap.exists) {
-        throw new Error(`Page with slug '${slug}' not found in Firestore.`);
+        return null;
     }
     return snap.data();
 }
 
 type GetHomePageResult = 
   | { ok: true; data: HomePage; issues?: undefined }
-  | { ok: false; data: HomePage; issues: ZodIssue[] };
+  | { ok: false; error: string; data?: undefined; issues?: ZodIssue[] };
 
 
 export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
   noStore();
-  const raw = await getPageBySlug('home');
-  const normalized = normalizeHome(raw ?? {});
-  
-  const parsed = HomepageSchema.safeParse(normalized);
-  
-  if (parsed.success) {
-    return { ok: true, data: parsed.data };
-  }
-  
-  const issues = zodErrorToIssues(parsed.error);
-  if (process.env.NODE_ENV !== 'production' || options.debug) {
-    console.warn("[cms-server] Homepage validation failed. Returning sanitized fallback.", {
-      issues,
-    });
-  }
-  
-  const fallbackData = {
-    ...defaultHomepage,
-    ...normalized,
-    hero: {
-      ...defaultHomepage.hero,
-      ...(normalized.hero || {}),
-      slides: Array.isArray(normalized.hero?.slides) ? normalized.hero.slides.map((s: any) => ({...defaultHomepage.hero.slides[0], ...s})) : [],
+  try {
+    const raw = await getPageBySlug('home');
+    const normalized = normalizeHome(raw ?? {});
+    
+    const parsed = HomepageSchema.safeParse(normalized);
+    
+    if (parsed.success) {
+      return { ok: true, data: parsed.data };
     }
-  };
-  const safeFallback = HomepageSchema.parse(fallbackData);
+    
+    const issues = zodErrorToIssues(parsed.error);
+    if (process.env.NODE_ENV !== 'production' || options.debug) {
+      console.warn("[cms-server] Homepage validation failed. Returning sanitized fallback.", {
+        issues,
+      });
+    }
 
-  return { ok: false, data: safeFallback, issues };
+    // Even on validation failure, we still want to return data the frontend can attempt to render.
+    // The schema defaults will fill in missing required fields.
+    const safeFallback = HomepageSchema.parse(normalized);
+    
+    return { ok: false, error: "Validation failed, returning best-effort data.", data: safeFallback, issues };
+  } catch (err: any) {
+    console.error("[getHomepage] Firestore fetch failed:", err.message);
+    return { ok: false, error: err.message || 'Failed to fetch from Firestore.' };
+  }
 }
 
 
@@ -163,7 +161,12 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     }
     const doc = snap.docs[0];
     const rawData = { id: doc.id, ...doc.data() };
-    return CaseSchema.parse(rawData) as CaseDoc;
+    const parsed = CaseSchema.safeParse(rawData);
+    if (!parsed.success) {
+      console.warn(`[getCaseBySlug] Zod validation failed for slug "${slug}"`);
+      return rawData as CaseDoc;
+    }
+    return parsed.data as CaseDoc;
 }
 
 export async function createCase(data: z.infer<typeof CaseSchema>): Promise<CaseDoc> {
@@ -256,7 +259,8 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'pages/home') {
     const debug = searchParams?.get('debug') === '1';
     const result = await getHomepage({ debug });
-    return { ...result, data: result.ok ? result.data : result.data };
+    // API should return consistent structure
+    return result;
   }
   
   if (path.startsWith('pages/')) {
@@ -268,7 +272,8 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
     return getNavigation();
   }
   if (path === 'home') {
-    const result = await getHomePage();
+    const result = await getHomepage();
+    if (!result.ok) throw new Error(result.error);
     return result.data;
   }
   if (path === 'cases') {

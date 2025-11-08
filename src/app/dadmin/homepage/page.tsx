@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { HomepageForm } from "@/components/cms/forms/HomepageForm";
 import { getHomepage, updateHomepage } from "@/lib/cms-api";
 import type { HomePage } from "@/lib/schemas";
-import { defaultHomepage } from "@/lib/defaults/siteDefaults";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
@@ -27,15 +26,26 @@ export default function HomepageAdminPage() {
                 if (!mounted) return;
 
                 if (!result || !result.ok) {
-                    throw new Error(result.error || "Homepage data is not available.");
+                    if (result.issues) {
+                        setIssues(result.issues);
+                    }
+                    if (result.data) { // If there's partial data, use it
+                        setData(result.data);
+                        toast({
+                          title: "Data Validation Issues",
+                          description: "Some fields have issues. Default values are being used.",
+                          variant: "destructive",
+                        });
+                    } else {
+                        throw new Error(result.error || "Homepage data is not available.");
+                    }
+                } else {
+                   setData(result.data);
                 }
-                
-                setData(result.data);
                 
             } catch (err: any) {
                 if (mounted) {
                     setError(err.message);
-                    // Don't set default data, let the error component show
                     toast({
                       title: "Failed to load data",
                       description: err.message,
@@ -53,7 +63,8 @@ export default function HomepageAdminPage() {
     
     const handleSave = async (formData: HomePage) => {
         try {
-            await updateHomepage(formData);
+            const result = await updateHomepage(formData);
+            if (!result.ok) throw new Error(result.error);
             toast({ title: 'Success', description: 'Homepage saved successfully.' });
             return true;
         } catch (e: any) {

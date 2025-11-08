@@ -1,16 +1,21 @@
+
 import admin from "firebase-admin";
 
 let app: admin.app.App | null = null;
 
-function loadServiceAccount(): admin.ServiceAccount {
+function loadServiceAccount(): admin.ServiceAccount | null {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not set");
+  if (!raw) {
+    console.warn("FIREBASE_SERVICE_ACCOUNT_JSON is not set. Firestore connections will fail.");
+    return null;
+  }
 
-  // Accept base64 or plain JSON
   const jsonStr = (() => {
     try {
+      // Try decoding from base64 first
       return Buffer.from(raw, "base64").toString("utf8");
     } catch {
+      // Fallback to assuming it's a raw JSON string
       return raw;
     }
   })();
@@ -19,7 +24,8 @@ function loadServiceAccount(): admin.ServiceAccount {
   try {
     parsed = JSON.parse(jsonStr);
   } catch {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is invalid JSON");
+    console.error("FIREBASE_SERVICE_ACCOUNT_JSON is invalid JSON.");
+    return null;
   }
 
   if (parsed.private_key && typeof parsed.private_key === "string") {
@@ -27,7 +33,10 @@ function loadServiceAccount(): admin.ServiceAccount {
   }
 
   for (const key of ["project_id", "client_email", "private_key"]) {
-    if (!parsed[key]) throw new Error(`Service account missing field: ${key}`);
+    if (!parsed[key]) {
+      console.error(`Service account in FIREBASE_SERVICE_ACCOUNT_JSON is missing field: ${key}.`);
+      return null;
+    }
   }
 
   return {
@@ -39,8 +48,12 @@ function loadServiceAccount(): admin.ServiceAccount {
 
 export function getAdminApp() {
   if (app) return app;
-  const creds = loadServiceAccount();
+  
   if (!admin.apps.length) {
+    const creds = loadServiceAccount();
+    if (!creds) {
+        throw new Error("Firebase Admin SDK credentials are not configured.");
+    }
     app = admin.initializeApp({ credential: admin.credential.cert(creds) });
   } else {
     app = admin.app();

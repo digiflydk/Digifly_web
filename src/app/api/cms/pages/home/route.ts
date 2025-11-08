@@ -1,6 +1,6 @@
 
 
-import { getHomePage, updateHomepage } from "@/lib/cms-server";
+import { getHomepage, updateHomepage } from "@/lib/cms-server";
 import { NextResponse, NextRequest } from "next/server";
 import { ZodError, ZodIssue } from "zod";
 
@@ -15,13 +15,8 @@ export async function GET(req: NextRequest) {
   const debug = searchParams.get('debug') === '1';
   
   try {
-    const result = await getHomePage({ debug });
-    // This now returns a result object with {ok, data, issues?}
-    if (!result.ok) {
-        return json({ ok: false, error: 'VALIDATION_ERROR', issues: result.issues }, 422);
-    }
-    
-    return json({ ok: true, data: result.data });
+    const result = await getHomepage({ debug });
+    return json(result);
 
   } catch (error: any) {
     console.error(`[GET /api/cms/pages/home]`, error);
