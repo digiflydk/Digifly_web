@@ -1,48 +1,35 @@
+import Link from "next/link";
+import Image from "next/image";
+import { getCases } from "@/lib/cms";
 
-import { getCases } from "@/lib/cms-api";
-import CasesGrid from "@/components/sections/cases-grid";
-import { metaDefaults } from "@/lib/seo";
-import type { Metadata } from 'next';
-import { SectionHeading } from "@/components/ui/section-heading";
-import { Container } from "@/components/layout/container";
-import { CasesIndexSchema } from "@/lib/schemas";
-import { safeStr } from "@/lib/safe";
-import { getCasesIndexPage } from "@/lib/cms-server";
+export default async function CasesIndexPage() {
+  const cases = await getCases({ published: true });
 
-export const dynamic = 'force-dynamic';
-
-export async function generateMetadata(): Promise<Metadata> {
-  const rawPage = await getCasesIndexPage();
-  const page = CasesIndexSchema.parse(rawPage || {});
-
-  return metaDefaults({
-    title: safeStr(page.seo.title, page.title),
-    description: safeStr(page.seo.description, page.subtitle),
-  });
-}
-
-export default async function CasesPage() {
-    const rawPage = await getCasesIndexPage();
-    const page = CasesIndexSchema.parse(rawPage || {});
-    
-    // This now calls the isomorphic getCases from cms-api
-    const allCases = await getCases({ published: true });
-
-    if (allCases.length === 0) {
-        return (
-            <Container className="py-16 text-center">
-                <SectionHeading 
-                    title="No cases yet" 
-                    subtitle="Check back soon to see our latest work." 
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-semibold mb-6">Cases</h1>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {cases.map((c) => (
+          <Link key={c.id} href={`/cases/${c.slug}`}>
+            <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+              <div className="relative aspect-[16/9] bg-muted">
+                <Image
+                  src={(c.coverImage?.src && c.coverImage.src !== "" ? c.coverImage.src : "/placeholder/case-cover.webp")}
+                  alt={c.coverImage?.alt || c.title}
+                  fill
+                  className="object-cover"
                 />
-            </Container>
-        )
-    }
-    
-    return (
-        <CasesGrid 
-            title={page.title}
-            subtitle={safeStr(page.subtitle)}
-        />
-    )
+              </div>
+              <div className="p-4">
+                <h3 className="font-medium">{c.title}</h3>
+                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                  {c.excerpt || "—"}
+                </p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
 }

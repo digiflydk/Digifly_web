@@ -1,26 +1,38 @@
-
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/firebase-admin"; // existing admin app
-import { CaseSchema } from "@/lib/schemas";
+import { CaseSchema } from "@/lib/schemas.case";
+import { createCase, getCases } from "@/lib/cms";
+
+type Ok<T> = { ok: true; data: T };
+type Err = { ok: false; error: string; issues?: any[] };
 
 export async function GET() {
-  const snap = await getDb().collection("cases").orderBy("title").get();
-  const data = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-  return NextResponse.json({ ok: true, data });
+  try {
+    const items = await getCases();
+    return NextResponse.json<Ok<any>>({ ok: true, data: items });
+  } catch (e: any) {
+    return NextResponse.json<Err>(
+      { ok: false, error: e?.message || "Failed to list cases" },
+      { status: 500 }
+    );
+  }
 }
 
-export async function POST() {
-  const doc = {
-    status: "draft",
-    title: "Untitled case",
-    slug: `case-${Date.now()}`,
-    excerpt: "",
-    cover: { src: "", alt: "" },
-    content: "",
-    tags: [],
-  };
-  // Validate defaults
-  CaseSchema.parse(doc);
-  const ref = await getDb().collection("cases").add(doc);
-  return NextResponse.json({ ok: true, id: ref.id });
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const parsed = CaseSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json<Err>(
+        { ok: false, error: "Validation failed", issues: parsed.error.issues },
+        { status: 400 }
+      );
+    }
+    const created = await createCase(parsed.data);
+    return NextResponse.json<Ok<any>>({ ok: true, data: created }, { status: 201 });
+  } catch (e: any) {
+    return NextResponse.json<Err>(
+      { ok: false, error: e?.message || "Failed to create case" },
+      { status: 500 }
+    );
+  }
 }
