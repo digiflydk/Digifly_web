@@ -1,6 +1,8 @@
 
-import { getHomepage, updateHomepage } from "@/lib/cms-server";
+"use server";
+
 import { NextResponse, NextRequest } from "next/server";
+import { getHomepage, updateHomepage } from "@/lib/cms-server";
 import { ZodError } from "zod";
 
 export const runtime = 'nodejs';
@@ -26,7 +28,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const updated = await updateHomepage(body);
     return json({ ok: true, data: updated });
-  } catch(e: any) {
+  } catch (e: any) {
     if (e instanceof ZodError) {
       return json({ ok: false, error: 'VALIDATION_ERROR', issues: e.issues }, 422);
     }
