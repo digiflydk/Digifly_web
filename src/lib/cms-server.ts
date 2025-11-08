@@ -13,14 +13,7 @@ import {
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { HomePage, Navigation, CaseDoc, SiteSettings, Page } from '@/lib/types';
-import {
-  navigation as defaultNav,
-  cases as defaultCases,
-  aboutPage as defaultAbout,
-  servicesPage as defaultServices,
-  casesIndexPage as defaultCasesIndex,
-  contactPage as defaultContact,
-} from '@/lib/cms-data';
+
 import { revalidatePath } from 'next/cache';
 import { unstable_cache as nextCache, unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
@@ -30,9 +23,7 @@ import { CMS_PATHS } from './constants';
 
 const SITE_TAG = "site-settings";
 
-
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
-  try {
     const db = await getDb();
     const settingsSnap = await db.doc(CMS_PATHS.site).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
@@ -52,18 +43,10 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
 
     const parsed = SiteSettingsSchema.safeParse(mergedData);
     if (!parsed.success) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
-      }
+      console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
       return SITE_DEFAULTS; 
     }
     return parsed.data;
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn("[getSiteSettingsRaw] Firebase not available, returning defaults.", e);
-    }
-    return SITE_DEFAULTS;
-  }
 }
 
 
@@ -80,47 +63,30 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
 }
 
 export async function getNavigation(): Promise<Navigation> {
-    try {
-        const db = await getDb();
-        const mainSnap = await db.doc(CMS_PATHS.navigation.main).get();
-        const footerSnap = await db.doc(CMS_PATHS.navigation.footer).get();
-        
-        const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
-        const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
+    const db = await getDb();
+    const mainSnap = await db.doc(CMS_PATHS.navigation.main).get();
+    const footerSnap = await db.doc(CMS_PATHS.navigation.footer).get();
+    
+    const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
+    const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
 
-        const header = NavigationSchema.shape.header.parse(mainData?.items || []);
-        
-        const footerLinks = (footerData?.items || []).map((item: any) => ({
-          label: item.label,
-          href: item.href,
-        }));
-        
-        return NavigationSchema.parse({ header, footer: { columns: [{ title: "Links", links: footerLinks }] } });
-    } catch(e) {
-        console.warn('[cms-server] Firebase not available for navigation, falling back to defaults.', e);
-        return defaultNav;
-    }
+    const header = NavigationSchema.shape.header.parse(mainData?.items || []);
+    
+    const footerLinks = (footerData?.items || []).map((item: any) => ({
+      label: item.label,
+      href: item.href,
+    }));
+    
+    return NavigationSchema.parse({ header, footer: { columns: [{ title: "Links", links: footerLinks }] } });
 }
 
 export async function getPageBySlug(slug: string): Promise<any | null> {
-    try {
-        const db = await getDb();
-        const snap = await db.doc(CMS_PATHS.page(slug)).get();
-        if (!snap.exists) {
-            const fallbacks: Record<string, any> = {
-                home: defaultHomepage,
-                about: defaultAbout,
-                services: defaultServices,
-                'cases-index': defaultCasesIndex,
-                contact: defaultContact,
-            };
-            return fallbacks[slug] || null;
-        }
-        return snap.data();
-    } catch (e) {
-        console.warn(`[cms-server] Firebase not available for page '${slug}', returning null.`, e);
-        return null;
+    const db = await getDb();
+    const snap = await db.doc(CMS_PATHS.page(slug)).get();
+    if (!snap.exists) {
+        throw new Error(`Page with slug '${slug}' not found in Firestore.`);
     }
+    return snap.data();
 }
 
 type GetHomePageResult = 
@@ -146,7 +112,6 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
     });
   }
   
-  // Create a fallback that's still valid according to the schema
   const fallbackData = {
     ...defaultHomepage,
     ...normalized,
@@ -164,22 +129,16 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
 
 export async function updatePage(slug: string, data: any) {
     const db = await getDb();
-    // A generic page update should be handled with care, or use specific schemas
     await db.doc(CMS_PATHS.page(slug)).set(data, { merge: true });
     return data;
 }
 
 export async function getCasesServer() {
   noStore();
-  try {
-    const db = await getDb();
-    const snap = await db.collection(CMS_PATHS.cases).get();
-    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    return z.array(CaseSchema.partial()).parse(rows);
-  } catch (e) {
-    console.warn('[cms-server] Firebase not available for cases, returning defaults.', e);
-    return defaultCases;
-  }
+  const db = await getDb();
+  const snap = await db.collection(CMS_PATHS.cases).get();
+  const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return z.array(CaseSchema.partial()).parse(rows);
 }
 
 export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
@@ -188,33 +147,23 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
 }
 
 export async function listCaseSlugs(): Promise<string[]> {
-    try {
-        const db = await getDb();
-        const snap = await db.collection(CMS_PATHS.cases).select('slug').get();
-        if (snap.empty) {
-            return defaultCases.map(c => c.slug);
-        }
-        return snap.docs.map(d => d.data().slug).filter(Boolean);
-    } catch (e) {
+    const db = await getDb();
+    const snap = await db.collection(CMS_PATHS.cases).select('slug').get();
+    if (snap.empty) {
         return [];
     }
+    return snap.docs.map(d => d.data().slug).filter(Boolean);
 }
 
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
-    try {
-        const db = await getDb();
-        const snap = await db.collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
-        if (snap.empty) {
-             const fallback = defaultCases.find(c => c.slug === slug);
-            return fallback ? (CaseSchema.parse(fallback) as CaseDoc) : null;
-        }
-        const doc = snap.docs[0];
-        const rawData = { id: doc.id, ...doc.data() };
-        return CaseSchema.parse(rawData) as CaseDoc;
-    } catch (e) {
-        const fallback = defaultCases.find(c => c.slug === slug);
-        return fallback ? (CaseSchema.parse(fallback) as CaseDoc) : null;
+    const db = await getDb();
+    const snap = await db.collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
+    if (snap.empty) {
+        return null;
     }
+    const doc = snap.docs[0];
+    const rawData = { id: doc.id, ...doc.data() };
+    return CaseSchema.parse(rawData) as CaseDoc;
 }
 
 export async function createCase(data: z.infer<typeof CaseSchema>): Promise<CaseDoc> {
@@ -249,22 +198,14 @@ export async function deleteCaseServer(id: string) {
 
 
 export async function getCaseCount(): Promise<{ count: number }> {
-    try {
-        const db = await getDb();
-        const snap = await db.collection(CMS_PATHS.cases).count().get();
-        return { count: snap.data().count };
-    } catch {
-        return { count: defaultCases.length };
-    }
+    const db = await getDb();
+    const snap = await db.collection(CMS_PATHS.cases).count().get();
+    return { count: snap.data().count };
 }
 export async function getPageCount(): Promise<{ count: number }> {
-    try {
-        const db = await getDb();
-        const snap = await db.collection('pages').count().get();
-        return { count: snap.data().count };
-    } catch {
-        return { count: 5 }; // home, about, services, cases-index, contact
-    }
+    const db = await getDb();
+    const snap = await db.collection('pages').count().get();
+    return { count: snap.data().count };
 }
 export async function getNavigationMenuCount(): Promise<{ count: number }> {
     return { count: 2 };
@@ -315,7 +256,6 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'pages/home') {
     const debug = searchParams?.get('debug') === '1';
     const result = await getHomepage({ debug });
-    // In API route, always return a JSON object, not just the data part
     return { ...result, data: result.ok ? result.data : result.data };
   }
   
@@ -357,12 +297,9 @@ function buildHomeFallback(normalized: Partial<HomePage>): HomePage {
   if (parsed.success) {
     return parsed.data;
   }
-  // Fallback to defaultHomepage if even the normalized data fails
   return defaultHomepage;
 }
 
-
-// These functions are newly exported or renamed for cms-api
 export async function getCases() {
     return getCasesServer();
 }

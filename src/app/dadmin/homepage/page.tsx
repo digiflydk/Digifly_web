@@ -26,8 +26,8 @@ export default function HomepageAdminPage() {
                 const result = await getHomepage();
                 if (!mounted) return;
 
-                if (!result || !result.data) {
-                    throw new Error("Homepage data is null or undefined.");
+                if (!result || !result.ok) {
+                    throw new Error(result.error || "Homepage data is not available.");
                 }
                 
                 setData(result.data);
@@ -35,7 +35,7 @@ export default function HomepageAdminPage() {
             } catch (err: any) {
                 if (mounted) {
                     setError(err.message);
-                    setData(defaultHomepage);
+                    // Don't set default data, let the error component show
                     toast({
                       title: "Failed to load data",
                       description: err.message,
@@ -72,7 +72,7 @@ export default function HomepageAdminPage() {
         );
     }
     
-    if (error && !data) {
+    if (error) {
         return (
             <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />

@@ -1,10 +1,14 @@
 // Server component
 import CasesTable from "@/components/cms/CasesTable";
+import { getCases } from "@/lib/cms-api";
 
-export default function CasesAdminPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function CasesAdminPage() {
+  const cases = await getCases();
   return (
-    <div className="p-6">
-      <CasesTable />
+    <div>
+      <CasesTable initialRows={cases} />
     </div>
   );
 }

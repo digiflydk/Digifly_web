@@ -30,7 +30,7 @@ export async function GET(req: NextRequest, { params }: { params: { param: strin
     }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { param: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: { param: string } }) {
     const { param: slug } = params;
      try {
         const body = await req.json();
