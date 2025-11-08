@@ -91,7 +91,7 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
 
 type GetHomePageResult = 
   | { ok: true; data: HomePage; issues?: undefined }
-  | { ok: false; error: string; data?: undefined; issues?: ZodIssue[] };
+  | { ok: false; error: string; data: HomePage; issues: ZodIssue[] };
 
 
 export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
@@ -120,9 +120,10 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
     return { ok: false, error: "Validation failed, returning best-effort data.", data: safeFallback, issues };
   } catch (err: any) {
     console.error("[getHomepage] Firestore fetch failed:", err.message);
-    return { ok: false, error: err.message || 'Failed to fetch from Firestore.' };
+    return { ok: false, error: err.message || 'Failed to fetch from Firestore.', data: defaultHomepage, issues: [] };
   }
 }
+
 // Backward-compat alias (no breaking imports elsewhere)
 export const getHomePage = getHomepage;
 
