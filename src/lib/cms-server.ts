@@ -123,6 +123,7 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
     return { ok: false, error: err.message || 'Failed to fetch from Firestore.' };
   }
 }
+export const getHomePage = getHomepage;
 
 
 export async function updatePage(slug: string, data: any) {
