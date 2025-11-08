@@ -3,7 +3,7 @@
 
 import { getHomepage, updateHomepage } from "@/lib/cms-api";
 import { NextResponse, NextRequest } from "next/server";
-import { ZodError, ZodIssue } from "zod";
+import { ZodError } from "zod";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,8 +13,8 @@ const json = (data: any, status = 200) =>
 
 export async function GET(req: NextRequest) {
   try {
-    const data = await getHomepage({ debug: req.nextUrl.searchParams.get('debug') === '1' });
-    return json(data);
+    const result = await getHomepage({ debug: req.nextUrl.searchParams.get('debug') === '1' });
+    return json(result);
   } catch (error: any) {
     console.error(`[GET /api/cms/pages/home]`, error);
     return json({ ok: false, error: "Failed to load homepage" }, { status: 500 });

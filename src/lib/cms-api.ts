@@ -14,4 +14,5 @@ export {
   createCase,
   updateCase,
   deleteCase,
+  getHomePage, // Keep alias for backward compatibility
 } from "./cms-server";

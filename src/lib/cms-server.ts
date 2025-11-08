@@ -1,6 +1,6 @@
 
 'use server';
-import { z, type ZodIssue } from 'zod';
+import { z } from 'zod';
 import {
   SiteSettingsSchema,
   NavigationSchema,
@@ -12,7 +12,7 @@ import {
   ContactPageSchema,
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { HomePage, Navigation, CaseDoc, SiteSettings, Page } from '@/lib/types';
+import type { HomePage, Navigation, CaseDoc, SiteSettings } from '@/lib/types';
 
 import { revalidatePath } from 'next/cache';
 import { unstable_cache as nextCache, unstable_noStore as noStore } from 'next/cache';
@@ -70,15 +70,41 @@ export async function getNavigation(): Promise<Navigation> {
     const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
     const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
 
-    const header = NavigationSchema.shape.header.parse(mainData?.items || []);
+    // Gracefully handle missing docs by returning empty structure
+    if (!mainSnap.exists && !footerSnap.exists) {
+        return { header: [], footer: { columns: [] }, updatedAt: Date.now() };
+    }
     
-    const footerLinks = (footerData?.items || []).map((item: any) => ({
-      label: item.label,
-      href: item.href,
-    }));
+    const parsedNav = NavigationSchema.safeParse({
+        header: mainData?.items || [],
+        footer: {
+            columns: [{ title: 'Links', links: footerData?.items || [] }]
+        }
+    });
+
+    if (!parsedNav.success) {
+        console.warn("[getNavigation] Zod validation failed, returning empty nav structure.", parsedNav.error.format());
+        return { header: [], footer: { columns: [] }, updatedAt: Date.now() };
+    }
     
-    return NavigationSchema.parse({ header, footer: { columns: [{ title: "Links", links: footerLinks }] } });
+    return { ...parsedNav.data, updatedAt: Date.now() };
 }
+
+export async function saveNavigation(data: Navigation): Promise<void> {
+    const parsedData = NavigationSchema.parse(data);
+    const db = await getDb();
+    const batch = db.batch();
+    
+    batch.set(db.doc(CMS_PATHS.navigation.main), { items: parsedData.header }, { merge: true });
+    
+    // Assuming single-column footer for now as per schema
+    const footerLinks = parsedData.footer.columns[0]?.links ?? [];
+    batch.set(db.doc(CMS_PATHS.navigation.footer), { items: footerLinks }, { merge: true });
+
+    await batch.commit();
+    revalidatePath('/', 'layout');
+}
+
 
 export async function getPageBySlug(slug: string): Promise<any | null> {
     const db = await getDb();
@@ -91,15 +117,19 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
 
 type GetHomepageResult = 
   | { ok: true; data: HomePage; issues?: undefined }
-  | { ok: false; error: string; data: HomePage; issues: ZodIssue[] };
+  | { ok: false; error: string; data: HomePage; issues: z.ZodIssue[] };
 
 
 export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomepageResult> {
   noStore();
   try {
     const raw = await getPageBySlug('home');
-    const normalized = normalizeHome(raw ?? {});
     
+    if (!raw) {
+        return { ok: true, data: defaultHomepage };
+    }
+
+    const normalized = normalizeHome(raw);
     const parsed = HomepageSchema.safeParse(normalized);
     
     if (parsed.success) {
@@ -125,11 +155,15 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
 // backward compatibility alias
 export const getHomePage = getHomepage;
 
-export async function updatePage(slug: string, data: any) {
+export async function updateHomepage(data: HomePage) {
     const db = await getDb();
-    await db.doc(CMS_PATHS.page(slug)).set(data, { merge: true });
-    return data;
+    const normalized = normalizeHome(data);
+    const parsed = HomepageSchema.parse(normalized);
+    await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
+    revalidatePath('/');
+    return parsed;
 }
+
 
 export async function getCasesServer() {
   noStore();
@@ -139,7 +173,7 @@ export async function getCasesServer() {
   return z.array(CaseSchema.partial()).parse(rows);
 }
 
-export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
+export async function getCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
     const data = await getCasesServer();
     return data as CaseDoc[];
 }
@@ -168,6 +202,31 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     }
     return parsed.data as CaseDoc;
 }
+
+export async function getCaseById(id: string): Promise<CaseDoc> {
+  const db = await getDb();
+  const snap = await db.collection('cases').doc(id).get();
+
+  if (!snap.exists) {
+    throw new Error(`Case not found (id=${id})`);
+  }
+
+  const data = { id: snap.id, ...(snap.data() as any) };
+  const parsed = CaseSchema.parse(data);
+  return parsed;
+}
+
+export async function createCase(data: Partial<CaseDoc>) {
+    const { id, ...payload } = data;
+    const db = await getDb();
+    const ref = await db.collection(CMS_PATHS.cases).add({
+        ...payload,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    });
+    return { id: ref.id, ...payload };
+}
+
 
 export async function updateCase(id: string, data: Partial<CaseDoc>) {
     const db = await getDb();
@@ -222,51 +281,6 @@ export async function getContactPage(): Promise<any> {
     return ContactPageSchema.parse(raw || {});
 }
 
-export async function saveNavigation(data: z.infer<typeof NavigationSchema>) {
-    const db = await getDb();
-    await db.doc(CMS_PATHS.navigation.main).set({ items: data.header }, { merge: true });
-    const footerLinks = data.footer.columns.flatMap(c => c.links);
-    await db.doc(CMS_PATHS.navigation.footer).set({ items: footerLinks }, { merge: true });
-}
-
-export async function updateHomepage(data: HomePage) {
-    const db = await getDb();
-    const normalized = normalizeHome(data);
-    const parsed = HomepageSchema.parse(normalized);
-    await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
-    revalidatePath('/');
-    return parsed;
-}
-
-export async function getCases() {
-    return getCasesServer();
-}
-
-/** Return one case by Firestore doc ID. Throws if not found or invalid. */
-export async function getCaseById(id: string): Promise<CaseDoc> {
-  const db = await getDb();
-  const snap = await db.collection('cases').doc(id).get();
-
-  if (!snap.exists) {
-    throw new Error(`Case not found (id=${id})`);
-  }
-
-  const data = { id: snap.id, ...(snap.data() as any) };
-  const parsed = CaseSchema.parse(data);
-  return parsed;
-}
-
-export async function createCase(data: Partial<CaseDoc>) {
-    const { id, ...payload } = data;
-    const db = await getDb();
-    const ref = await db.collection(CMS_PATHS.cases).add({
-        ...payload,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    });
-    return { id: ref.id, ...payload };
-}
-
 export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   noStore();
   if (path === 'health') {
@@ -298,7 +312,7 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
     if (slug) {
         return getCaseBySlug(slug);
     }
-    return listCases(searchParams);
+    return getCases(searchParams);
   }
    if (path === 'about') {
     return getAboutPage();
