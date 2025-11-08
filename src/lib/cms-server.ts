@@ -314,7 +314,7 @@ export async function getCaseById(id: string): Promise<CaseDoc> {
   return parsed;
 }
 
-export async function createCase(data: CaseDoc) {
+export async function createCase(data: Partial<CaseDoc>) {
     const { id, ...payload } = data;
     const db = await getDb();
     const ref = await db.collection(CMS_PATHS.cases).add({
