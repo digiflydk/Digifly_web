@@ -172,18 +172,6 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     return parsed.data as CaseDoc;
 }
 
-export async function createCase(data: z.infer<typeof CaseSchema>): Promise<CaseDoc> {
-  const { id, ...payload } = data; // remove id if present
-  const db = await getDb();
-  const ref = await db.collection(CMS_PATHS.cases).add({
-    ...payload,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  });
-  return { id: ref.id, ...payload } as CaseDoc;
-}
-
-
 export async function updateCaseById(id: string, data: Partial<CaseDoc>) {
     const db = await getDb();
     await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
@@ -326,13 +314,16 @@ export async function getCaseById(id: string): Promise<CaseDoc> {
   return parsed;
 }
 
-export async function createCaseById(data: CaseDoc) {
+export async function createCase(data: CaseDoc) {
     const { id, ...payload } = data;
     const db = await getDb();
-    const ref = await db.collection(CMS_PATHS.cases).add(payload);
+    const ref = await db.collection(CMS_PATHS.cases).add({
+        ...payload,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    });
     return { id: ref.id, ...payload };
 }
-
 
 export async function deleteCase(id: string) {
     return deleteCaseServer(id);

@@ -3,6 +3,7 @@
 
 import { NextResponse, NextRequest } from "next/server";
 import { getHomepage, updateHomepage } from "@/lib/cms-server";
+import { ZodError } from 'zod';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,7 +27,7 @@ export async function PUT(req: NextRequest) {
     const updated = await updateHomepage(body);
     return json({ ok: true, data: updated });
   } catch (e: any) {
-    if (e instanceof Error && 'issues' in e) { // ZodError
+    if (e instanceof ZodError) {
       return json({ ok: false, error: 'VALIDATION_ERROR', issues: e.issues }, 422);
     }
     return json({ ok: false, error: "Failed to update homepage" }, { status: 500 });
