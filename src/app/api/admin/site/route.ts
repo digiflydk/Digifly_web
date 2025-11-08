@@ -1,8 +1,7 @@
 
 export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAdminApp } from '@/lib/firebase-admin';
+import { getDb } from '@/lib/firebase-admin';
 import { SiteSettingsSchema } from '@/lib/schemas';
 
 const COL = 'site';
@@ -17,7 +16,7 @@ function json(payload: any, status = 200) {
 
 export async function GET() {
   try {
-    const db = getFirestore(getAdminApp());
+    const db = await getDb();
     const snap = await db.collection(COL).doc(DOC).get();
     const data = snap.exists ? snap.data() : {};
     const site = SiteSettingsSchema.parse(data);
@@ -35,7 +34,7 @@ export async function POST(req: Request) {
 
     const parsedData = SiteSettingsSchema.parse(body);
 
-    const db = getFirestore(getAdminApp());
+    const db = await getDb();
     await db.collection(COL).doc(DOC).set(parsedData, { merge: true });
     
     return json({ ok: true, data: parsedData });

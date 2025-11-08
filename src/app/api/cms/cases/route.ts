@@ -8,7 +8,7 @@ type Err = { ok: false; error: string; issues?: any[] };
 export async function GET() {
   try {
     const items = await getCases();
-    return NextResponse.json<Ok<any>>({ ok: true, data: items });
+    return NextResponse.json<Ok<any[]>>({ ok: true, data: items });
   } catch (e: any) {
     return NextResponse.json<Err>(
       { ok: false, error: e?.message || "Failed to list cases" },

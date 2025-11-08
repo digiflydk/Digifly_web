@@ -5,7 +5,7 @@ import { z } from "zod";
 
 type Ctx = { params: { slug: string } };
 
-const col = () => getDb().collection("pages");
+const col = async () => (await getDb()).collection("pages");
 
 const schemaMap: Record<string, z.ZodSchema<any>> = {
     'home': HomepageSchema,
@@ -16,7 +16,7 @@ const schemaMap: Record<string, z.ZodSchema<any>> = {
 };
 
 export async function GET(_: Request, { params }: Ctx) {
-  const ref = col().doc(params.slug);
+  const ref = (await col()).doc(params.slug);
   const snap = await ref.get();
   if (!snap.exists) return NextResponse.json({ ok: true, data: null });
   const data = snap.data();
@@ -38,9 +38,9 @@ export async function PUT(req: Request, { params }: Ctx) {
   const schema = schemaMap[params.slug];
   if (schema) {
       const parsed = schema.parse(body); // Throws on error
-      await col().doc(params.slug).set(parsed, { merge: true });
+      await (await col()).doc(params.slug).set(parsed, { merge: true });
   } else {
-      await col().doc(params.slug).set(body, { merge: true });
+      await (await col()).doc(params.slug).set(body, { merge: true });
   }
   return NextResponse.json({ ok: true });
 }

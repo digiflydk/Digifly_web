@@ -1,64 +1,53 @@
-import { getApps, initializeApp, cert, App } from 'firebase-admin/app';
-import { getFirestore, Firestore } from 'firebase-admin/firestore';
+import admin from "firebase-admin";
 
-function parseServiceAccount(): Record<string, any> | null {
+let app: admin.app.App | null = null;
+
+function loadServiceAccount(): admin.ServiceAccount {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if (!raw) {
-    console.warn('[firebase-admin] FIREBASE_SERVICE_ACCOUNT_JSON is not set.');
-    return null;
-  }
+  if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not set");
 
-  try {
-    // Try parsing as plain JSON first
-    if (raw.trim().startsWith('{')) {
-      return JSON.parse(raw);
+  // Accept base64 or plain JSON
+  const jsonStr = (() => {
+    try {
+      return Buffer.from(raw, "base64").toString("utf8");
+    } catch {
+      return raw;
     }
-    // If not plain JSON, assume it's base64 encoded
-    const decoded = Buffer.from(raw, 'base64').toString('utf8');
-    return JSON.parse(decoded);
-  } catch (e: any) {
-    console.warn(`[firebase-admin] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Error: ${e.message}. It might not be a valid JSON or base64 string.`);
-    return null;
+  })();
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch {
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is invalid JSON");
   }
+
+  if (parsed.private_key && typeof parsed.private_key === "string") {
+    parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
+  }
+
+  for (const key of ["project_id", "client_email", "private_key"]) {
+    if (!parsed[key]) throw new Error(`Service account missing field: ${key}`);
+  }
+
+  return {
+    projectId: parsed.project_id,
+    clientEmail: parsed.client_email,
+    privateKey: parsed.private_key,
+  };
 }
 
-function resolveProjectId(sa?: Record<string, any> | null): string | undefined {
-  return (
-    sa?.project_id ||
-    process.env.FIREBASE_PROJECT_ID ||
-    process.env.GOOGLE_CLOUD_PROJECT ||
-    process.env.GCLOUD_PROJECT
-  );
+export function getAdminApp() {
+  if (app) return app;
+  const creds = loadServiceAccount();
+  if (!admin.apps.length) {
+    app = admin.initializeApp({ credential: admin.credential.cert(creds) });
+  } else {
+    app = admin.app();
+  }
+  return app!;
 }
 
-let cachedApp: App | null = null;
-
-export function getAdminApp(): App {
-  if (cachedApp) return cachedApp;
-
-  const serviceAccount = parseServiceAccount();
-  const projectId = resolveProjectId(serviceAccount);
-
-  if (getApps().length) {
-    cachedApp = getApps()[0]!;
-    return cachedApp;
-  }
-  
-  if (!serviceAccount) {
-    // This will cause an error, but it's better to fail early
-    // if the service account isn't configured in a non-GCP env.
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not set or invalid. Cannot initialize Firebase Admin SDK.");
-  }
-  
-  cachedApp = initializeApp({
-    credential: cert(serviceAccount as any),
-    projectId,
-  });
-
-  return cachedApp;
-}
-
-export function getDb(): Firestore {
-  // Don’t run at import time; call only inside request handlers.
-  return getFirestore(getAdminApp());
+export async function getDb() {
+  return getAdminApp().firestore();
 }

@@ -1,5 +1,3 @@
-
-
 'use server';
 import { z, type ZodIssue } from 'zod';
 import {
@@ -32,21 +30,9 @@ import { CMS_PATHS } from './constants';
 const SITE_TAG = "site-settings";
 
 
-function buildHomeFallback(raw: any): HomePage {
-  return HomepageSchema.parse({
-    ...defaultHomepage,
-    ...(raw || {}),
-    hero: { ...defaultHomepage.hero, ...(raw?.hero || {}) },
-    intro: { ...defaultHomepage.intro, ...(raw?.intro || {}) },
-    cta: { ...defaultHomepage.cta, ...(raw?.cta || {}) },
-    seo: { ...defaultHomepage.seo, ...(raw?.seo || {}) },
-  });
-}
-
-
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
   try {
-    const db = getDb();
+    const db = await getDb();
     const settingsSnap = await db.doc(CMS_PATHS.site).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
@@ -86,7 +72,7 @@ export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key
 
 export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const parsedData = SiteSettingsSchema.parse(data);
-  const db = getDb();
+  const db = await getDb();
   await db.doc(CMS_PATHS.site).set(parsedData, { merge: true });
   revalidatePath('/', 'layout');
   return parsedData;
@@ -94,7 +80,7 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
 
 export async function getNavigation(): Promise<Navigation> {
     try {
-        const db = getDb();
+        const db = await getDb();
         const mainSnap = await db.doc(CMS_PATHS.navigation.main).get();
         const footerSnap = await db.doc(CMS_PATHS.navigation.footer).get();
         
@@ -117,7 +103,7 @@ export async function getNavigation(): Promise<Navigation> {
 
 export async function getPageBySlug(slug: string): Promise<any | null> {
     try {
-        const db = getDb();
+        const db = await getDb();
         const snap = await db.doc(CMS_PATHS.page(slug)).get();
         if (!snap.exists) {
             const fallbacks: Record<string, any> = {
@@ -164,7 +150,7 @@ export async function getHomePage(options: { debug?: boolean } = {}): Promise<Ge
 
 
 export async function updatePage(slug: string, data: any) {
-    const db = getDb();
+    const db = await getDb();
     // A generic page update should be handled with care, or use specific schemas
     await db.doc(CMS_PATHS.page(slug)).set(data, { merge: true });
     return data;
@@ -172,7 +158,7 @@ export async function updatePage(slug: string, data: any) {
 
 export async function getCasesServer() {
   noStore();
-  const db = getDb();
+  const db = await getDb();
   const snap = await db.collection(CMS_PATHS.cases).get();
   const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   return z.array(CaseSchema.partial()).parse(rows);
@@ -185,7 +171,8 @@ export async function listCases(searchParams?: URLSearchParams): Promise<CaseDoc
 
 export async function listCaseSlugs(): Promise<string[]> {
     try {
-        const snap = await getDb().collection(CMS_PATHS.cases).select('slug').get();
+        const db = await getDb();
+        const snap = await db.collection(CMS_PATHS.cases).select('slug').get();
         if (snap.empty) {
             return defaultCases.map(c => c.slug);
         }
@@ -197,7 +184,8 @@ export async function listCaseSlugs(): Promise<string[]> {
 
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     try {
-        const snap = await getDb().collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
+        const db = await getDb();
+        const snap = await db.collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
         if (snap.empty) {
              const fallback = defaultCases.find(c => c.slug === slug);
             return fallback ? (CaseSchema.parse(fallback) as CaseDoc) : null;
@@ -213,18 +201,20 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
 
 export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
     const { slug: newSlug, ...rest } = data; // remove slug
-    const querySnap = await getDb().collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
+    const db = await getDb();
+    const querySnap = await db.collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
     if(querySnap.empty){
         throw new Error(`Case with slug ${slug} not found`);
     }
     const docId = querySnap.docs[0].id;
-    await getDb().collection(CMS_PATHS.cases).doc(docId).set({...rest, slug: newSlug }, { merge: true });
+    await db.collection(CMS_PATHS.cases).doc(docId).set({...rest, slug: newSlug }, { merge: true });
     return { id: docId, slug: newSlug, ...rest };
 }
 
 export async function deleteCaseServer(id: string) {
     noStore();
-    const ref = getDb().collection(CMS_PATHS.cases).doc(id);
+    const db = await getDb();
+    const ref = db.collection(CMS_PATHS.cases).doc(id);
     const s = await ref.get();
     if (!s.exists) {
         return { ok: false, status: 404, error: "Not Found" };
@@ -236,7 +226,8 @@ export async function deleteCaseServer(id: string) {
 
 export async function getCaseCount(): Promise<{ count: number }> {
     try {
-        const snap = await getDb().collection(CMS_PATHS.cases).count().get();
+        const db = await getDb();
+        const snap = await db.collection(CMS_PATHS.cases).count().get();
         return { count: snap.data().count };
     } catch {
         return { count: defaultCases.length };
@@ -244,7 +235,8 @@ export async function getCaseCount(): Promise<{ count: number }> {
 }
 export async function getPageCount(): Promise<{ count: number }> {
     try {
-        const snap = await getDb().collection('pages').count().get();
+        const db = await getDb();
+        const snap = await db.collection('pages').count().get();
         return { count: snap.data().count };
     } catch {
         return { count: 5 }; // home, about, services, cases-index, contact
@@ -275,14 +267,14 @@ export async function getContactPage(): Promise<any> {
 }
 
 export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
-    const db = getDb();
+    const db = await getDb();
     await db.doc(CMS_PATHS.navigation.main).set({ items: data.header }, { merge: true });
     const footerLinks = data.footer.columns.flatMap(c => c.links);
     await db.doc(CMS_PATHS.navigation.footer).set({ items: footerLinks }, { merge: true });
 }
 
 export async function updateHomepage(data: HomePage) {
-    const db = getDb();
+    const db = await getDb();
     const normalized = normalizeHome(data);
     const parsed = HomepageSchema.parse(normalized);
     await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });

@@ -2,15 +2,15 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
 import { 
-  homePage, 
-  navigation, 
-  designSettings, 
-  aboutPage, 
-  servicesPage, 
-  contactPage, 
+  navigation,
+  homePage,
+  aboutPage,
+  servicesPage,
+  contactPage,
   casesIndexPage, 
   cases 
 } from '@/lib/cms-data';
+import { SiteSettingsSchema } from '@/lib/schemas';
 
 // This function is idempotent. It will create or overwrite documents.
 async function upsert(db: any, path: string, data: any, merge = true) {
@@ -30,11 +30,26 @@ async function run() {
     return;
   }
 
-  const db = getFirestore();
-
-  // Site Settings
-  await upsert(db, 'site/settings', designSettings);
+  const db = getFirestore(getAdminApp());
   
+  // Site Settings (Canonical Path)
+  const siteSettingsData = {
+    siteTitle: "Digifly",
+    social: {
+      tagline: "Strategy, Software & Automation with AI."
+    },
+    brand: {
+      name: "Digifly",
+      logo: { src: "https://i.postimg.cc/yxjNkX5M/digifly-logo.png", alt: "Digifly Logo" },
+      favicon: { src: "https://i.postimg.cc/VvP3vfcP/favicon.png" }
+    },
+    defaultSeo: {
+      description: "We build intelligent digital solutions."
+    }
+  };
+  const parsedSiteSettings = SiteSettingsSchema.parse(siteSettingsData);
+  await upsert(db, 'site/settings', parsedSiteSettings);
+
   // Navigation
   await upsert(db, 'navigation/main', { items: navigation.header });
   await upsert(db, 'navigation/footer', { items: navigation.footer.columns.flatMap(c => c.links) });
