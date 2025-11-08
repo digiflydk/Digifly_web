@@ -229,16 +229,10 @@ export async function createCase(data: z.infer<typeof CaseSchema>): Promise<Case
 }
 
 
-export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
-    const { slug: newSlug, ...rest } = data; // remove slug
+export async function updateCaseById(id: string, data: Partial<CaseDoc>) {
     const db = await getDb();
-    const querySnap = await db.collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
-    if(querySnap.empty){
-        throw new Error(`Case with slug ${slug} not found`);
-    }
-    const docId = querySnap.docs[0].id;
-    await db.collection(CMS_PATHS.cases).doc(docId).set({...rest, slug: newSlug }, { merge: true });
-    return { id: docId, slug: newSlug, ...rest };
+    await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
+    return { id, ...data };
 }
 
 export async function deleteCaseServer(id: string) {
@@ -373,6 +367,20 @@ export async function getCases() {
     return getCasesServer();
 }
 
+/** Return one case by Firestore doc ID. Throws if not found or invalid. */
+export async function getCaseById(id: string): Promise<CaseDoc> {
+  const db = await getDb();
+  const snap = await db.collection('cases').doc(id).get();
+
+  if (!snap.exists) {
+    throw new Error(`Case not found (id=${id})`);
+  }
+
+  const data = { id: snap.id, ...(snap.data() as any) };
+  const parsed = CaseSchema.parse(data);
+  return parsed;
+}
+
 export async function createCaseById(data: CaseDoc) {
     const { id, ...payload } = data;
     const db = await getDb();
@@ -380,12 +388,11 @@ export async function createCaseById(data: CaseDoc) {
     return { id: ref.id, ...payload };
 }
 
-export async function updateCaseById(id: string, data: Partial<CaseDoc>) {
-    const db = await getDb();
-    await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
-    return { id, ...data };
-}
 
 export async function deleteCase(id: string) {
     return deleteCaseServer(id);
+}
+
+export async function updateCase(id: string, data: Partial<CaseDoc>) {
+    return updateCaseById(id, data);
 }
