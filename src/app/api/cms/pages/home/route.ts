@@ -1,7 +1,7 @@
 
 "use server";
 
-import { getHomepage, updateHomepage } from "@/lib/cms-server";
+import { getHomePage, updateHomepage } from "@/lib/cms-api";
 import { NextResponse, NextRequest } from "next/server";
 import { ZodError, ZodIssue } from "zod";
 
@@ -13,7 +13,7 @@ const json = (data: any, status = 200) =>
 
 export async function GET(req: NextRequest) {
   try {
-    const data = await getHomepage({ debug: req.nextUrl.searchParams.get('debug') === '1' });
+    const data = await getHomePage({ debug: req.nextUrl.searchParams.get('debug') === '1' });
     return json(data);
   } catch (error: any) {
     console.error(`[GET /api/cms/pages/home]`, error);
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function PUT(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const updated = await updateHomepage(body);
@@ -33,5 +33,3 @@ export async function PUT(req: NextRequest) {
     return json({ ok: false, error: "Failed to update homepage" }, { status: 500 });
   }
 }
-
-    

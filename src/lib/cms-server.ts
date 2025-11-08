@@ -94,7 +94,7 @@ type GetHomePageResult =
   | { ok: false; error: string; data: HomePage; issues: ZodIssue[] };
 
 
-export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
+export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
   noStore();
   try {
     const raw = await getPageBySlug('home');
@@ -125,7 +125,7 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
 }
 
 // Backward-compat alias (no breaking imports elsewhere)
-export const getHomePage = getHomepage;
+export const getHomepage = getHomePage;
 
 
 export async function updatePage(slug: string, data: any) {
@@ -241,61 +241,6 @@ export async function updateHomepage(data: HomePage) {
     return parsed;
 }
 
-export async function getCmsData(path: string, searchParams?: URLSearchParams) {
-  noStore();
-  if (path === 'health') {
-    return { ok: true, ts: Date.now() };
-  }
-  
-  if (path === 'pages/home') {
-    const debug = searchParams?.get('debug') === '1';
-    const result = await getHomepage({ debug });
-    // API should return consistent structure
-    return result;
-  }
-  
-  if (path.startsWith('pages/')) {
-    const slug = path.replace('pages/', '');
-    return getPageBySlug(slug);
-  }
-
-  if (path === 'navigation') {
-    return getNavigation();
-  }
-  if (path === 'home') {
-    const result = await getHomepage();
-    if (!result.ok) throw new Error(result.error);
-    return result.data;
-  }
-  if (path === 'cases') {
-    const slug = searchParams?.get('slug');
-    if (slug) {
-        return getCaseBySlug(slug);
-    }
-    return listCases(searchParams);
-  }
-   if (path === 'about') {
-    return getAboutPage();
-  }
-    if (path === 'services') {
-    return getServicesPage();
-  }
-    if (path === 'cases-index') {
-    return getCasesIndexPage();
-  }
-    if (path === 'contact') {
-    return getContactPage();
-  }
-  return null;
-}
-function buildHomeFallback(normalized: Partial<HomePage>): HomePage {
-  const parsed = HomepageSchema.safeParse(normalized);
-  if (parsed.success) {
-    return parsed.data;
-  }
-  return defaultHomepage;
-}
-
 export async function getCases() {
     return getCasesServer();
 }
@@ -334,4 +279,57 @@ export async function updateCase(id: string, data: Partial<CaseDoc>) {
     return updateCaseById(id, data);
 }
 
-    
+export async function getCmsData(path: string, searchParams?: URLSearchParams) {
+  noStore();
+  if (path === 'health') {
+    return { ok: true, ts: Date.now() };
+  }
+  
+  if (path === 'pages/home') {
+    const debug = searchParams?.get('debug') === '1';
+    const result = await getHomePage({ debug });
+    // API should return consistent structure
+    return result;
+  }
+  
+  if (path.startsWith('pages/')) {
+    const slug = path.replace('pages/', '');
+    return getPageBySlug(slug);
+  }
+
+  if (path === 'navigation') {
+    return getNavigation();
+  }
+  if (path === 'home') {
+    const result = await getHomePage();
+    if (!result.ok) throw new Error(result.error);
+    return result.data;
+  }
+  if (path === 'cases') {
+    const slug = searchParams?.get('slug');
+    if (slug) {
+        return getCaseBySlug(slug);
+    }
+    return listCases(searchParams);
+  }
+   if (path === 'about') {
+    return getAboutPage();
+  }
+    if (path === 'services') {
+    return getServicesPage();
+  }
+    if (path === 'cases-index') {
+    return getCasesIndexPage();
+  }
+    if (path === 'contact') {
+    return getContactPage();
+  }
+  return null;
+}
+function buildHomeFallback(normalized: Partial<HomePage>): HomePage {
+  const parsed = HomepageSchema.safeParse(normalized);
+  if (parsed.success) {
+    return parsed.data;
+  }
+  return defaultHomepage;
+}
