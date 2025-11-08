@@ -33,3 +33,5 @@ export async function PUT(req: NextRequest) {
     return json({ ok: false, error: "Failed to update homepage" }, { status: 500 });
   }
 }
+
+    

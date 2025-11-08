@@ -325,6 +325,7 @@ export async function createCase(data: Partial<CaseDoc>) {
     return { id: ref.id, ...payload };
 }
 
+
 export async function deleteCase(id: string) {
     return deleteCaseServer(id);
 }
@@ -332,3 +333,5 @@ export async function deleteCase(id: string) {
 export async function updateCase(id: string, data: Partial<CaseDoc>) {
     return updateCaseById(id, data);
 }
+
+    
