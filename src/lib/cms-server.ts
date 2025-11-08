@@ -49,7 +49,6 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
     return parsed.data;
 }
 
-
 export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key'], {
   tags: [SITE_TAG],
 });
@@ -70,7 +69,6 @@ export async function getNavigation(): Promise<Navigation> {
     const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
     const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
 
-    // Gracefully handle missing docs by returning empty structure
     if (!mainSnap.exists && !footerSnap.exists) {
         return { header: [], footer: { columns: [] }, updatedAt: Date.now() };
     }
@@ -97,7 +95,6 @@ export async function saveNavigation(data: Navigation): Promise<void> {
     
     batch.set(db.doc(CMS_PATHS.navigation.main), { items: parsedData.header }, { merge: true });
     
-    // Assuming single-column footer for now as per schema
     const footerLinks = parsedData.footer.columns[0]?.links ?? [];
     batch.set(db.doc(CMS_PATHS.navigation.footer), { items: footerLinks }, { merge: true });
 
@@ -151,9 +148,6 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
     return { ok: false, error: err.message || 'Failed to fetch from Firestore.', data: defaultHomepage, issues: [] };
   }
 }
-
-// backward compatibility alias
-export const getHomePage = getHomepage;
 
 export async function updateHomepage(data: HomePage) {
     const db = await getDb();
@@ -224,6 +218,7 @@ export async function createCase(data: Partial<CaseDoc>) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     });
+    revalidatePath('/cases');
     return { id: ref.id, ...payload };
 }
 
@@ -231,10 +226,12 @@ export async function createCase(data: Partial<CaseDoc>) {
 export async function updateCase(id: string, data: Partial<CaseDoc>) {
     const db = await getDb();
     await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
+    revalidatePath(`/cases/${id}`);
+    revalidatePath('/cases');
     return { id, ...data };
 }
 
-export async function deleteCase(id: string) {
+export async function deleteCaseServer(id: string) {
     noStore();
     const db = await getDb();
     const ref = db.collection(CMS_PATHS.cases).doc(id);
@@ -243,6 +240,7 @@ export async function deleteCase(id: string) {
         return { ok: false, status: 404, error: "Not Found" };
     }
     await ref.delete();
+    revalidatePath('/cases');
     return { ok: true, status: 200 };
 }
 
@@ -328,3 +326,5 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
+
+    

@@ -1,7 +1,7 @@
 
 "use server";
 
-import { getHomepage, updateHomepage } from "@/lib/cms-api";
+import { getHomepage, updateHomepage } from "@/lib/cms-server";
 import { NextResponse, NextRequest } from "next/server";
 import { ZodError } from "zod";
 
@@ -33,3 +33,5 @@ export async function POST(req: NextRequest) {
     return json({ ok: false, error: "Failed to update homepage" }, { status: 500 });
   }
 }
+
+    
