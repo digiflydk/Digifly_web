@@ -200,14 +200,14 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
         const snap = await getDb().collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
         if (snap.empty) {
              const fallback = defaultCases.find(c => c.slug === slug);
-            return (fallback as CaseDoc) || null;
+            return fallback ? (CaseSchema.parse(fallback) as CaseDoc) : null;
         }
         const doc = snap.docs[0];
-        const rawData = { id: doc.id, slug, ...doc.data() };
-        return rawData as CaseDoc;
+        const rawData = { id: doc.id, ...doc.data() };
+        return CaseSchema.parse(rawData) as CaseDoc;
     } catch (e) {
         const fallback = defaultCases.find(c => c.slug === slug);
-        return (fallback as CaseDoc) || null;
+        return fallback ? (CaseSchema.parse(fallback) as CaseDoc) : null;
     }
 }
 
