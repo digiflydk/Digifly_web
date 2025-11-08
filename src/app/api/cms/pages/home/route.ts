@@ -1,8 +1,7 @@
 
-
 import { getHomepage, updateHomepage } from "@/lib/cms-server";
 import { NextResponse, NextRequest } from "next/server";
-import { ZodError, ZodIssue } from "zod";
+import { ZodError } from "zod";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,13 +10,11 @@ const json = (data: any, status = 200) =>
   NextResponse.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const debug = searchParams.get('debug') === '1';
-  
   try {
+    const { searchParams } = new URL(req.url);
+    const debug = searchParams.get('debug') === '1';
     const result = await getHomepage({ debug });
     return json(result);
-
   } catch (error: any) {
     console.error(`[GET /api/cms/pages/home]`, error);
     return json({ ok: false, error: 'SERVER_ERROR', detail: error.message }, 500);
