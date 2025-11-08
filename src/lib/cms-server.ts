@@ -123,6 +123,7 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
     return { ok: false, error: err.message || 'Failed to fetch from Firestore.' };
   }
 }
+// Backward-compat alias (no breaking imports elsewhere)
 export const getHomePage = getHomepage;
 
 

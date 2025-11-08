@@ -12,11 +12,11 @@ const json = (data: any, status = 200) =>
 
 export async function GET(req: NextRequest) {
   try {
-    const result = await getHomepage({ debug: req.nextUrl.searchParams.get('debug') === '1' });
-    return json(result);
+    const data = await getHomepage({ debug: req.nextUrl.searchParams.get('debug') === '1' });
+    return json(data);
   } catch (error: any) {
     console.error(`[GET /api/cms/pages/home]`, error);
-    return json({ ok: false, error: 'SERVER_ERROR', detail: error.message }, 500);
+    return json({ ok: false, error: "Failed to load homepage" }, { status: 500 });
   }
 }
 
@@ -29,6 +29,6 @@ export async function PUT(req: NextRequest) {
     if (e instanceof Error && 'issues' in e) { // ZodError
       return json({ ok: false, error: 'VALIDATION_ERROR', issues: e.issues }, 422);
     }
-    return json({ ok: false, error: 'SERVER_ERROR', detail: e.message }, 500);
+    return json({ ok: false, error: "Failed to update homepage" }, { status: 500 });
   }
 }
