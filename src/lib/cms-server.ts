@@ -128,7 +128,7 @@ type GetHomePageResult =
   | { ok: false; data: HomePage; issues: ZodIssue[] };
 
 
-export async function getHomePage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
+export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomePageResult> {
   noStore();
   const raw = await getPageBySlug('home');
   const normalized = normalizeHome(raw ?? {});
@@ -217,6 +217,18 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     }
 }
 
+export async function createCase(data: z.infer<typeof CaseSchema>): Promise<CaseDoc> {
+  const { id, ...payload } = data; // remove id if present
+  const db = await getDb();
+  const ref = await db.collection(CMS_PATHS.cases).add({
+    ...payload,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+  return { id: ref.id, ...payload } as CaseDoc;
+}
+
+
 export async function updateCase(slug: string, data: z.infer<typeof CaseSchema>) {
     const { slug: newSlug, ...rest } = data; // remove slug
     const db = await getDb();
@@ -284,7 +296,7 @@ export async function getContactPage(): Promise<any> {
     return ContactPageSchema.parse(raw || {});
 }
 
-export async function updateNavigation(data: z.infer<typeof NavigationSchema>) {
+export async function saveNavigation(data: z.infer<typeof NavigationSchema>) {
     const db = await getDb();
     await db.doc(CMS_PATHS.navigation.main).set({ items: data.header }, { merge: true });
     const footerLinks = data.footer.columns.flatMap(c => c.links);
@@ -308,7 +320,7 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   
   if (path === 'pages/home') {
     const debug = searchParams?.get('debug') === '1';
-    const result = await getHomePage({ debug });
+    const result = await getHomepage({ debug });
     // In API route, always return a JSON object, not just the data part
     return { ...result, data: result.ok ? result.data : result.data };
   }
@@ -355,4 +367,25 @@ function buildHomeFallback(normalized: Partial<HomePage>): HomePage {
   return defaultHomepage;
 }
 
-    
+
+// These functions are newly exported or renamed for cms-api
+export async function getCases() {
+    return getCasesServer();
+}
+
+export async function createCaseById(data: CaseDoc) {
+    const { id, ...payload } = data;
+    const db = await getDb();
+    const ref = await db.collection(CMS_PATHS.cases).add(payload);
+    return { id: ref.id, ...payload };
+}
+
+export async function updateCaseById(id: string, data: Partial<CaseDoc>) {
+    const db = await getDb();
+    await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
+    return { id, ...data };
+}
+
+export async function deleteCase(id: string) {
+    return deleteCaseServer(id);
+}

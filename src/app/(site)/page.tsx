@@ -1,5 +1,5 @@
 
-import { getHomePage, getSiteSettings } from '@/lib/cms-server';
+import { getHomepage, getSiteSettings } from '@/lib/cms-server';
 import Hero from '@/components/sections/hero';
 import ServicesOverview from '@/components/sections/services-overview';
 import CasesGrid from '@/components/sections/cases-grid';
@@ -14,7 +14,7 @@ import { HomePage } from '@/lib/types';
 
 
 export async function generateMetadata(): Promise<Metadata> {
-    const result = await getHomePage();
+    const result = await getHomepage();
     const site = await getSiteSettings();
 
     // Use sanitized data even if validation fails, it's safer
@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 
 export default async function HomePage() {
-  const result = await getHomePage();
+  const result = await getHomepage();
   const page = result.data as HomePage;
 
   // Final check to ensure we always have a valid page object to render
