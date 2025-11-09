@@ -1,123 +1,151 @@
 
 "use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { ENDPOINTS, Endpoint } from '../endpoints';
-import { ResultPanel } from './ResultPanel';
-import { Loader2 } from 'lucide-react';
+import React, { useState } from "react";
 
-type Result = {
-  status: number;
-  ok: boolean;
-  duration: number;
-  body: any;
-  isJson: boolean;
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+
+// Template paths we support in the explorer (unions keep nice IntelliSense)
+type TemplatePath =
+  | "/api/cms/cases"
+  | "/api/cms/site"
+  | "/api/cms/navigation/main"
+  | "/api/cms/navigation/footer"
+  | "/api/cms/pages/{slug}"
+  | "/api/cms/cases/{slug}";
+
+export type EndpointDef = {
+  name: string;
+  method: HttpMethod;
+  path: TemplatePath;      // template with {param}
+  params: string[];        // e.g. ["slug"]
+  requiresBody?: boolean;  // true for POST/PUT bodies
 };
 
-export function EndpointRunner() {
-  const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint>(ENDPOINTS[0]);
-  const [result, setResult] = useState<Result | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const form = useForm();
+type Props = {
+  selectedEndpoint: EndpointDef;
+  onResult?: (result: { ok: boolean; status: number; ms: number; body: any }) => void;
+};
 
-  const handleEndpointChange = (value: string) => {
-    const endpoint = ENDPOINTS.find(ep => ep.path === value);
-    if (endpoint) {
-      setSelectedEndpoint(endpoint);
-      form.reset();
-    }
+export default function EndpointRunner({ selectedEndpoint, onResult }: Props) {
+  const [paramValues, setParamValues] = useState<Record<string, string>>({});
+  const [bodyJson, setBodyJson] = useState<string>("{}");
+  const [loading, setLoading] = useState(false);
+  const [lastResponse, setLastResponse] = useState<{
+    ok: boolean;
+    status: number;
+    ms: number;
+    body: any;
+  } | null>(null);
+
+  const handleParamChange = (name: string, value: string) => {
+    setParamValues((prev) => ({ ...prev, [name]: value }));
   };
-  
-  const onSubmit = async (data: Record<string, string>) => {
-    setIsLoading(true);
-    setResult(null);
 
-    let path = selectedEndpoint.path;
-    selectedEndpoint.params.forEach(param => {
-      path = path.replace(`{${param}}`, data[param] || '');
-    });
-
-    const start = performance.now();
+  const run = async () => {
+    setLoading(true);
     try {
-        const res = await fetch(path, {
-            method: selectedEndpoint.method,
-            headers: { 'Content-Type': 'application/json' },
-            body: selectedEndpoint.method === 'PUT' ? data.body : undefined,
-        });
+      // Keep template as union, but compute a runtime string for the actual request path
+      let resolvedPath: string = selectedEndpoint.path as string;
+      for (const param of selectedEndpoint.params) {
+        const v = paramValues[param] ?? "";
+        resolvedPath = resolvedPath.replace(`{${param}}`, v);
+      }
 
-        const duration = performance.now() - start;
-        const text = await res.text();
-        let body: any;
-        let isJson = false;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const init: RequestInit = { method: selectedEndpoint.method, headers };
 
-        try {
-            body = JSON.parse(text);
-            isJson = true;
-        } catch {
-            body = text;
-        }
+      if (selectedEndpoint.requiresBody && (selectedEndpoint.method === "POST" || selectedEndpoint.method === "PUT")) {
+        // try to parse and re-serialize to keep it valid JSON
+        const parsedBody = bodyJson?.trim() ? JSON.parse(bodyJson) : {};
+        init.body = JSON.stringify(parsedBody);
+      }
 
-        setResult({ status: res.status, ok: res.ok, duration, body, isJson });
+      const t0 = performance.now();
+      const res = await fetch(resolvedPath, init);
+      const t1 = performance.now();
 
-    } catch (error: any) {
-        const duration = performance.now() - start;
-        setResult({ status: 500, ok: false, duration, body: error.message, isJson: false });
+      let body: any = null;
+      const ct = res.headers.get("content-type") || "";
+      if (ct.includes("application/json")) {
+        body = await res.json();
+      } else {
+        body = await res.text();
+      }
+
+      const payload = { ok: res.ok, status: res.status, ms: Math.round(t1 - t0), body };
+      setLastResponse(payload);
+      onResult?.(payload);
+    } catch (err: any) {
+      const payload = { ok: false, status: 0, ms: 0, body: { error: String(err?.message || err) } };
+      setLastResponse(payload);
+      onResult?.(payload);
     } finally {
-        setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="border rounded-lg shadow-sm">
-      <form onSubmit={form.handleSubmit(onSubmit)} className="p-4 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <label className="text-sm font-medium">Endpoint</label>
-            <Select onValueChange={handleEndpointChange} defaultValue={selectedEndpoint.path}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select an endpoint" />
-              </SelectTrigger>
-              <SelectContent>
-                {ENDPOINTS.map((ep, i) => (
-                  <SelectItem key={i} value={ep.path}>
-                    <span className="font-semibold mr-2">{ep.method}</span>
-                    {ep.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {selectedEndpoint.params.map(param => (
-            <div key={param}>
-              <label htmlFor={param} className="text-sm font-medium capitalize">{param}</label>
-              <Input id={param} {...form.register(param)} placeholder={`Enter ${param}`} />
-            </div>
-          ))}
+    <div className="space-y-4">
+      <div className="rounded-2xl border p-4">
+        <div className="mb-3 text-sm text-gray-600">
+          <span className="font-medium">{selectedEndpoint.method}</span>{" "}
+          <code className="rounded bg-gray-50 px-2 py-1">{selectedEndpoint.path}</code>
         </div>
-        {selectedEndpoint.method === 'PUT' && (
-          <div>
-            <label htmlFor="body" className="text-sm font-medium">Request Body</label>
-            <Textarea
-              id="body"
-              {...form.register('body')}
+
+        {selectedEndpoint.params.length > 0 && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {selectedEndpoint.params.map((p) => (
+              <label key={p} className="text-sm">
+                <span className="block mb-1 font-medium">Param: {p}</span>
+                <input
+                  className="w-full rounded border px-3 py-2"
+                  placeholder={`Value for {${p}}`}
+                  value={paramValues[p] ?? ""}
+                  onChange={(e) => handleParamChange(p, e.target.value)}
+                />
+              </label>
+            ))}
+          </div>
+        )}
+
+        {selectedEndpoint.requiresBody && (
+          <div className="mt-3">
+            <label className="text-sm block mb-1 font-medium">Request body (JSON)</label>
+            <textarea
+              className="w-full rounded border px-3 py-2 font-mono text-xs leading-5"
               rows={8}
-              className="font-mono text-xs"
-              placeholder="Enter JSON body"
-              defaultValue={JSON.stringify(selectedEndpoint.sampleBody, null, 2)}
+              value={bodyJson}
+              onChange={(e) => setBodyJson(e.target.value)}
+              placeholder='{"title":"Example"}'
             />
           </div>
         )}
-        <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Run Request
-        </Button>
-      </form>
-      <ResultPanel result={result} isLoading={isLoading} />
+
+        <div className="mt-4">
+          <button
+            disabled={loading}
+            onClick={run}
+            className="rounded-2xl border px-4 py-2 text-sm shadow-sm hover:bg-gray-50 disabled:opacity-50"
+          >
+            {loading ? "Running..." : "Run endpoint"}
+          </button>
+        </div>
+      </div>
+
+      {lastResponse && (
+        <div className="rounded-2xl border p-4">
+          <div className="mb-2 text-sm text-gray-600">
+            <span className="font-medium">Status:</span> {lastResponse.status} •{" "}
+            <span className="font-medium">Time:</span> {lastResponse.ms} ms
+          </div>
+          <pre className="whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+            {typeof lastResponse.body === "string"
+              ? lastResponse.body
+              : JSON.stringify(lastResponse.body, null, 2)}
+          </pre>
+        </div>
+      )}
     </div>
   );
 }
