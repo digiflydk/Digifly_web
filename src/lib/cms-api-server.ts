@@ -1,24 +1,23 @@
 
 import { headers } from "next/headers";
 
+export function getRequestMeta() {
+  const h = headers(); // ReadonlyHeaders (sync)
+  const origin = h.get("origin") ?? "";
+  const authorization = h.get("authorization") ?? h.get("Authorization") ?? "";
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
+  const proto = h.get("x-forwarded-proto") ?? (origin.startsWith("https") ? "https" : "http");
+
+  return { origin, authorization, host, proto };
+}
+
+
 function getServerBaseUrl(): string {
   const h = headers();
   const proto = h.get("x-forwarded-proto") ?? "https";
   const host = h.get("x-forwarded-host") ?? h.get("host");
   return host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "");
 }
-
-export function getRequestMeta() {
-  const h = headers(); // ReadonlyHeaders
-  const origin = h.get("origin") ?? "";
-  const auth =
-    h.get("authorization") ??
-    h.get("Authorization") ??
-    "";
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
-  return { origin, auth, host };
-}
-
 
 export async function fetchCmsApiServer<T>(path: string, init?: RequestInit): Promise<T> {
   const base = getServerBaseUrl();

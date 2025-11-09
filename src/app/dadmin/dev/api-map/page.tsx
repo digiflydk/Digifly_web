@@ -13,8 +13,10 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 }
 
+type ApiEndpoint = { path: string; methods: string[] };
+
 function flattenApiMap() {
-    const flattened: ({ path: string; methods: string[] })[] = [];
+    const flattened: (string | ApiEndpoint)[] = [];
     for (const key in CMS_API_MAP) {
         const topLevel = CMS_API_MAP[key as keyof typeof CMS_API_MAP];
         if ('route' in topLevel) {
