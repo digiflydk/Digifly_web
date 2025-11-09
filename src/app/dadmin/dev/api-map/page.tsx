@@ -16,6 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 type ApiEndpoint = { path: string; methods: string[]; description?: string };
 
+const asPath = (e: string | ApiEndpoint) => (typeof e === "string" ? e : e.path);
+
 function flattenApiMap() {
     const flattened: (string | ApiEndpoint)[] = [];
     for (const key in CMS_API_MAP) {
@@ -36,7 +38,7 @@ export default function ApiMapPage() {
     const apiItems = flattenApiMap();
     return (
         <div className="space-y-4">
-            <CMSApiMapHealth items={apiItems} />
+            <CMSApiMapHealth items={apiItems.map(asPath)} />
         </div>
     );
 }
