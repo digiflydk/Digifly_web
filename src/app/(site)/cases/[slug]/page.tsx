@@ -11,8 +11,11 @@ export async function generateStaticParams() {
     return cases.map(c => ({ slug: c.slug }));
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-    const item = await getCaseBySlug(params.slug);
+type Params = Promise<{ slug: string }>;
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+    const { slug } = await params;
+    const item = await getCaseBySlug(slug);
     if (!item || !item.published) return metaDefaults({ title: 'Not Found' });
 
     const parsed = CaseSchema.parse(item);
@@ -20,11 +23,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return metaDefaults({
       title: parsed.seo?.title || parsed.title,
       description: parsed.seo?.description || parsed.excerpt,
-      image: parsed.seo?.image || parsed.coverImage.src
+      image: parsed.cover?.src
     });
 }
 
-type Params = Promise<{ slug: string }>;
 
 export default async function CaseDetailPage({ params }: { params: Params }) {
   const { slug } = await params;
@@ -38,14 +40,14 @@ export default async function CaseDetailPage({ params }: { params: Params }) {
       <h1>{parsed.title}</h1>
       <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border my-4">
         <Image
-          src={(parsed.coverImage?.src && parsed.coverImage.src !== "" ? parsed.coverImage.src : "/placeholder/case-cover.webp")}
-          alt={parsed.coverImage?.alt || parsed.title}
+          src={(parsed.cover?.src && parsed.cover.src !== "" ? parsed.cover.src : "/placeholder/case-cover.webp")}
+          alt={parsed.cover?.alt || parsed.title}
           fill
           className="object-cover"
         />
       </div>
       {parsed.excerpt ? <p className="lead">{parsed.excerpt}</p> : null}
-      {parsed.body ? <div dangerouslySetInnerHTML={{ __html: parsed.body }} /> : null}
+      {parsed.content ? <div dangerouslySetInnerHTML={{ __html: parsed.content }} /> : null}
     </article>
   );
 }
