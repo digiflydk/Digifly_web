@@ -1,6 +1,4 @@
 
-
-import CMSApiMapHealth from '@/components/cms/CMSApiMapHealth';
 import { buildSeo } from '@/lib/seo';
 import type { Metadata } from 'next';
 import { CMS_API_MAP } from '@/lib/cms-map';
@@ -14,31 +12,78 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 }
 
-type ApiEndpoint = { path: string; methods: string[]; description?: string };
+type ApiEndpoint = {
+  method?: string;
+  path?: string;
+  url?: string;
+  description?: string;
+};
 
-const asPath = (e: string | ApiEndpoint) => (typeof e === "string" ? e : e.path);
+type Cell = string | string[] | ApiEndpoint | number | boolean | null | undefined;
 
-function flattenApiMap() {
-    const flattened: (string | ApiEndpoint)[] = [];
-    for (const key in CMS_API_MAP) {
-        const topLevel = CMS_API_MAP[key as keyof typeof CMS_API_MAP];
-        if ('route' in topLevel) {
-            flattened.push({ path: topLevel.route, methods: Object.keys(topLevel.methods), description: topLevel.usedBy.join(', ') });
-        } else {
-            for (const subKey in topLevel) {
-                const subLevel = topLevel[subKey];
-                flattened.push({ path: subLevel.route, methods: Object.keys(subLevel.methods), description: subLevel.usedBy.join(', ') });
-            }
-        }
-    }
-    return flattened;
+function formatCell(value: Cell): string {
+  if (value == null) return "";
+  if (Array.isArray(value)) return value.map(formatCell).join(", ");
+  if (typeof value === "object") {
+    const method = value.method ?? "";
+    const path = value.path ?? value.url ?? "";
+    const desc = value.description ? ` — ${value.description}` : "";
+    const head = [method, path].filter(Boolean).join(" ");
+    return (head + desc).trim();
+  }
+  return String(value);
 }
 
 export default function ApiMapPage() {
-    const apiItems = flattenApiMap();
+    const rows = Object.entries(CMS_API_MAP).flatMap(([groupKey, groupValue]) => {
+        const groupRows = [];
+        // Add a header for the group
+        groupRows.push({ key: `__group__${groupKey}`, isGroupHeader: true, value: groupKey.charAt(0).toUpperCase() + groupKey.slice(1) });
+        
+        // Add rows for each endpoint in the group
+        if ('route' in groupValue) { // It's a single endpoint, not a group
+            groupRows.push({ key: groupKey, value: formatCell(groupValue as Cell) });
+        } else {
+            for (const [endpointKey, endpointValue] of Object.entries(groupValue)) {
+                groupRows.push({ key: `${groupKey}.${endpointKey}`, value: formatCell(endpointValue as Cell) });
+            }
+        }
+        return groupRows;
+    });
+
     return (
-        <div className="space-y-4">
-            <CMSApiMapHealth items={apiItems.map(asPath)} />
+        <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                    <tr>
+                        <th scope="col" className="w-1/4 px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            Key
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            Details
+                        </th>
+                    </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-200">
+                    {rows.map(row => {
+                        if (row.isGroupHeader) {
+                            return (
+                                <tr key={row.key} className="bg-slate-100">
+                                    <td colSpan={2} className="px-6 py-3 text-sm font-semibold text-slate-900">
+                                        {row.value}
+                                    </td>
+                                </tr>
+                            );
+                        }
+                        return (
+                            <tr key={row.key}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 font-mono">{row.key}</td>
+                                <td className="px-6 py-4 whitespace-pre-wrap text-sm text-slate-500 font-mono">{row.value}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
         </div>
     );
 }
