@@ -1,40 +1,43 @@
-
 // src/lib/cms-api-server.ts
 import { headers as nextHeaders } from "next/headers";
 
 /**
- * Returns request-related meta derived from headers.
- * Marked async to support environments where nextHeaders() is typed/treated as async.
+ * Supports environments where nextHeaders() is either:
+ *  - Headers-like (sync), or
+ *  - Promise<Headers> (async-typed)
  */
 export async function getRequestMeta() {
-  const h = await (nextHeaders as unknown as () => Promise<Readonly<Headers>>());
+  const maybe = (nextHeaders as unknown as () => Headers | Promise<Headers>)();
+
+  // If it already has .get, use it; otherwise await it.
+  const h: Headers =
+    typeof (maybe as Headers).get === "function" ? (maybe as Headers) : await (maybe as Promise<Headers>);
+
+  const get = (name: string) => h.get(name) ?? null;
 
   const protocol =
-    h.get("x-forwarded-proto") ??
-    h.get("x-forwarded-protocol") ??
+    get("x-forwarded-proto") ??
+    get("x-forwarded-protocol") ??
     "https";
 
   const host =
-    h.get("x-forwarded-host") ??
-    h.get("host") ??
+    get("x-forwarded-host") ??
+    get("host") ??
     "";
 
   const origin = host ? `${protocol}://${host}` : undefined;
-
-  const referer = h.get("referer") ?? undefined;
+  const referer = get("referer") ?? undefined;
 
   return { protocol, host, origin, referer, headers: h };
 }
 
-/**
- * Example: read a bearer token from headers safely
- */
+/** Optional helper if you read an auth bearer later */
 export async function getAuthBearer() {
   const { headers } = await getRequestMeta();
   const auth = headers.get("authorization") ?? headers.get("Authorization");
   if (!auth) return undefined;
   const [scheme, token] = auth.split(" ");
-  if (scheme?.toLowerCase() !== "bearer" || !token) return undefined;
+  if ((scheme ?? "").toLowerCase() !== "bearer" || !token) return undefined;
   return token;
 }
 
