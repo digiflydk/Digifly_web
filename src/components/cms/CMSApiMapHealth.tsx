@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -60,70 +61,15 @@ function flattenMap(map: CMSMap, health: HealthStatus): FlatEntry[] {
 }
 
 
-export function CMSApiMapHealth() {
-  const [data, setData] = useState<{ map: CMSMap; health: HealthStatus } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch('/api/debug/cms-map?health=1')
-      .then(res => {
-        if (!res.ok) throw new Error(`API responded with ${res.status}`);
-        return res.json();
-      })
-      .then(setData)
-      .catch(err => setError(err.message));
-  }, []);
-
-  if (error) {
+export default function CMSApiMapHealth({ items }: { items: (string | { path: string; methods: string[] })[] }) {
     return (
-        <Alert variant="destructive">
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>Failed to Load API Map</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <ul>
+            {items.map((it, i) => {
+                const path = typeof it === "string" ? it : it.path;
+                const methods = typeof it === "string" ? [] : it.methods;
+                return <li key={i}><code>{path}</code>{methods.length ? <> ({methods.join(", ")})</> : null}</li>;
+            })}
+        </ul>
     );
-  }
-
-  if (!data) {
-    return <div className="space-y-2">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-    </div>;
-  }
-  
-  const flatEntries = flattenMap(data.map, data.health);
-
-  return (
-    <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Route</TableHead>
-              <TableHead className="w-[80px]">Method</TableHead>
-              <TableHead>Firestore Path</TableHead>
-              <TableHead>Used By</TableHead>
-              <TableHead className="w-[100px] text-right">Health</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {flatEntries.map((entry, i) => (
-                <TableRow key={i}>
-                    <TableCell className="font-mono">{entry.route}</TableCell>
-                    <TableCell><Badge variant="outline">{entry.method}</Badge></TableCell>
-                    <TableCell className="font-mono text-xs">{entry.fsPath}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{entry.usedBy}</TableCell>
-                    <TableCell className="text-right">
-                        {entry.health ? (
-                            <Badge variant={entry.health.ok ? 'secondary' : 'destructive'}>
-                                {entry.health.ok ? 'OK' : 'Error'}
-                            </Badge>
-                        ) : <span className="text-xs text-muted-foreground">N/A</span>}
-                    </TableCell>
-                </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-    </div>
-  );
 }
+

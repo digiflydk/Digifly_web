@@ -1,6 +1,8 @@
 
 import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc } from '@/lib/types';
 import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema } from '../schemas';
+import { z } from 'zod';
+
 
 export const SITE_DEFAULTS: SiteSettings = {
   siteTitle: 'Digifly',
@@ -131,7 +133,8 @@ export const defaultNavigation: Navigation = NavigationSchema.parse({
   },
 });
 
-export const defaultAboutPage: Page<{ body: any[] }> = AboutPageSchema.parse({
+export const defaultAboutPage: Page<{ body: any[] }> = {
+  slug: "about",
   title: 'About Digifly',
   subtitle: 'We are a digital innovation partner, helping businesses leverage technology and AI to achieve their strategic goals.',
   content: {
@@ -141,7 +144,7 @@ export const defaultAboutPage: Page<{ body: any[] }> = AboutPageSchema.parse({
     ]
   },
   seo: { title: 'About Us', description: 'Learn about Digifly\'s mission and values.'}
-});
+};
 
 export const defaultServicesPage = ServicesPageSchema.parse({
     title: 'Our Services',
@@ -165,12 +168,12 @@ export const defaultContactPage = ContactPageSchema.parse({
   subtitle: 'Let\'s start a conversation about your next project.'
 });
 
-export const defaultCases: CaseDoc[] = [
+export const defaultCases: z.infer<typeof CaseSchema>[] = [
   CaseSchema.parse({
     slug: 'autostream-ai',
     title: 'AutoStream AI: Automation Platform',
     excerpt: 'A SaaS platform for automating content workflows using generative AI, reducing manual effort by 90%.',
-    coverImage: { src: '/media/case-001.jpg', alt: 'AI Automation Dashboard' },
+    cover: { src: '/media/case-001.jpg', alt: 'AI Automation Dashboard' },
     client: 'AutoStream',
     featured: true,
     published: true,
@@ -179,7 +182,7 @@ export const defaultCases: CaseDoc[] = [
     slug: 'connect-app',
     title: 'ConnectApp: Social Mobile App',
     excerpt: 'A cross-platform mobile application designed to connect local communities, reaching 50k active users in 6 months.',
-    coverImage: { src: '/media/case-003.jpg', alt: 'Mobile app interface' },
+    cover: { src: '/media/case-003.jpg', alt: 'Mobile app interface' },
     client: 'ConnectApp Inc.',
     featured: true,
     published: true,
@@ -188,8 +191,8 @@ export const defaultCases: CaseDoc[] = [
 
 export const ALL_DEFAULTS = {
     'site/settings': SITE_DEFAULTS,
-    'navigation/main': { items: defaultNavigation.header },
-    'navigation/footer': { items: defaultNavigation.footer.columns.flatMap(c => c.links) },
+    'navigation/main': { header: defaultNavigation.header },
+    'navigation/footer': { footer: defaultNavigation.footer },
     'pages/home': defaultHomepage,
     'pages/about': defaultAboutPage,
     'pages/services': defaultServicesPage,

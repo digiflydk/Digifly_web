@@ -1,6 +1,8 @@
 
+
 import { NextRequest, NextResponse } from "next/server";
 import { getNavigation, saveNavigation } from "@/lib/cms-server";
+import type { Navigation } from "@/lib/types";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,7 +22,7 @@ export async function PUT(req: NextRequest) {
     try {
         const body = await req.json();
         const currentNav = await getNavigation();
-        const updatedNav = { 
+        const updatedNav: Navigation = { 
             ...currentNav, 
             footer: {
                 columns: [{ title: "Links", links: body.items }]

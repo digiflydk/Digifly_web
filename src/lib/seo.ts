@@ -1,6 +1,5 @@
 
-
-import { Metadata } from "next";
+import { Metadata, TemplateString } from "next";
 import { getSiteSettings } from "./cms-server";
 import { SITE_DEFAULTS } from "./defaults/siteDefaults";
 import { SiteSettings } from "./types";
@@ -70,8 +69,8 @@ export async function metaDefaults({
   const baseMeta = await buildSiteMetadata();
   const siteSettings = await getSiteSettings();
   
-  const pageTitleObj: Metadata['title'] =
-    typeof title === "string" ? title : title ? { default: title.default, template: title.template } : baseMeta.title;
+  const pageTitleObj: Metadata["title"] =
+    typeof title === "string" ? title : title ? { default: title.default, template: title.template ?? '%s' } as TemplateString : baseMeta.title;
 
   const pageDesc = description ?? baseMeta.description as string;
   const ogImageUrl = ogImageForPage(image, siteSettings);

@@ -1,5 +1,6 @@
+
 import { NextResponse } from "next/server";
-import { CaseSchema } from "@/lib/schemas.case";
+import { CaseSchema, type CaseDoc } from "@/lib/schemas";
 import { createCase, getCases } from "@/lib/cms-server";
 
 type Ok<T> = { ok: true; data: T };
@@ -20,7 +21,16 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const parsed = CaseSchema.safeParse(body);
+
+    const metrics = Array.isArray(body.metrics)
+      ? body.metrics
+      : body.metrics
+        ? Object.entries(body.metrics).map(([label, value]) => ({ label, value: String(value) }))
+        : undefined;
+
+    const payload: Partial<CaseDoc> = { ...body, metrics };
+
+    const parsed = CaseSchema.safeParse(payload);
     if (!parsed.success) {
       return NextResponse.json<Err>(
         { ok: false, error: "Validation failed", issues: parsed.error.issues },

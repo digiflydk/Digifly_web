@@ -1,4 +1,5 @@
 
+
 "use client";
 import { useState } from "react";
 import { CaseSchema, type CaseDoc } from "@/lib/schemas";
@@ -19,7 +20,7 @@ export default function CaseEditor({ id, initial }: { id: string; initial: CaseD
       excerpt: "",
       cover: { src: "", alt: "" },
       content: { body: [] },
-      tags: [],
+      meta: { tags: [] },
     }
   );
   const [saving, setSaving] = useState(false);
@@ -68,13 +69,13 @@ export default function CaseEditor({ id, initial }: { id: string; initial: CaseD
 
         <div className="space-y-3">
           <Label>Cover URL</Label>
-          <Input value={model.cover?.src ?? ""} onChange={e=>setModel({...model, cover: { ...model.cover, src: e.target.value }})}/>
+          <Input value={model.cover?.src ?? ""} onChange={e=>setModel({...model, cover: { src: e.target.value ?? "", alt: model.cover?.alt }})}/>
           <Label>Cover Alt</Label>
-          <Input value={model.cover?.alt ?? ""} onChange={e=>setModel({...model, cover: { ...model.cover, alt: e.target.value }})}/>
+          <Input value={model.cover?.alt ?? ""} onChange={e=>setModel({...model, cover: { ...model.cover, alt: e.target.value, src: model.cover?.src ?? "" }})}/>
           <Label>Tags (comma separated)</Label>
           <Input
-            value={model.tags?.join(", ") ?? ""}
-            onChange={(e)=>setModel({...model, tags: e.target.value.split(",").map(s=>s.trim()).filter(Boolean)})}
+            value={model.meta?.tags?.join(", ") ?? ""}
+            onChange={(e)=>setModel({...model, meta: { ...model.meta, tags: e.target.value.split(",").map(s=>s.trim()).filter(Boolean) }})}
           />
         </div>
       </div>

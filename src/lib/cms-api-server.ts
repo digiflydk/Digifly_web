@@ -1,4 +1,4 @@
-// src/lib/cms-api-server.ts
+
 import { headers } from "next/headers";
 
 function getServerBaseUrl(): string {
@@ -7,6 +7,14 @@ function getServerBaseUrl(): string {
   const host = h.get("x-forwarded-host") ?? h.get("host");
   return host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "");
 }
+
+export async function getOriginAndAuth() {
+  const h = await headers();
+  const origin = h.get("origin") ?? "";
+  const auth = h.get("authorization") ?? h.get("Authorization") ?? "";
+  return { origin, auth };
+}
+
 
 export async function fetchCmsApiServer<T>(path: string, init?: RequestInit): Promise<T> {
   const base = getServerBaseUrl();

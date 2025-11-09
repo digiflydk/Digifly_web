@@ -1,6 +1,7 @@
 
+
 export type { SiteSettings, HomePage, CaseDoc, Navigation, HeroSlide } from "./schemas";
-export { SiteSettingsSchema, HomepageSchema, CaseSchema, NavigationSchema, BrandSchema, HeroSlideSchema } from "./schemas";
+export { SiteSettingsSchema, HomepageSchema, CaseSchema, NavigationSchema, BrandSchema } from "./schemas";
 
 export type Media = { src: string; alt?: string; hint?: string };
 

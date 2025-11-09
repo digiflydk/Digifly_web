@@ -1,6 +1,7 @@
 
+
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { deleteCase } from "@/lib/cms-api";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,6 +21,10 @@ import type { CaseDoc } from "@/lib/types";
 export default function CasesTable({ initialRows }: { initialRows: Partial<CaseDoc>[] }) {
   const [rows, setRows] = useState(initialRows);
   const [deleteCandidate, setDeleteCandidate] = useState<Partial<CaseDoc> | null>(null);
+
+  React.useEffect(() => {
+    setRows(initialRows);
+  }, [initialRows]);
 
   const handleDelete = async () => {
     if (!deleteCandidate?.id) return;
@@ -62,7 +67,7 @@ export default function CasesTable({ initialRows }: { initialRows: Partial<CaseD
           </TableHeader>
           <TableBody>
             {rows.map((caseItem) => (
-              <TableRow key={caseItem.id}>
+              <TableRow key={caseItem.id ?? caseItem.slug}>
                 <TableCell className="font-medium">{caseItem.title}</TableCell>
                 <TableCell className="font-mono text-xs">{caseItem.slug}</TableCell>
                 <TableCell>

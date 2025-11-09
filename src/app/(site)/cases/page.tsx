@@ -1,6 +1,8 @@
+
 import Link from "next/link";
 import Image from "next/image";
 import { getCases } from "@/lib/cms";
+import { safeAlt } from "@/lib/safe";
 
 export default async function CasesIndexPage() {
   const cases = await getCases({ published: true });
@@ -10,12 +12,12 @@ export default async function CasesIndexPage() {
       <h1 className="text-3xl font-semibold mb-6">Cases</h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {cases.map((c) => (
-          <Link key={c.id} href={`/cases/${c.slug}`}>
+          <Link key={c.id ?? c.slug} href={`/cases/${c.slug}`}>
             <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
               <div className="relative aspect-[16/9] bg-muted">
                 <Image
-                  src={(c.coverImage?.src && c.coverImage.src !== "" ? c.coverImage.src : "/placeholder/case-cover.webp")}
-                  alt={c.coverImage?.alt || c.title}
+                  src={((c.coverImage ?? c.cover)?.src) || "/placeholder/case-cover.webp"}
+                  alt={safeAlt((c.coverImage ?? c.cover)?.alt, c.title)}
                   fill
                   className="object-cover"
                 />

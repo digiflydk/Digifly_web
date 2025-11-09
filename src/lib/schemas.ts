@@ -126,24 +126,35 @@ export const ContactPageSchema = z.object({
   }).optional(),
 });
 
+export const CaseSeoSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  image: z.string().optional(),
+});
+export const CaseMetricSchema = z.object({ label: z.string(), value: z.string() });
+
 export const CaseSchema = z.object({
+  id: z.string().optional(),                  // used in tables & sitemap
   slug: z.string(),
   title: z.string(),
-  status: z.enum(['draft', 'published']).optional(),
-  summary: z.string().optional(),
-  excerpt: z.string().optional(),
   published: z.boolean().default(false),
+  status: z.enum(["draft","published"]).optional(),
+  excerpt: z.string().optional(),
+  summary: z.string().optional(),
+  content: z.any().optional(),
   cover: z.object({ src: z.string(), alt: z.string().optional() }).optional(),
-  metrics: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+  coverImage: z.object({ src: z.string(), alt: z.string().optional() }).optional(), // legacy alias
+  seo: CaseSeoSchema.optional(),
+  metrics: z.array(CaseMetricSchema).optional(),
   meta: z.object({ industry: z.string().optional(), tags: z.array(z.string()).optional() }).optional(),
-  content: z.any().optional()
+  updatedAt: z.string().or(z.date()).or(z.number()).optional(),
 });
+export type CaseDoc = z.infer<typeof CaseSchema>;
 
 
 // ---- Shim the names used across the app (from error logs) ----
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
 export type HomePage   = z.infer<typeof HomepageSchema>;
-export type CaseDoc    = z.infer<typeof CaseSchema>;
 export const BasePageSchema = z.object({ slug: z.string(), title: z.string().optional() });
 export const NavItemSchema  = z.object({ label: z.string(), href: z.string() });
 export const BrandSchema    = z.object({
@@ -152,6 +163,9 @@ export const BrandSchema    = z.object({
   favicon: z.object({ src: z.string() })
 });
 export const DesignSettingsSchema = SiteSettingsSchema; // alias to satisfy imports
+export type Navigation = z.infer<typeof NavigationSchema>;
+export type HeroSlide = z.infer<typeof HomepageSchema>["hero"]["slides"][number];
+
 
 export const allSchemas = {
   SiteSettingsSchema,

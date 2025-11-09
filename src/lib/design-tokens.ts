@@ -1,24 +1,22 @@
 
-import type { DesignSettings } from "@/lib/types";
+import type { SiteSettings } from "@/lib/schemas";
 
-export function tokensFromSettings(s: DesignSettings){
+export function tokensFromSettings(s: SiteSettings){
   const out: Record<string,string> = {};
+  
+  // Use fallbacks to avoid errors if the structure is not yet populated
+  const colors = (s as any).colors ?? {};
+  const typography = (s as any).typography ?? {};
 
   // Colors
-  if(s.colors){
-    // Canonical keys from schema
-    if (s.colors.primary) out["--color-primary"] = s.colors.primary;
-    if (s.colors.accent)  out["--color-accent"]  = s.colors.accent;
-    if (s.colors.bg)      out["--color-bg"]      = s.colors.bg;
-    if (s.colors.muted)   out["--color-muted"]   = s.colors.muted;
-
-  }
+  if(colors.primary) out["--color-primary"] = colors.primary;
+  if(colors.accent)  out["--color-accent"]  = colors.accent;
+  if(colors.bg)      out["--color-bg"]      = colors.bg;
+  if(colors.muted)   out["--color-muted"]   = colors.muted;
 
   // Typography
-  if(s.typography){
-    if(s.typography.headline) out["--font-headline"] = s.typography.headline;
-    if(s.typography.body)     out["--font-body"]     = s.typography.body;
-  }
+  if(typography.headline) out["--font-headline"] = typography.headline;
+  if(typography.body)     out["--font-body"]     = typography.body;
   
   return out;
 }

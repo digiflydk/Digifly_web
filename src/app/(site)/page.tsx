@@ -1,4 +1,5 @@
 
+
 import { getHomepage, getSiteSettings } from '@/lib/cms-server';
 import Hero from '@/components/sections/hero';
 import ServicesOverview from '@/components/sections/services-overview';
@@ -10,7 +11,7 @@ import type { Metadata } from 'next';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
 import type { ZodIssue } from 'zod';
-import { HomePage } from '@/lib/types';
+import type { HomePage } from '@/lib/schemas';
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -63,5 +64,3 @@ export default async function HomePage() {
     </>
   );
 }
-
-    

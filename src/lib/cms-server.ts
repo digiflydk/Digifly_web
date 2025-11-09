@@ -66,18 +66,16 @@ export async function getNavigation(): Promise<Navigation> {
     const mainSnap = await db.doc(CMS_PATHS.navigation.main).get();
     const footerSnap = await db.doc(CMS_PATHS.navigation.footer).get();
     
-    const mainData = mainSnap.exists ? mainSnap.data() : { items: [] };
-    const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
+    const mainData = mainSnap.exists ? mainSnap.data() : { header: [] };
+    const footerData = footerSnap.exists ? footerSnap.data() : { footer: { columns: [] } };
 
     if (!mainSnap.exists && !footerSnap.exists) {
         return { header: [], footer: { columns: [] }};
     }
     
     const parsedNav = NavigationSchema.safeParse({
-        header: mainData?.items || [],
-        footer: {
-            columns: [{ title: 'Links', links: footerData?.items || [] }]
-        }
+        header: mainData?.header || [],
+        footer: footerData?.footer || { columns: [] }
     });
 
     if (!parsedNav.success) {
@@ -93,10 +91,8 @@ export async function saveNavigation(data: Navigation): Promise<void> {
     const db = await getDb();
     const batch = db.batch();
     
-    batch.set(db.doc(CMS_PATHS.navigation.main), { items: parsedData.header }, { merge: true });
-    
-    const footerLinks = parsedData.footer.columns[0]?.links ?? [];
-    batch.set(db.doc(CMS_PATHS.navigation.footer), { items: footerLinks }, { merge: true });
+    batch.set(db.doc(CMS_PATHS.navigation.main), { header: parsedData.header }, { merge: true });
+    batch.set(db.doc(CMS_PATHS.navigation.footer), { footer: parsedData.footer }, { merge: true });
 
     await batch.commit();
     revalidatePath('/', 'layout');
