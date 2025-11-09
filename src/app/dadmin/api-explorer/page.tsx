@@ -5,11 +5,11 @@ import EndpointRunner from "./components/EndpointRunner";
 
 export const dynamic = 'force-dynamic';
 
-export function generateMetadata(): Metadata {
-    return metaDefaults({
-      title: 'API Explorer',
-      description: 'Run live queries against the CMS API.',
-    });
+export async function generateMetadata(): Promise<Metadata> {
+  return await metaDefaults({
+    title: 'API Explorer',
+    description: 'Run live queries against the CMS API.',
+  });
 }
 
 export default function ApiExplorerPage() {
