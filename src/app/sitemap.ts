@@ -13,9 +13,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const res = await fetch(`${base}/api/cms/cases?limit=1000`, { next: { revalidate: 300 } });
-    if (res.ok) {
-      const cases: Array<{ slug: string; updatedAt?: number }> = await res.json();
+    const cases = await getCases();
+    if (cases && cases.length > 0) {
       const mapped = cases
         .filter(c => c?.slug)
         .map(c => ({
@@ -26,7 +25,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         } as MetadataRoute.Sitemap[0]));
       return [...staticEntries, ...mapped];
     }
-  } catch {}
+  } catch (e) {
+      console.warn("Could not fetch cases for sitemap, returning static only.", e);
+  }
 
   return staticEntries;
 }

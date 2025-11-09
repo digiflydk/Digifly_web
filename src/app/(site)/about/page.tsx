@@ -6,7 +6,6 @@ import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
 import { AboutPageSchema } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
-import SafeImage from "@/components/media/SafeImage";
 
 export const dynamic = 'force-dynamic';
 
