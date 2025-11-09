@@ -1,7 +1,13 @@
-import { HomePage } from "@/lib/types";
+
 import { SectionHeading } from "@/components/ui/section-heading";
 
-export default function ServicesOverview({ items }: { items: HomePage['servicesPreview'] }) {
+type Service = { 
+  title: string; 
+  bullets: string[]; 
+  href: string 
+};
+
+export default function ServicesOverview({ items }: { items: Service[] }) {
   return (
     <section className="container py-16 md:py-24">
       <SectionHeading title="Services" textCenter={false} />

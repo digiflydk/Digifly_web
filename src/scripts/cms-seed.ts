@@ -1,75 +1,84 @@
 
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, DocumentReference } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
-import { 
-  navigation,
-  homePage,
-  aboutPage,
-  servicesPage,
-  contactPage,
-  casesIndexPage, 
-  cases 
-} from '@/lib/cms-data';
-import { SiteSettingsSchema } from '@/lib/schemas';
+import { ALL_DEFAULTS, defaultCases, defaultNavigation } from '@/lib/defaults/siteDefaults';
+import { SiteSettingsSchema, NavigationSchema, HomepageSchema, CaseSchema } from '@/lib/schemas';
+import { z } from 'zod';
 
-// This function is idempotent. It will create or overwrite documents.
-async function upsert(db: any, path: string, data: any, merge = true) {
+const SCHEMAS: Record<string, z.ZodSchema<any>> = {
+    'site/settings': SiteSettingsSchema,
+    'navigation/main': z.object({ items: z.array(z.object({ label: z.string(), href: z.string() })) }),
+    'navigation/footer': z.object({ items: z.array(z.object({ label: z.string(), href: z.string() })) }),
+    'pages/home': HomepageSchema,
+};
+
+async function upsert(db: FirebaseFirestore.Firestore, path: string, data: any, merge = true) {
   const ref = db.doc(path);
-  console.log(`Upserting: ${path}`);
+  console.log(`[SEED] Upserting: ${path}`);
   await ref.set(data, { merge });
 }
 
 async function run() {
-  console.log('Starting CMS data migration...');
+  console.log('[SEED] Starting CMS data seed...');
 
+  let db;
   try {
     getAdminApp();
+    db = getFirestore();
   } catch (e: any) {
-    console.warn(`[cms-seed] Could not initialize Firebase Admin. This is expected in environments without a service account. Seeding will be skipped. Error: ${e.message}`);
-    console.log("CMS seed step skipped gracefully.");
+    console.warn(`[SEED] Could not initialize Firebase Admin. This is expected in environments without a service account. Seeding will be skipped. Error: ${e.message}`);
+    console.log("[SEED] Gracefully skipped.");
     return;
   }
-
-  const db = getFirestore();
   
-  // Site Settings (Canonical Path)
-  const siteSettingsData = {
-    siteTitle: "Digifly",
-    social: {
-      tagline: "Strategy, Software & Automation with AI."
-    },
-    brand: {
-      name: "Digifly",
-      logo: { src: "https://i.postimg.cc/yxjNkX5M/digifly-logo.png", alt: "Digifly Logo" },
-      favicon: { src: "https://i.postimg.cc/VvP3vfcP/favicon.png" }
-    },
-    defaultSeo: {
-      description: "We build intelligent digital solutions."
+  // Upsert singleton documents from ALL_DEFAULTS
+  for (const [path, defaultData] of Object.entries(ALL_DEFAULTS)) {
+    const docRef = db.doc(path) as DocumentReference<any>;
+    const snap = await docRef.get();
+    const currentData = snap.exists ? snap.data() : {};
+    
+    // Merge defaults over current data to fill in missing fields
+    const mergedData = { ...defaultData, ...currentData };
+
+    const schema = SCHEMAS[path];
+    if (schema) {
+        const parsed = schema.safeParse(mergedData);
+        if (parsed.success) {
+            await upsert(db, path, parsed.data);
+        } else {
+            console.warn(`[SEED] Validation failed for ${path}. Using pure defaults.`, parsed.error.format());
+            await upsert(db, path, defaultData);
+        }
+    } else {
+        await upsert(db, path, mergedData);
     }
-  };
-  const parsedSiteSettings = SiteSettingsSchema.parse(siteSettingsData);
-  await upsert(db, 'site/settings', parsedSiteSettings);
-
-  // Navigation
-  await upsert(db, 'navigation/main', { items: navigation.header });
-  await upsert(db, 'navigation/footer', { items: navigation.footer.columns.flatMap(c => c.links) });
-  
-  // Singleton Pages
-  await upsert(db, 'pages/home', homePage);
-  await upsert(db, 'pages/about', aboutPage);
-  await upsert(db, 'pages/services', servicesPage);
-  await upsert(db, 'pages/contact', contactPage);
-  await upsert(db, 'pages/cases-index', casesIndexPage);
-
-  // Collection: Cases
-  for (const caseDoc of cases) {
-    await upsert(db, `cases/${caseDoc.slug}`, caseDoc);
   }
 
-  console.log('CMS data migration complete ✅');
+  // Idempotently upsert default cases
+  const casesSeed: Array<z.infer<typeof CaseSchema>> = defaultCases;
+  for (const caseData of casesSeed) {
+    const q = db.collection('cases').where('slug', '==', caseData.slug).limit(1);
+    const snap = await q.get();
+    if (snap.empty) {
+        console.log(`[SEED] Creating case: ${caseData.slug}`);
+        await db.collection('cases').add(caseData);
+    } else {
+        const docRef = snap.docs[0].ref;
+        const existingData = snap.docs[0].data();
+        const mergedData = { ...caseData, ...existingData }; // Existing data takes precedence
+        const parsed = CaseSchema.safeParse(mergedData);
+        if (parsed.success) {
+            await docRef.set(parsed.data, { merge: true });
+        } else {
+            console.warn(`[SEED] Skipping update for case ${caseData.slug} due to validation errors.`);
+        }
+    }
+  }
+
+  console.log('[SEED] CMS data seed complete ✅');
 }
 
 run().catch(err => {
-  console.error('Migration script failed:', err);
+  console.error('[SEED] Script failed:', err);
   process.exit(1);
 });

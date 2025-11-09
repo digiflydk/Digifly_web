@@ -56,35 +56,39 @@ export async function buildSiteMetadata(): Promise<Metadata> {
   };
 }
 
+type TitleInput = string | { default: string; template?: string };
 
 export async function metaDefaults({
   title,
   description,
   image,
 }: {
-  title?: string;
+  title?: TitleInput;
   description?: string;
   image?: string;
 }): Promise<Metadata> {
   const baseMeta = await buildSiteMetadata();
   const siteSettings = await getSiteSettings();
-  const pageTitle = title ?? baseMeta.title?.default as string;
+  
+  const pageTitleObj: Metadata['title'] =
+    typeof title === "string" ? title : title ? { default: title.default, template: title.template } : baseMeta.title;
+
   const pageDesc = description ?? baseMeta.description as string;
   const ogImageUrl = ogImageForPage(image, siteSettings);
   
   return {
     ...baseMeta,
-    title: pageTitle,
+    title: pageTitleObj,
     description: pageDesc,
     openGraph: {
       ...baseMeta.openGraph,
-      title: pageTitle,
+      title: pageTitleObj || baseMeta.openGraph?.title,
       description: pageDesc,
       images: [ogImageUrl],
     },
     twitter: {
         ...baseMeta.twitter,
-        title: pageTitle,
+        title: pageTitleObj || baseMeta.twitter?.title,
         description: pageDesc,
         images: [ogImageUrl],
     }

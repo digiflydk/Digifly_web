@@ -1,6 +1,6 @@
 
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { deleteCase } from "@/lib/cms-api";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

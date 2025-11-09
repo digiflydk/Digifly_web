@@ -47,8 +47,8 @@ export const CMS_API_MAP: CMSMap = {
   page: {
     route: "/api/cms/pages/[slug]",
     methods: {
-      GET: { path: "pages/{slug}", schema: "BasePageSchema" },
-      PUT: { path: "pages/{slug}", schema: "BasePageSchema" }
+      GET: { path: "pages/{slug}", schema: "HomepageSchema" },
+      PUT: { path: "pages/{slug}", schema: "HomepageSchema" }
     },
     usedBy: ["/dadmin/pages", "All site pages (e.g. /about, /services)"]
   },

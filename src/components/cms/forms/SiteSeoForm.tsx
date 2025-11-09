@@ -4,7 +4,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
@@ -59,7 +59,7 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField control={form.control} name="tagline" render={({ field }) => (
+            <FormField control={form.control} name="social.tagline" render={({ field }) => (
               <FormItem>
                 <FormLabel>Tagline</FormLabel>
                 <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
@@ -71,14 +71,14 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
         <Card>
           <CardHeader><CardTitle>Branding</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <FormField control={form.control} name="logoUrl" render={({ field }) => (
+            <FormField control={form.control} name="brand.logo.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Logo URL</FormLabel>
                 <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField control={form.control} name="faviconUrl" render={({ field }) => (
+            <FormField control={form.control} name="brand.favicon.src" render={({ field }) => (
               <FormItem>
                 <FormLabel>Favicon URL</FormLabel>
                 <FormControl><Input {...field} value={field.value ?? ""} /></FormControl>
@@ -90,7 +90,7 @@ export function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
         <Card>
           <CardHeader><CardTitle>Default SEO</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <FormField control={form.control} name="defaultDescription" render={({ field }) => (
+            <FormField control={form.control} name="defaultSeo.description" render={({ field }) => (
               <FormItem>
                 <FormLabel>Default Meta Description</FormLabel>
                 <FormControl><Textarea {...field} value={field.value ?? ""} /></FormControl>

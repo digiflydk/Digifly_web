@@ -6,8 +6,8 @@ import { StatCard } from "./_components/StatCard";
 
 export const dynamic = 'force-dynamic';
 
-export function generateMetadata(): Metadata {
-    return metaDefaults({
+export async function generateMetadata(): Promise<Metadata> {
+    return await metaDefaults({
       title: 'CMS Dashboard',
       description: 'Manage site content.',
     });

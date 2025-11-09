@@ -1,34 +1,41 @@
 
-import { z } from "zod";
-import { 
-    HomepageSchema, 
-    DesignSettingsSchema, 
-    NavigationSchema, 
-    SiteSettingsSchema,
-    BasePageSchema,
-    HeroSlideSchema
-} from "./schemas";
-export type { CaseDoc, HomePage } from "./schemas";
-
+export type { SiteSettings, HomePage, CaseDoc, Navigation, HeroSlide } from "./schemas";
+export { SiteSettingsSchema, HomepageSchema, CaseSchema, NavigationSchema, BrandSchema, HeroSlideSchema } from "./schemas";
 
 export type Media = { src: string; alt?: string; hint?: string };
 
-export type Brand = z.infer<typeof import('./schemas').BrandSchema>;
+export type Brand = {
+    name: string;
+    logo: {
+      src: string;
+      alt: string;
+      height?: number;
+      width?: number;
+    };
+    favicon: {
+      src: string;
+    };
+};
 
-export type DesignSettings = z.infer<typeof DesignSettingsSchema>;
+export type DesignSettings = {
+    // ...
+};
 
 export type NavLink = { label: string; href: string };
-
-export type Navigation = z.infer<typeof NavigationSchema>;
-
-export type HeroSlide = z.infer<typeof HeroSlideSchema>;
 
 export type RichTextContent =
   | { type: 'p'; text: string }
   | { type: 'list'; items: string[] };
 
-export type Page<T> = Omit<z.infer<typeof BasePageSchema>, "content"> & {
-  content: T;
-};
 
-export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
+export type Page<T> = {
+    slug: string;
+    title: string;
+    subtitle?: string;
+    content: T;
+    seo: {
+      title: string;
+      description: string;
+      image?: string;
+    };
+};

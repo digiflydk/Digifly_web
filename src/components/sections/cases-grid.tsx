@@ -10,13 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 
-function CaseCard({ item }: { item: { slug: string; title: string; image: { src: string; alt?: string }; summary: string; metrics?: { label: string; value: string }[] } }) {
+function CaseCard({ item }: { item: { slug: string; title: string; image?: { src: string; alt?: string }; summary: string; metrics?: { label: string; value: string }[] } }) {
+    const img = item.image ?? { src: "", alt: "" };
     return (
       <Link href={`/cases/${item.slug}`} className="group rounded-2xl border border-[var(--color-platinum)] p-4 hover:shadow-sm transition block min-w-0">
         <div className="aspect-[4/3] overflow-hidden rounded-xl relative">
           <MediaImage
-            src={item.image.src}
-            alt={item.image.alt || item.title}
+            src={img.src || ''}
+            alt={img.alt || item.title}
             fill
             className="object-cover transition-transform group-hover:scale-105"
             loading="lazy"
@@ -49,7 +50,7 @@ type CasesGridProps = {
 export default async function CasesGrid({ ids, title, subtitle, showAllLink = false }: CasesGridProps) {
   let allCases = await getCasesServer();
   const cases = ids
-    ? allCases.filter(c => ids.includes(c.slug))
+    ? allCases.filter(c => ids.includes(c.slug as string))
     : allCases;
 
   const safeSubtitle = subtitle ?? "";
@@ -62,11 +63,11 @@ export default async function CasesGrid({ ids, title, subtitle, showAllLink = fa
             <CaseCard
               key={caseDoc.slug}
               item={{
-                slug: caseDoc.slug,
-                title: caseDoc.title,
+                slug: caseDoc.slug || '',
+                title: caseDoc.title || '',
                 image: caseDoc.cover,
                 summary: caseDoc.summary ?? "",
-                metrics: caseDoc.metrics,
+                metrics: caseDoc.metrics as any,
               }}
             />
           ))}

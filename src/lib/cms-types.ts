@@ -6,12 +6,13 @@ import {
     DesignSettingsSchema, 
     NavigationSchema,
     SiteSettingsSchema,
-    HeroSlideSchema
+    HeroSlideSchema,
+    BrandSchema
 } from "./schemas";
 
 export type Media = { src: string; alt?: string; hint?: string };
 
-export type Brand = z.infer<typeof import('./schemas').BrandSchema>;
+export type Brand = z.infer<typeof BrandSchema>;
 
 export type DesignSettings = z.infer<typeof DesignSettingsSchema>;
 

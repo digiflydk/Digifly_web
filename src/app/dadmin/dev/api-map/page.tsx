@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 
 export const dynamic = 'force-dynamic';
 
-export function generateMetadata(): Metadata {
-    return metaDefaults({
+export async function generateMetadata(): Promise<Metadata> {
+    return await metaDefaults({
       title: 'CMS API Map',
       description: 'Overview of the CMS API structure and health.',
     });

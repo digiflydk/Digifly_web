@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import type { HomePage } from "@/lib/types";
+import type { HomePage, HeroSlide } from "@/lib/types";
 import { MediaImage } from "../ui/media-image";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -49,7 +49,7 @@ export default function Hero({ data }: { data: HeroData }) {
         )
     }
 
-    const currentSlide = visibleSlides[index];
+    const currentSlide = visibleSlides[index] as HeroSlide;
     if (!currentSlide) return null;
 
     return (

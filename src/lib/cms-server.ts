@@ -70,7 +70,7 @@ export async function getNavigation(): Promise<Navigation> {
     const footerData = footerSnap.exists ? footerSnap.data() : { items: [] };
 
     if (!mainSnap.exists && !footerSnap.exists) {
-        return { header: [], footer: { columns: [] }, updatedAt: Date.now() };
+        return { header: [], footer: { columns: [] }};
     }
     
     const parsedNav = NavigationSchema.safeParse({
@@ -82,10 +82,10 @@ export async function getNavigation(): Promise<Navigation> {
 
     if (!parsedNav.success) {
         console.warn("[getNavigation] Zod validation failed, returning empty nav structure.", parsedNav.error.format());
-        return { header: [], footer: { columns: [] }, updatedAt: Date.now() };
+        return { header: [], footer: { columns: [] }};
     }
     
-    return { ...parsedNav.data, updatedAt: Date.now() };
+    return parsedNav.data;
 }
 
 export async function saveNavigation(data: Navigation): Promise<void> {

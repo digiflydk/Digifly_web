@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm, useFieldArray } from "react-hook-form";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { NavigationSchema, NavItemSchema } from "@/lib/schemas";
+import { NavigationSchema, NavLinkSchema as NavItemSchema } from "@/lib/schemas";
 import { updateNavigation } from "@/lib/cms";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -77,7 +78,7 @@ export function NavigationForm({ data }: { data: any }) {
     try {
       await updateNavigation(values);
       toast({ title: "Success", description: "Navigation saved." });
-    } catch (e) {
+    } catch (e: any) {
       toast({ title: "Error", description: "Could not save navigation.", variant: "destructive" });
     } finally {
       setIsSaving(false);

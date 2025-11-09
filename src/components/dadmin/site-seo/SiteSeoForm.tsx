@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
@@ -11,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Link as LinkIcon } from "lucide-react";
+import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
 import { ZodError } from "zod";
@@ -22,7 +23,7 @@ import { SITE_DEFAULTS } from "@/lib/defaults/siteDefaults";
 async function loadSettings(): Promise<SiteSettings> {
     try {
         const result = await getSiteSettings();
-        const data = result.data;
+        const data = result;
         const parsed = SiteSettingsSchema.safeParse(data || {});
         if (!parsed.success) {
             console.error("API data failed validation:", parsed.error);
