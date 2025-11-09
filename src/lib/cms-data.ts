@@ -1,4 +1,3 @@
-
 // Central CMS seed data used by API seed route and scripts/cms-seed.ts
 
 export const designSettings = {

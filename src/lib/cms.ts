@@ -1,9 +1,9 @@
 "use server";
 
 import {
-  // generic
+  // Generic
   getPageBySlug,
-  // specific pages (optional presence)
+  // Specific getters (use if present in cms-server)
   getHomepage as _getHomepage,
   getAboutPage as _getAboutPage,
   getServicesPage as _getServicesPage,
