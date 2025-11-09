@@ -2,7 +2,7 @@
 "use client";
 import { useState } from "react";
 import { CaseSchema, type CaseDoc } from "@/lib/schemas";
-import { updateCaseById } from "@/lib/cms-api";
+import { updateCase } from "@/lib/cms-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +28,7 @@ export default function CaseEditor({ id, initial }: { id: string; initial: CaseD
     setSaving(true);
     try {
       const parsed = CaseSchema.parse(model);
-      await updateCaseById(id, parsed);
+      await updateCase(id, parsed);
       toast({ title: "Success", description: "Case study saved." });
     } catch (e: any) {
         toast({ title: "Error", description: e.message || "Could not save case study.", variant: "destructive" });
