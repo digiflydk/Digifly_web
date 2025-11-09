@@ -1,7 +1,7 @@
 
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getCaseBySlug, getCases } from "@/lib/cms-server";
+import { getCaseBySlug, getCases } from "@/lib/cms";
 import { Metadata } from "next";
 import { metaDefaults } from "@/lib/seo";
 import { CaseSchema } from "@/lib/schemas";

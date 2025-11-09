@@ -21,8 +21,8 @@ export default function NavigationPage() {
           // Optionally re-fetch or just trust the state
           setData(values);
           return true;
-        } catch (e) {
-          toast({ title: "Error", description: "Could not save navigation.", variant: "destructive" });
+        } catch (e: any) {
+          toast({ title: "Error", description: e.message || "Could not save navigation.", variant: "destructive" });
           return false;
         }
     };
