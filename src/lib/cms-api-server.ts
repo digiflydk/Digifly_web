@@ -1,28 +1,48 @@
-import { headers } from "next/headers";
+
+// src/lib/cms-api-server.ts
+import { headers as nextHeaders } from "next/headers";
 
 /**
- * Safely reads headers in Next 15+.
- * The `headers()` function is synchronous and returns a ReadonlyHeaders instance.
+ * Returns request-related meta derived from headers.
+ * Marked async to support environments where nextHeaders() is typed/treated as async.
  */
-export function readRequestHeaders() {
-  const h = headers(); // sync ReadonlyHeaders
+export async function getRequestMeta() {
+  const h = await (nextHeaders as unknown as () => Promise<Readonly<Headers>>());
 
-  const origin =
-    h.get("origin") ??
-    `${(h.get("x-forwarded-proto") ?? "https")}://${h.get("x-forwarded-host") ?? h.get("host") ?? ""}`;
+  const protocol =
+    h.get("x-forwarded-proto") ??
+    h.get("x-forwarded-protocol") ??
+    "https";
 
-  const authorization = h.get("authorization") ?? h.get("Authorization") ?? "";
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
-  const proto = h.get("x-forwarded-proto") ?? (origin.startsWith("https") ? "https" : "http");
+  const host =
+    h.get("x-forwarded-host") ??
+    h.get("host") ??
+    "";
 
-  return { origin, authorization, host, proto };
+  const origin = host ? `${protocol}://${host}` : undefined;
+
+  const referer = h.get("referer") ?? undefined;
+
+  return { protocol, host, origin, referer, headers: h };
+}
+
+/**
+ * Example: read a bearer token from headers safely
+ */
+export async function getAuthBearer() {
+  const { headers } = await getRequestMeta();
+  const auth = headers.get("authorization") ?? headers.get("Authorization");
+  if (!auth) return undefined;
+  const [scheme, token] = auth.split(" ");
+  if (scheme?.toLowerCase() !== "bearer" || !token) return undefined;
+  return token;
 }
 
 /**
  * Build the current base URL dynamically from request headers.
  */
-export function getBaseUrl() {
-  const { host, proto } = readRequestHeaders();
+export async function getBaseUrl() {
+  const { host, protocol } = await getRequestMeta();
   if (!host) return "";
-  return `${proto}://${host}`;
+  return `${protocol}://${host}`;
 }
