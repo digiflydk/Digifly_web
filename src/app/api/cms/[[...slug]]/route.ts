@@ -10,8 +10,11 @@ export const revalidate = 0;
 const json = (data: any, status = 200) =>
   NextResponse.json(data, { status, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/json' } });
 
-export async function GET(req: NextRequest, { params }: { params: { slug?: string[] } }) {
-  const path = (params.slug ?? []).join('/');
+type RouteCtx = { params: Promise<{ slug?: string[] }> };
+
+export async function GET(req: NextRequest, { params }: RouteCtx) {
+  const { slug } = await params;
+  const path = (slug ?? []).join('/');
 
   if (path === 'site') {
       return json({ ok: false, error: 'HANDLED_BY_SPECIFIC_ROUTE' }, 404);
@@ -29,8 +32,9 @@ export async function GET(req: NextRequest, { params }: { params: { slug?: strin
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { slug?: string[] } }) {
-    const path = (params.slug ?? []).join('/');
+export async function POST(req: NextRequest, { params }: RouteCtx) {
+    const { slug } = await params;
+    const path = (slug ?? []).join('/');
     if (path === 'site') {
       return json({ ok: false, error: 'HANDLED_BY_SPECIFIC_ROUTE' }, 404);
     }
