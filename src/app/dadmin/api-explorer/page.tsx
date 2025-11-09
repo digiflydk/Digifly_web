@@ -1,7 +1,7 @@
 
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
-import { EndpointRunner } from "./components/EndpointRunner";
+import EndpointRunner from "./components/EndpointRunner";
 
 export const dynamic = 'force-dynamic';
 
