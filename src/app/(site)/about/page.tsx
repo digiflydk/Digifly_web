@@ -2,7 +2,7 @@ import { getAboutPage } from "@/lib/cms";
 import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { RichText } from "@/components/ui/rich-text";
-import { metaDefaults } from "@/lib/seo";
+import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
 import { AboutPageSchema } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const rawPage = await getAboutPage();
   const page = AboutPageSchema.parse(rawPage || {});
   
-  return metaDefaults({
+  return buildSeo({
     title: safeStr(page.seo?.title, page.title),
     description: safeStr(page.seo?.description, page.subtitle),
   });

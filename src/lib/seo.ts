@@ -1,99 +1,57 @@
+import type { Metadata } from "next";
 
-import { Metadata } from "next";
-import { getSiteSettings } from "./cms-server";
-import { SITE_DEFAULTS } from "./defaults/siteDefaults";
-import { SiteSettings } from "./types";
+type TitleObject = { default: string; template?: string };
+type TitleInput = string | TitleObject | null | undefined;
 
-function ogImageForPage(
-  pageImage: string | undefined | null,
-  site: SiteSettings
-): string {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  const siteOg = site.defaultSeo?.defaultThumbnailUrl;
+/**
+ * Convert various title inputs into something Next Metadata accepts:
+ * - string
+ * - { default, template? }
+ * - null/undefined -> undefined in Metadata
+ */
+export function toTitle(value: TitleInput): TitleObject | string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string") return value;
 
-  const url = pageImage || siteOg || '/og-default.jpg';
-  
-  if (url.startsWith('/')) {
-    return `${baseUrl}${url}`;
-  }
-  return url;
-}
-
-
-export async function buildSiteMetadata(): Promise<Metadata> {
-  const s = await getSiteSettings();
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  
-  const ogImageUrl = ogImageForPage(undefined, s);
-
-  return {
-    metadataBase: new URL(baseUrl),
-    title: {
-      default: s.siteTitle,
-      template: `%s | ${s.siteTitle}`,
-    },
-    description: s.defaultSeo?.description || s.social?.tagline,
-    openGraph: {
-      title: s.siteTitle,
-      description: s.defaultSeo?.description || s.social?.tagline,
-      url: baseUrl,
-      siteName: s.siteTitle,
-      images: [ogImageUrl],
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: s.siteTitle,
-      description: s.defaultSeo?.description || s.social?.tagline,
-      images: [ogImageUrl],
-    },
-    alternates: {
-      canonical: baseUrl,
-    },
-    icons: { icon: [{ url: s.brand?.favicon?.src || '/favicon.ico' }] },
-    manifest: '/manifest.webmanifest',
+  // Ensure at least a default exists, even if caller passed only template
+  const out: TitleObject = {
+    default: value.default ?? "",
   };
+  if (value.template) out.template = value.template;
+  return out;
 }
 
-type TitleInput = string | { default: string; template?: string };
-
-export async function metaDefaults({
-  title,
-  description,
-  image,
-}: {
+/**
+ * Build a valid Metadata object.
+ */
+export function buildSeo(opts: {
   title?: TitleInput;
-  description?: string;
-  image?: string;
-}): Promise<Metadata> {
-  const baseMeta = await buildSiteMetadata();
-  const siteSettings = await getSiteSettings();
-  
-  const pageTitleObj: Metadata["title"] =
-    typeof title === "string" 
-      ? title 
-      : title 
-        ? { default: title.default, template: title.template ?? `%s | ${siteSettings.siteTitle}` } 
-        : baseMeta.title;
+  description?: string | null;
+  images?: string[] | string;
+  canonical?: string | null;
+}): Metadata {
+  const ogImages = Array.isArray(opts.images)
+    ? opts.images
+    : opts.images
+    ? [opts.images]
+    : undefined;
 
-  const pageDesc = description ?? baseMeta.description as string;
-  const ogImageUrl = ogImageForPage(image, siteSettings);
-  
-  return {
-    ...baseMeta,
-    title: pageTitleObj,
-    description: pageDesc,
+  const m: Metadata = {
+    title: toTitle(opts.title) as any,
+    description: opts.description ?? undefined,
+    alternates: opts.canonical ? { canonical: opts.canonical } : undefined,
     openGraph: {
-      ...baseMeta.openGraph,
-      title: pageTitleObj || baseMeta.openGraph?.title,
-      description: pageDesc,
-      images: [ogImageUrl],
+      title: (opts.title as any) ?? undefined,
+      description: opts.description ?? undefined,
+      images: ogImages,
     },
     twitter: {
-        ...baseMeta.twitter,
-        title: pageTitleObj || baseMeta.twitter?.title,
-        description: pageDesc,
-        images: [ogImageUrl],
-    }
+      card: "summary_large_image",
+      title: (opts.title as any) ?? undefined,
+      description: opts.description ?? undefined,
+      images: ogImages,
+    },
   };
+
+  return m;
 }

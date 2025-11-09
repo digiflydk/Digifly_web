@@ -4,7 +4,7 @@ import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
-import { metaDefaults } from "@/lib/seo";
+import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
 import { ServicesPageSchema } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const rawPage = await getServicesPage();
   const page = ServicesPageSchema.parse(rawPage || {});
   
-  return metaDefaults({
+  return buildSeo({
     title: safeStr(page.seo?.title, page.title),
     description: safeStr(page.seo?.description, page.subtitle),
   });

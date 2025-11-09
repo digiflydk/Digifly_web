@@ -4,7 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getCaseBySlug, getCases } from "@/lib/cms";
 import { Metadata } from "next";
-import { metaDefaults } from "@/lib/seo";
+import { buildSeo } from "@/lib/seo";
 import { CaseSchema } from "@/lib/schemas";
 
 export async function generateStaticParams() {
@@ -17,14 +17,14 @@ type Params = Promise<{ slug: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
     const { slug } = await params;
     const item = await getCaseBySlug(slug);
-    if (!item || !item.published) return metaDefaults({ title: 'Not Found' });
+    if (!item || !item.published) return buildSeo({ title: 'Not Found' });
 
     const parsed = CaseSchema.parse(item);
 
-    return metaDefaults({
+    return buildSeo({
       title: parsed.seo?.title || parsed.title,
       description: parsed.seo?.description || parsed.excerpt,
-      image: parsed.cover?.src
+      images: parsed.cover?.src
     });
 }
 

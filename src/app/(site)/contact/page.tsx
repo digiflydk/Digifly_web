@@ -2,7 +2,7 @@ import { getContactPage } from "@/lib/cms";
 import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { ContactForm } from "@/components/sections/contact-form";
-import { metaDefaults } from "@/lib/seo";
+import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
 import { ContactPageSchema } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const rawPage = await getContactPage();
   const page = ContactPageSchema.parse(rawPage || {});
 
-  return metaDefaults({
+  return buildSeo({
     title: safeStr(page.seo?.title, page.title),
     description: safeStr(page.seo?.description, page.subtitle),
   });

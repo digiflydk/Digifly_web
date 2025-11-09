@@ -1,5 +1,5 @@
 
-import { metaDefaults } from "@/lib/seo";
+import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
 import { getCaseCount, getPageCount, getNavigationMenuCount } from "@/lib/cms-server";
 import { StatCard } from "./_components/StatCard";
@@ -7,7 +7,7 @@ import { StatCard } from "./_components/StatCard";
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-    return await metaDefaults({
+    return await buildSeo({
       title: 'CMS Dashboard',
       description: 'Manage site content.',
     });

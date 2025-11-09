@@ -1,11 +1,11 @@
 import { DocsList } from "@/components/docs/DocsList";
-import { metaDefaults } from "@/lib/seo";
+import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return await metaDefaults({
+  return await buildSeo({
     title: 'Documentation',
     description: 'Project documentation and technical files.',
   });

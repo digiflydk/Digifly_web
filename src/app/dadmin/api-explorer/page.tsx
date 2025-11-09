@@ -1,10 +1,10 @@
 
 import type { Metadata } from "next";
 import EndpointRunner from "./components/EndpointRunner";
-import { metaDefaults } from "@/lib/seo";
+import { buildSeo } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return await metaDefaults({
+  return await buildSeo({
     title: "API Explorer",
     description: "Run live queries against the CMS API.",
   });

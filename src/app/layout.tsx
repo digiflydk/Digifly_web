@@ -1,15 +1,23 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
 import { getSiteSettings } from "@/lib/cms-server";
-import { buildSiteMetadata } from '@/lib/seo';
+import { buildSeo } from '@/lib/seo';
 import { SITE_DEFAULTS } from '@/lib/defaults/siteDefaults';
 
 export async function generateMetadata(): Promise<Metadata> {
-  // buildSiteMetadata is now null-safe thanks to getSiteSettings' resilience
-  return await buildSiteMetadata();
+  // buildSeo is now null-safe thanks to getSiteSettings' resilience
+  const site = await getSiteSettings();
+  return buildSeo({
+    title: {
+      default: site.siteTitle || SITE_DEFAULTS.siteTitle,
+      template: `%s | ${site.siteTitle || SITE_DEFAULTS.siteTitle}`
+    },
+    description: site.defaultSeo?.description || SITE_DEFAULTS.defaultSeo.description
+  });
 }
 
 

@@ -6,11 +6,10 @@ import ServicesOverview from '@/components/sections/services-overview';
 import CasesGrid from '@/components/sections/cases-grid';
 import CtaBanner from '@/components/sections/cta-banner';
 import IntroWhyHowWhat from '@/components/sections/intro-why-how-what';
-import { metaDefaults } from '@/lib/seo';
+import { buildSeo } from '@/lib/seo';
 import type { Metadata } from 'next';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
-import type { ZodIssue } from 'zod';
 import type { HomePage } from '@/lib/schemas';
 
 
@@ -24,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const seoTitle = page?.seo?.title ? page.seo.title : site.siteTitle;
     const seoDesc = page?.seo?.description ? page.seo.description : site.defaultSeo?.description;
     
-    return metaDefaults({
+    return buildSeo({
       title: seoTitle,
       description: seoDesc,
     });
