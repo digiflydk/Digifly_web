@@ -1,23 +1,19 @@
-
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResultPanel } from "./ResultPanel";
+import { ENDPOINTS } from "../endpoints";
 import type { Endpoint } from "../endpoints";
 
-type Props = {
-  endpoints: readonly Endpoint[];
-};
-
-export default function EndpointRunner({ endpoints }: Props) {
-  const [selectedKey, setSelectedKey] = useState(`${endpoints[0].method} ${endpoints[0].path}`);
+export default function EndpointRunner() {
+  const [selectedKey, setSelectedKey] = useState(`${ENDPOINTS[0].method} ${ENDPOINTS[0].path}`);
   const [paramValues, setParamValues] = useState<Record<string, string>>({});
   const [bodyJson, setBodyJson] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [lastResponse, setLastResponse] = useState<any>(null);
 
-  const selectedEndpoint = endpoints.find(e => `${e.method} ${e.path}` === selectedKey) || endpoints[0];
+  const selectedEndpoint = ENDPOINTS.find(e => `${e.method} ${e.path}` === selectedKey) || ENDPOINTS[0];
 
   useEffect(() => {
     setParamValues({});
@@ -76,7 +72,7 @@ export default function EndpointRunner({ endpoints }: Props) {
               <SelectValue placeholder="Select an endpoint..." />
             </SelectTrigger>
             <SelectContent>
-              {endpoints.map((ep) => {
+              {ENDPOINTS.map((ep) => {
                 const key = `${ep.method} ${ep.path}`;
                 return (
                   <SelectItem key={key} value={key}>

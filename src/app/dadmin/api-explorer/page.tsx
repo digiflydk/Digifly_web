@@ -1,8 +1,7 @@
 
+import EndpointRunner from "./components/EndpointRunner";
 import { metaDefaults } from "@/lib/seo";
 import type { Metadata } from 'next';
-import EndpointRunner from "./components/EndpointRunner";
-import { ENDPOINTS } from "./endpoints";
 
 export const dynamic = 'force-dynamic';
 
@@ -14,5 +13,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function ApiExplorerPage() {
-    return <EndpointRunner endpoints={ENDPOINTS} />;
+    return <EndpointRunner />;
 }
