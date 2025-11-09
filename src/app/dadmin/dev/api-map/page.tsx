@@ -1,9 +1,7 @@
-
-import { CMSApiMapHealth } from '@/components/cms/CMSApiMapHealth';
+import CMSApiMapHealth from '@/components/cms/CMSApiMapHealth';
 import { metaDefaults } from '@/lib/seo';
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { CMS_API_MAP } from '@/lib/cms-map';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,15 +12,27 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 }
 
+function flattenApiMap() {
+    const flattened: (string | { path: string; methods: string[] })[] = [];
+    for (const key in CMS_API_MAP) {
+        const topLevel = CMS_API_MAP[key as keyof typeof CMS_API_MAP];
+        if ('route' in topLevel) {
+            flattened.push({ path: topLevel.route, methods: Object.keys(topLevel.methods) });
+        } else {
+            for (const subKey in topLevel) {
+                const subLevel = topLevel[subKey];
+                flattened.push({ path: subLevel.route, methods: Object.keys(subLevel.methods) });
+            }
+        }
+    }
+    return flattened;
+}
+
 export default function ApiMapPage() {
+    const apiItems = flattenApiMap();
     return (
         <div className="space-y-4">
-             <div className="flex gap-2">
-                <Button variant="outline" asChild>
-                    <Link href="/api/cms/pages/home?debug=1" target="_blank">View Home JSON (debug)</Link>
-                </Button>
-            </div>
-            <CMSApiMapHealth />
+            <CMSApiMapHealth items={apiItems} />
         </div>
     );
 }

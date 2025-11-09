@@ -1,9 +1,7 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
-import { siteConfig } from '@/config/site';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
 import { getSiteSettings } from "@/lib/cms-server";
 import { buildSiteMetadata } from '@/lib/seo';
@@ -45,7 +43,7 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body className="font-body antialiased text-[var(--color-graphite)] bg-white overflow-x-hidden">
-        <DesignTokensClient />
+        <DesignTokensClient settings={site} />
         {children}
         <Toaster />
       </body>

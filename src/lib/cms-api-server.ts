@@ -1,4 +1,3 @@
-
 import { headers } from "next/headers";
 
 function getServerBaseUrl(): string {
@@ -8,8 +7,8 @@ function getServerBaseUrl(): string {
   return host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL ?? "");
 }
 
-export async function getOriginAndAuth() {
-  const h = await headers();
+export function getOriginAndAuth() {
+  const h = headers();
   const origin = h.get("origin") ?? "";
   const auth = h.get("authorization") ?? h.get("Authorization") ?? "";
   return { origin, auth };

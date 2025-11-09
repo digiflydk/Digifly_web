@@ -1,4 +1,3 @@
-
 import { Metadata, TemplateString } from "next";
 import { getSiteSettings } from "./cms-server";
 import { SITE_DEFAULTS } from "./defaults/siteDefaults";

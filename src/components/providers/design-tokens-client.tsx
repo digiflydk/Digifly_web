@@ -2,20 +2,25 @@
 import { useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase-client";
-import { tokensFromSettings, applyTokens } from "@/lib/design-tokens";
-import type { DesignSettings } from "@/lib/types";
+import { tokensFromSettings } from "@/lib/design-tokens";
+import type { SiteSettings } from "@/lib/schemas";
+import { applyTokens } from "@/lib/design-tokens";
 
-export default function DesignTokensClient(){
+export default function DesignTokensClient({ settings }: { settings: SiteSettings }){
   useEffect(()=>{
-    const ref = doc(db,"settings","design");
+    if (settings) {
+        const vars = tokensFromSettings(settings);
+        applyTokens(vars);
+    }
+    const ref = doc(db,"site","settings");
     const unsub = onSnapshot(ref,(snap)=>{
-      const data = snap.data() as DesignSettings | undefined;
+      const data = snap.data() as SiteSettings | undefined;
       if(data){
         const vars = tokensFromSettings(data);
         applyTokens(vars);
       }
     });
     return ()=>unsub();
-  },[]);
+  },[settings]);
   return null;
 }

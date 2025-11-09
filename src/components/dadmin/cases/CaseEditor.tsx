@@ -16,11 +16,12 @@ export default function CaseEditor({ id, initial }: { id: string; initial: CaseD
     initial ?? {
       title: "",
       slug: "",
-      status: "draft",
+      published: false,
+      status: "draft" as const,
       excerpt: "",
       cover: { src: "", alt: "" },
-      content: { body: [] },
-      meta: { tags: [] },
+      content: { body: [] as any[] },
+      meta: { tags: [] as string[] },
     }
   );
   const [saving, setSaving] = useState(false);
