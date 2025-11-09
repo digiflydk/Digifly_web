@@ -6,11 +6,14 @@ import { Terminal } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
-export default async function Page({ params }: { params: { id: string } }) {
+type PageCtx = { params: Promise<{ id: string }> };
+
+export default async function Page({ params }: PageCtx) {
+  const { id } = await params;
   let initial: any = null;
   let error: string | null = null;
   try {
-    const data = await getCaseById(params.id);
+    const data = await getCaseById(id);
     initial = data;
   } catch(e: any) {
     error = e.message || "Failed to load case data.";
@@ -26,5 +29,5 @@ export default async function Page({ params }: { params: { id: string } }) {
     );
   }
 
-  return <CaseEditor id={params.id} initial={initial} />;
+  return <CaseEditor id={id} initial={initial} />;
 }
