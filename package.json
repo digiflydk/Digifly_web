@@ -1,7 +1,7 @@
 
 {
   "name": "nextn",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 9002",
@@ -9,7 +9,7 @@
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "prebuild:guard": "grep -R \"<Button\\s\\+.*href=\" -n src && echo 'Do not use href on Button' && exit 1 || exit 0",
     "prebuild": "node -e \"console.log('prebuild ok')\"",
-    "build": "npm run prebuild:guard && npm run cms:seed && next build",
+    "build": "npm run prebuild:guard && npm run cms:seed && npm run typecheck && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

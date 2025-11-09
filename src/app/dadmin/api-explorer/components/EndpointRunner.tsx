@@ -1,133 +1,164 @@
+
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ResultPanel } from "./ResultPanel";
-import { ENDPOINTS } from "../endpoints";
+import { useEffect, useMemo, useState } from "react";
 import type { Endpoint } from "../endpoints";
+import { ENDPOINTS } from "../endpoints";
 
-export default function EndpointRunner() {
-  const [selectedKey, setSelectedKey] = useState(`${ENDPOINTS[0].method} ${ENDPOINTS[0].path}`);
+type Props = {
+  // Optional: allow passing a starting selection, but not required
+  selectedLabel?: string;
+};
+
+type LastResponse = {
+  ok: boolean;
+  status: number;
+  ms: number;
+  bodyText: string;
+};
+
+export default function EndpointRunner({ selectedLabel }: Props) {
+  const [selectedKey, setSelectedKey] = useState<string>(() => selectedLabel ?? ENDPOINTS[0]?.label ?? "");
+  const selectedEndpoint: Endpoint = useMemo(
+    () => ENDPOINTS.find(e => e.label === selectedKey) ?? ENDPOINTS[0],
+    [selectedKey]
+  );
+
   const [paramValues, setParamValues] = useState<Record<string, string>>({});
-  const [bodyJson, setBodyJson] = useState<string>("");
-  const [loading, setLoading] = useState(false);
-  const [lastResponse, setLastResponse] = useState<any>(null);
-
-  const selectedEndpoint = ENDPOINTS.find(e => `${e.method} ${e.path}` === selectedKey) || ENDPOINTS[0];
+  const [bodyJson, setBodyJson] = useState<string>("{}");
+  const [lastResponse, setLastResponse] = useState<LastResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setParamValues({});
-    setBodyJson(selectedEndpoint.sampleBody ? JSON.stringify(selectedEndpoint.sampleBody, null, 2) : "{}");
+    const hasSample = Object.prototype.hasOwnProperty.call(selectedEndpoint, "sampleBody")
+      && (selectedEndpoint as any).sampleBody !== undefined;
+    const initialBody = hasSample
+      ? JSON.stringify((selectedEndpoint as any).sampleBody, null, 2)
+      : "{}";
+    setBodyJson(initialBody);
     setLastResponse(null);
   }, [selectedKey, selectedEndpoint]);
 
-  const run = async () => {
-    setLoading(true);
+  const handleRun = async () => {
+    setIsLoading(true);
     try {
-      let resolvedPath: string = selectedEndpoint.path;
-      for (const param of selectedEndpoint.params) {
-        const v = paramValues[param] ?? "";
-        resolvedPath = resolvedPath.replace(`{${param}}`, encodeURIComponent(v));
+      // Build path with param replacement
+      let path = selectedEndpoint.path;
+      for (const p of selectedEndpoint.params) {
+        const val = (paramValues[p] ?? "").trim();
+        path = path.replace(`{${p}}`, encodeURIComponent(val));
       }
 
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      const init: RequestInit = { method: selectedEndpoint.method, headers };
-
-      if ((selectedEndpoint.method === "POST" || selectedEndpoint.method === "PUT")) {
-        const parsedBody = bodyJson?.trim() ? JSON.parse(bodyJson) : {};
-        init.body = JSON.stringify(parsedBody);
-      }
-      
-      const t0 = performance.now();
-      const res = await fetch(resolvedPath, init);
-      const t1 = performance.now();
-
-      let body: any = null;
-      let isJson = false;
-      const ct = res.headers.get("content-type") || "";
-      
-      if (ct.includes("application/json")) {
-        body = await res.json();
-        isJson = true;
-      } else {
-        body = await res.text();
+      const init: RequestInit = { method: selectedEndpoint.method };
+      if (selectedEndpoint.method === "POST" || selectedEndpoint.method === "PUT") {
+        init.headers = { "Content-Type": "application/json" };
+        init.body = bodyJson;
       }
 
-      const payload = { ok: res.ok, status: res.status, duration: t1 - t0, body, isJson };
-      setLastResponse(payload);
+      const start = performance.now();
+      const res = await fetch(path, init);
+      const ms = Math.round(performance.now() - start);
+      const text = await res.text();
+
+      setLastResponse({
+        ok: res.ok,
+        status: res.status,
+        ms,
+        bodyText: text,
+      });
     } catch (err: any) {
-      const payload = { ok: false, status: 0, duration: 0, body: { error: String(err?.message || err) }, isJson: true };
-      setLastResponse(payload);
+      setLastResponse({
+        ok: false,
+        status: 0,
+        ms: 0,
+        bodyText: String(err?.message ?? err),
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
+  function pretty(text: string) {
+    try {
+      return JSON.stringify(JSON.parse(text), null, 2);
+    } catch {
+      return text;
+    }
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border shadow-sm">
-        <div className="p-4 border-b">
-          <Select value={selectedKey} onValueChange={setSelectedKey}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select an endpoint..." />
-            </SelectTrigger>
-            <SelectContent>
-              {ENDPOINTS.map((ep) => {
-                const key = `${ep.method} ${ep.path}`;
-                return (
-                  <SelectItem key={key} value={key}>
-                    <span className="font-semibold mr-2">{ep.method}</span>
-                    <span className="font-mono text-sm">{ep.path}</span>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="space-y-6">
+      {/* Endpoint selector */}
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">Endpoint</label>
+        <select
+          className="rounded-xl border px-3 py-2"
+          value={selectedKey}
+          onChange={(e) => setSelectedKey(e.target.value)}
+        >
+          {ENDPOINTS.map((e) => (
+            <option key={e.label} value={e.label}>
+              {e.method} — {e.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-        <div className="p-4 space-y-4">
-          {selectedEndpoint.params.length > 0 && (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {selectedEndpoint.params.map((p) => (
-                <label key={p} className="text-sm">
-                  <span className="block mb-1 font-medium text-slate-700">Param: {p}</span>
-                  <input
-                    className="w-full rounded border px-3 py-2"
-                    placeholder={`Value for {${p}}`}
-                    value={paramValues[p] ?? ""}
-                    onChange={(e) => setParamValues(prev => ({...prev, [p]: e.target.value}))}
-                  />
-                </label>
-              ))}
-            </div>
-          )}
-
-          {(selectedEndpoint.method === 'POST' || selectedEndpoint.method === 'PUT') && (
-            <div>
-              <label className="text-sm block mb-1 font-medium text-slate-700">Request body (JSON)</label>
-              <textarea
-                className="w-full rounded border px-3 py-2 font-mono text-xs leading-5 bg-slate-50"
-                rows={8}
-                value={bodyJson}
-                onChange={(e) => setBodyJson(e.target.value)}
-                placeholder='{"title":"Example"}'
+      {/* Params */}
+      {selectedEndpoint.params.length > 0 && (
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Params</label>
+          <div className="grid md:grid-cols-2 gap-2">
+            {selectedEndpoint.params.map((p) => (
+              <input
+                key={p}
+                className="rounded-xl border px-3 py-2"
+                placeholder={`${p}`}
+                value={paramValues[p] ?? ""}
+                onChange={(e) =>
+                  setParamValues((prev) => ({ ...prev, [p]: e.target.value }))
+                }
               />
-            </div>
-          )}
-
-          <div>
-            <button
-              disabled={loading}
-              onClick={run}
-              className="rounded-lg border bg-slate-100 px-4 py-2 text-sm font-semibold shadow-sm hover:bg-slate-200 disabled:opacity-50"
-            >
-              {loading ? "Running..." : "Run Endpoint"}
-            </button>
+            ))}
           </div>
         </div>
-        
-        <ResultPanel result={lastResponse} isLoading={loading} />
-      </div>
+      )}
+
+      {/* Body */}
+      {(selectedEndpoint.method === "POST" || selectedEndpoint.method === "PUT") && (
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Body (JSON)</label>
+          <textarea
+            className="rounded-xl border px-3 py-2 font-mono text-sm min-h-[180px]"
+            value={bodyJson}
+            onChange={(e) => setBodyJson(e.target.value)}
+          />
+        </div>
+      )}
+
+      <button
+        onClick={handleRun}
+        disabled={isLoading}
+        className="rounded-2xl bg-black text-white px-4 py-2"
+      >
+        {isLoading ? "Running…" : "Run"}
+      </button>
+
+      {/* Result */}
+      {lastResponse && (
+        <div className="grid gap-2">
+          <div className="text-sm">
+            <span className={`font-medium ${lastResponse.ok ? "text-green-600" : "text-red-600"}`}>
+              {lastResponse.ok ? "OK" : "ERROR"}
+            </span>{" "}
+            • {lastResponse.status} • {lastResponse.ms}ms
+          </div>
+          <pre className="rounded-xl border p-3 overflow-auto text-sm">
+            {pretty(lastResponse.bodyText)}
+          </pre>
+        </div>
+      )}
     </div>
   );
 }
