@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { HomepageForm } from "@/components/cms/forms/HomepageForm";
-import { getHomepage as getHomepageClient } from "@/lib/cms-client";
+import { getHomePage as getHomepageClient } from "@/lib/cms-client";
 import type { HomePage } from "@/lib/schemas";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

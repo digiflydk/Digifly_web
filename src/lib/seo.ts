@@ -1,4 +1,5 @@
-import { Metadata, TemplateString } from "next";
+
+import { Metadata, type TemplateString } from "next";
 import { getSiteSettings } from "./cms-server";
 import { SITE_DEFAULTS } from "./defaults/siteDefaults";
 import { SiteSettings } from "./types";
@@ -69,7 +70,7 @@ export async function metaDefaults({
   const siteSettings = await getSiteSettings();
   
   const pageTitleObj: Metadata["title"] =
-    typeof title === "string" ? title : title ? { default: title.default, template: title.template ?? '%s' } as TemplateString : baseMeta.title;
+    typeof title === "string" ? title : title ? { default: title.default, template: title.template ?? '%s | Digifly' } : baseMeta.title;
 
   const pageDesc = description ?? baseMeta.description as string;
   const ogImageUrl = ogImageForPage(image, siteSettings);

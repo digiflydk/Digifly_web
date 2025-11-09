@@ -1,3 +1,4 @@
+
 import CMSApiMapHealth from '@/components/cms/CMSApiMapHealth';
 import { metaDefaults } from '@/lib/seo';
 import type { Metadata } from 'next';
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 function flattenApiMap() {
-    const flattened: (string | { path: string; methods: string[] })[] = [];
+    const flattened: ({ path: string; methods: string[] })[] = [];
     for (const key in CMS_API_MAP) {
         const topLevel = CMS_API_MAP[key as keyof typeof CMS_API_MAP];
         if ('route' in topLevel) {
