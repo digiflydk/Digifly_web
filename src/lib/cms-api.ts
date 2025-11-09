@@ -1,3 +1,4 @@
+
 // This file acts as a server-only facade for CMS server functions.
 // We use explicit async forwarding functions instead of a direct re-export barrel
 // to ensure this module only exports async functions, complying with Next.js 15's
@@ -51,3 +52,6 @@ export async function updateCase(...args: Parameters<typeof _updateCase>) {
 export async function deleteCase(...args: Parameters<typeof _deleteCase>) {
   return _deleteCase(...args);
 }
+
+// Compatibility aliases to prevent build warnings from stray imports
+export { _updateCase as updateCaseById };

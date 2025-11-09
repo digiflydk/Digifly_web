@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getCaseBySlug, getCases } from "@/lib/cms-server";
@@ -23,8 +24,11 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     });
 }
 
-export default async function CaseDetailPage({ params }: { params: { slug: string } }) {
-  const item = await getCaseBySlug(params.slug);
+type Params = Promise<{ slug: string }>;
+
+export default async function CaseDetailPage({ params }: { params: Params }) {
+  const { slug } = await params;
+  const item = await getCaseBySlug(slug);
   if (!item || item.published === false) return notFound();
 
   const parsed = CaseSchema.parse(item);
