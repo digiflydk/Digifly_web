@@ -1,6 +1,3 @@
-
-"use server";
-
 import { getHomepage, updateHomepage } from "@/lib/cms-server";
 import { NextResponse, NextRequest } from "next/server";
 import { ZodError } from "zod";
