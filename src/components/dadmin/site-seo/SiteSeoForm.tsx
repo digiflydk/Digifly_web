@@ -1,6 +1,7 @@
 
 "use client";
 
+import React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -20,39 +21,39 @@ import GeneralTab from "./GeneralTab";
 import ContactTab from "./ContactTab";
 import OpeningHoursTab from "./OpeningHoursTab";
 import SeoTab from "./SeoTab";
-import { SeoPreviewCard } from "@/components/cms/forms/SeoPreviewCard";
-
+import { LiveSeoPreview } from "@/components/cms/forms/SeoPreviewCard";
+import { withSeoDefaults } from "@/lib/seo-defaults";
 
 async function loadSettings(): Promise<SiteSettings> {
     try {
         const data = await getSiteSettings();
-        // Use safeParse to handle potentially incomplete/invalid data from Firestore
         const parsed = SiteSettingsSchema.safeParse(data || {});
         if (!parsed.success) {
             console.warn("loadSettings: API data failed validation, falling back to defaults.", parsed.error.format());
-            // Return a fully-formed default object on failure
             return SiteSettingsSchema.parse({});
         }
         return parsed.data;
     } catch (e: any) {
         console.error(`loadSettings: API call failed or data is critically malformed. Error: ${e.message}`);
-        // In case of total failure, still return a valid default shape
         return SiteSettingsSchema.parse({});
     }
 }
 
+function WatchedSeoPreview({ control, siteUrl, initialDescription }: { control: any, siteUrl: string, initialDescription?: string | null }) {
+    const seoWatch = useWatch({ control, name: "seo" });
+    const siteTitleWatch = useWatch({ control, name: "general.title" });
 
-function LiveSeoPreview({ control, siteUrl }: { control: any, siteUrl: string }) {
-    const formData = useWatch({ control });
-    const { seo, general } = formData ?? {};
+    const seoForPreview = withSeoDefaults(seoWatch);
 
-    const title = general?.title || SITE_DEFAULTS.general.title;
-    const description = seo?.defaultDescription || SITE_DEFAULTS.seo.defaultDescription;
-    const imageUrl = seo?.ogImage || '/og-default.png';
-    
-    return <SeoPreviewCard title={title} description={description} imageUrl={imageUrl} siteUrl={siteUrl} />;
+    return (
+        <LiveSeoPreview
+            seo={seoForPreview}
+            fallbackTitle={siteTitleWatch || "Site"}
+            fallbackDescription={initialDescription || ""}
+            siteUrl={siteUrl}
+        />
+    );
 }
-
 
 export default function SiteSeoForm() {
   const [initialData, setInitialData] = useState<SiteSettings | null>(null);
@@ -63,18 +64,23 @@ export default function SiteSeoForm() {
       .then(data => setInitialData(data))
       .catch(err => {
         setError(err.message);
-        setInitialData(SiteSettingsSchema.parse({})); // Fallback to default on error
+        setInitialData(SiteSettingsSchema.parse({})); 
       })
   }, []);
 
   const form = useForm<SiteSettings>({
     resolver: zodResolver(SiteSettingsSchema),
     defaultValues: SITE_DEFAULTS,
+    mode: 'onChange',
   });
 
   useEffect(() => {
     if (initialData) {
-        form.reset(initialData);
+        const safeData = {
+            ...initialData,
+            seo: withSeoDefaults(initialData.seo)
+        }
+        form.reset(safeData);
     }
   }, [initialData, form]);
 
@@ -88,7 +94,7 @@ export default function SiteSeoForm() {
             throw new Error("An unknown error occurred during save.");
         }
         toast({ title: "✅ Success", description: "Site settings saved." });
-        form.reset(values); // Re-sync form state to saved values
+        form.reset(values); 
     } catch (e: any) {
         if (e instanceof ZodError) {
              toast({ title: "Validation Error", description: "Please check the form for errors.", variant: "destructive" });
@@ -147,7 +153,11 @@ export default function SiteSeoForm() {
              <div className="md:col-span-1 md:sticky top-24">
                 <h3 className="text-lg font-semibold mb-2">Live SEO Preview</h3>
                 <p className="text-sm text-slate-500 mb-4">This is how your site will generally appear on Google and social media.</p>
-                <LiveSeoPreview control={form.control} siteUrl={process.env.NEXT_PUBLIC_SITE_URL || "digifly.app"}/>
+                <WatchedSeoPreview 
+                    control={form.control} 
+                    siteUrl={process.env.NEXT_PUBLIC_SITE_URL || "digifly.app"}
+                    initialDescription={initialData.seo?.defaultDescription}
+                />
             </div>
         </div>
 

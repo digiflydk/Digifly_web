@@ -1,38 +1,49 @@
 
 "use client";
-import { safeStr } from "@/lib/safe";
-import Image from "next/image";
+import React from "react";
+import { withSeoDefaults } from "@/lib/seo-defaults";
 
-type SeoPreviewCardProps = {
-  title?: string | null;
-  description?: string | null;
-  imageUrl?: string | null;
-  siteUrl?: string | null;
+type Props = {
+  seo?: {
+    title?: string;
+    description?: string;
+    ogImage?: { src: string; alt?: string } | null;
+    twitterCard?: "summary" | "summary_large_image";
+  } | null;
+  fallbackTitle?: string;        // optional: siteTitle or brand name
+  fallbackDescription?: string;  // optional: default description
+  siteUrl?: string; // Add siteUrl to resolve image paths
 };
 
-export function SeoPreviewCard({ title, description, imageUrl, siteUrl }: SeoPreviewCardProps) {
-    const finalImageUrl = (imageUrl && (imageUrl.startsWith('/') ? `${siteUrl}${imageUrl}`: imageUrl)) || `${siteUrl}/og-default.jpg`;
-    
-    return (
-        <div className="w-full max-w-lg rounded-lg border bg-slate-50 shadow-sm transition-all">
-            <div className="aspect-[1.91/1] w-full overflow-hidden rounded-t-lg bg-slate-200">
-                <Image
-                    key={finalImageUrl}
-                    src={finalImageUrl}
-                    alt="SEO Preview"
-                    width={500}
-                    height={262}
-                    className="h-full w-full object-cover"
-                    unoptimized
-                />
-            </div>
-            <div className="p-3">
-                <p className="text-xs uppercase text-slate-500">{siteUrl?.replace(/https?:\/\//, '')}</p>
-                <p className="mt-1 truncate font-semibold text-slate-800">{safeStr(title, "Your Site Title")}</p>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-600">
-                    {safeStr(description, "A compelling description of your site for search engines and social media.")}
-                </p>
-            </div>
+export function LiveSeoPreview({ seo, fallbackTitle = "", fallbackDescription = "", siteUrl = "" }: Props) {
+  const safe = withSeoDefaults(seo);
+  const title = safe.title || fallbackTitle;
+  const description = safe.description || fallbackDescription;
+  
+  let imageSrc = safe.ogImage?.src || "";
+  if (imageSrc && imageSrc.startsWith('/')) {
+    imageSrc = `${siteUrl}${imageSrc}`;
+  }
+
+  const imageAlt = safe.ogImage?.alt || "";
+
+  return (
+    <div className="rounded-xl border p-4">
+      <div className="text-sm text-muted-foreground mb-2">Preview</div>
+      <div className="space-y-2">
+        <div className="font-medium leading-tight">{title || "Untitled page"}</div>
+        <div className="text-sm text-muted-foreground line-clamp-2">
+          {description || "No description yet."}
         </div>
-    );
+        {imageSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={imageSrc} alt={imageAlt || "Open Graph image"} className="mt-2 w-full max-w-md rounded-md" />
+        ) : (
+          <div className="mt-2 h-24 w-full max-w-md rounded-md bg-muted grid place-items-center text-xs text-muted-foreground">
+            No OG image selected
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
