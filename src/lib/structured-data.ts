@@ -14,7 +14,7 @@ type OpeningHoursSpec = {
 };
 
 // Null-safe helper to generate opening hours array
-function toOpeningHours(hours?: HoursRecord): OpeningHoursSpec[] {
+function toOpeningHours(hours?: HoursRecord | null): OpeningHoursSpec[] {
   if (!hours || typeof hours !== 'object') {
     return [];
   }
@@ -44,27 +44,27 @@ function toOpeningHours(hours?: HoursRecord): OpeningHoursSpec[] {
   return out;
 }
 
-export function orgJsonLd(settings: SiteSettings) {
-  if (!settings?.general?.title) return null;
+export function orgJsonLd(settings?: SiteSettings | null) {
+  if (!settings?.general?.brandName) return null;
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: settings.general.title,
-    url: process.env.NEXT_PUBLIC_SITE_URL,
+    name: settings.general.brandName,
+    url: settings.seo?.canonicalBase || process.env.NEXT_PUBLIC_SITE_URL,
     logo: settings.general.logoUrl,
   };
 }
 
-export function localBusinessJsonLd(settings: SiteSettings) {
-  const c = settings.contact;
-  if (!c?.street || !c?.city || !settings.general?.title) return null;
+export function localBusinessJsonLd(settings?: SiteSettings | null) {
+  const c = settings?.contact;
+  if (!c?.street || !c?.city || !settings?.general?.brandName) return null;
 
   const opening = toOpeningHours(settings.hours);
 
   const jsonLd: any = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    name: settings.general.title,
+    name: settings.general.brandName,
     telephone: c.phone,
     address: {
       "@type": "PostalAddress",
@@ -74,7 +74,7 @@ export function localBusinessJsonLd(settings: SiteSettings) {
       addressCountry: c.country || "DK",
     },
     logo: settings.general.logoUrl,
-    url: process.env.NEXT_PUBLIC_SITE_URL,
+    url: settings.seo?.canonicalBase || process.env.NEXT_PUBLIC_SITE_URL,
   };
   
   if (opening.length > 0) {

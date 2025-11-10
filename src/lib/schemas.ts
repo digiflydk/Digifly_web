@@ -10,10 +10,10 @@ export const NavLinkSchema = z.object({
 
 export const SiteSettingsSchema = z.object({
   general: z.object({
-    title: z.string().min(1, "Site name is required").default("Digifly"),
+    brandName: z.string().min(1, "Brand name is required").default("Digifly"),
     logoUrl: z.string().url().or(z.literal("")).optional().default(""),
     faviconUrl: z.string().url().or(z.literal("")).optional().default(""),
-  }).default({ title: "Digifly" }),
+  }).default({ brandName: "Digifly" }),
   contact: z.object({
     email: z.string().email("Invalid email").or(z.literal("")).optional().default(""),
     phone: z.string().optional().default(""),
@@ -30,6 +30,7 @@ export const SiteSettingsSchema = z.object({
     defaultTitle: z.string().optional().default(''),
     defaultDescription: z.string().optional().default(""),
     ogImage: z.string().url().or(z.literal("")).optional().default(""),
+    canonicalBase: z.string().url("Must be a full URL").or(z.literal("")).optional().default(""),
   }).default({ allowIndexing: true }),
 });
 

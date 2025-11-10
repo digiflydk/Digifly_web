@@ -12,11 +12,8 @@ export const revalidate = 60; // refresh settings every 60s
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await readSiteSettings();
-  
   return buildSeo({
-    title: s?.seo?.defaultTitle || s?.general?.title,
-    description: s?.seo?.defaultDescription,
-    images: s?.seo?.ogImage,
+    // Root layout uses site-wide defaults
   }, s);
 }
 

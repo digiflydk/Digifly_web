@@ -3,7 +3,7 @@
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
 export default function GeneralTab() {
@@ -12,21 +12,24 @@ export default function GeneralTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>General Site Identity</CardTitle>
+        <CardTitle>General Site Branding</CardTitle>
         <CardDescription>
-          This is the main branding for your site, used in browser tabs and metadata.
+          This is the main branding for your site, used in the header and footer.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <FormField
           control={control}
-          name="general.title"
+          name="general.brandName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Site Name</FormLabel>
+              <FormLabel>Brand Name</FormLabel>
               <FormControl>
                 <Input placeholder="Digifly" {...field} value={field.value ?? ""} />
               </FormControl>
+               <FormDescription>
+                Used when a logo is not present.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

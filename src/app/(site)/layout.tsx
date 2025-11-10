@@ -23,9 +23,9 @@ export default async function SiteLayout({
         nav={navigation?.header} 
         logo={{ 
           src: site?.general?.logoUrl ?? '/logo.svg', 
-          alt: site?.general?.title ?? 'Digifly' 
+          alt: site?.seo?.defaultTitle ?? 'Digifly' 
         }} 
-        siteTitle={site?.general?.title} 
+        siteTitle={site?.seo?.defaultTitle} 
       />
       <main className="flex-1" style={{ paddingTop: 'calc(var(--header-height, 64px) + env(safe-area-inset-top))' }}>{children}</main>
       <Footer columns={navigation?.footer?.columns} />

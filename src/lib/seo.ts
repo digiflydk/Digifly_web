@@ -22,35 +22,22 @@ function pickFirst(...vals: unknown[]): string | undefined {
 }
 
 const FALLBACK_TITLE = 'Digifly';
-const FALLBACK_DESC = '';
+const FALLBACK_DESC = 'Digital strategi, automation & software udvikling.';
 const FALLBACK_IMAGE = '/og-default.png';
 
-export async function buildSeo(input: SeoInput = {}, overrideSettings?: SiteSettings): Promise<Metadata> {
+export async function buildSeo(input: SeoInput = {}, overrideSettings?: SiteSettings | null): Promise<Metadata> {
   const s = overrideSettings ?? await readSiteSettings();
 
-  const title = pickFirst(
-    input.title,
-    s?.seo?.defaultTitle,
-    s?.general?.title,
-    FALLBACK_TITLE
-  ) ?? FALLBACK_TITLE;
+  // Use nullish coalescing for safe fallbacks
+  const title = pickFirst(input.title, s?.seo?.defaultTitle, s?.general?.brandName, FALLBACK_TITLE) ?? FALLBACK_TITLE;
+  const description = pickFirst(input.description, s?.seo?.defaultDescription, FALLBACK_DESC) ?? FALLBACK_DESC;
 
-  const description = pickFirst(
-    input.description,
-    s?.seo?.defaultDescription,
-    FALLBACK_DESC
-  ) ?? FALLBACK_DESC;
-
+  // Handle various image input formats
   const imageInput = Array.isArray(input.images) ? input.images[0] : input.images;
-  const image = pickFirst(
-    imageInput,
-    s?.seo?.ogImage,
-    s?.general?.logoUrl,
-    FALLBACK_IMAGE
-  ) ?? FALLBACK_IMAGE;
+  const image = pickFirst(imageInput, s?.seo?.ogImage, s?.general?.logoUrl, FALLBACK_IMAGE) ?? FALLBACK_IMAGE;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
-  const siteName = s?.general?.title || FALLBACK_TITLE;
+  const siteUrl = s?.seo?.canonicalBase || process.env.NEXT_PUBLIC_SITE_URL || '';
+  const siteName = s?.general?.brandName || FALLBACK_TITLE;
   
   const allowIndexing = s?.seo?.allowIndexing ?? true;
   const robots = {
@@ -59,47 +46,46 @@ export async function buildSeo(input: SeoInput = {}, overrideSettings?: SiteSett
   };
 
   const canonicalUrl = input.canonical ? new URL(input.canonical, siteUrl) : undefined;
+  
+  const finalTitle = s?.seo?.defaultTitle ? s.seo.defaultTitle.replace('%s', title) : title;
 
   return {
     metadataBase: siteUrl ? new URL(siteUrl) : undefined,
     title: {
       default: siteName,
       template: `%s | ${siteName}`,
+      absolute: finalTitle
     },
-    description: description,
+    description,
     openGraph: {
-      title: title,
-      description: description,
+      title: finalTitle,
+      description,
       images: image ? [{ url: image }] : [],
+      siteName,
     },
     twitter: {
       card: "summary_large_image",
-      title: title,
-      description: description,
+      title: finalTitle,
+      description,
       images: image ? [image] : [],
     },
     robots,
     alternates: canonicalUrl ? { canonical: canonicalUrl } : undefined,
+    icons: {
+        icon: s?.general?.faviconUrl || '/favicon.ico'
+    }
   };
 }
 
 // Wrapper for page-level generateMetadata functions
 export async function buildPageMetadata(page: Partial<Metadata>): Promise<Metadata> {
-  try {
-    const imageUrls = (page.openGraph as any)?.images?.map((img: any) => typeof img === 'string' ? img : img.url).filter(Boolean);
+  const imageUrls = (page.openGraph as any)?.images?.map((img: any) => typeof img === 'string' ? img : img.url).filter(Boolean);
 
-    return buildSeo({
-      title: page.title as string,
-      description: page.description as string,
-      images: imageUrls,
-      noIndex: (page.robots as any)?.noindex,
-      canonical: (page.alternates as any)?.canonical,
-    });
-  } catch (e) {
-    console.warn(`[buildPageMetadata] Failed to fetch settings, using safe defaults.`, e);
-    return buildSeo({
-        title: page.title as string,
-        description: page.description as string,
-    });
-  }
+  return buildSeo({
+    title: page.title as string,
+    description: page.description as string,
+    images: imageUrls,
+    noIndex: (page.robots as any)?.noindex,
+    canonical: (page.alternates as any)?.canonical,
+  });
 }
