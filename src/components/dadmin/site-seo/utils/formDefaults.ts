@@ -1,5 +1,4 @@
 
-// src/components/dadmin/site-seo/utils/formDefaults.ts
 import { SiteSettings } from "@/lib/schemas";
 import { merge } from "lodash";
 
@@ -37,5 +36,8 @@ export const emptySiteSeo: SiteSettings = {
 
 export const coerceToDefaults = (data: any): SiteSettings => {
   // Use lodash merge for deep merging, which doesn't overwrite objects with undefined
-  return merge({}, emptySiteSeo, data);
+  const coerced = merge({}, emptySiteSeo, data);
+  // Ensure hours is a full object even if data.hours is null/undefined
+  coerced.hours = { ...emptySiteSeo.hours, ...(data?.hours ?? {}) };
+  return coerced;
 };

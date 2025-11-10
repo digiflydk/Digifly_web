@@ -8,12 +8,6 @@ export const NavLinkSchema = z.object({
   href: z.string(),
 });
 
-export const OpeningSlotSchema = z.object({
-  enabled: z.boolean().default(false),
-  from: z.string().default("09:00"),
-  to: z.string().default("17:00"),
-});
-
 export const SiteSettingsSchema = z.object({
   general: z.object({
     title: z.string().min(1, "Site title is required").default("Digifly"),
@@ -30,7 +24,7 @@ export const SiteSettingsSchema = z.object({
     city: z.string().optional().default(""),
     country: z.string().optional().default("Denmark"),
   }).default({}),
-  hours: z.record(z.string(), z.object({ open: z.string(), closed: z.boolean(), from: z.string().optional(), to: z.string().optional() }))
+  hours: z.record(z.string(), z.object({ enabled: z.boolean(), from: z.string().optional(), to: z.string().optional() }))
     .optional().default({}),
   seo: z.object({
     allowIndexing: z.boolean().default(true),

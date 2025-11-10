@@ -21,6 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { defaultHeroSlide } from "@/lib/defaults/siteDefaults";
+import { toast } from "@/hooks/use-toast";
 
 
 function SortableSlideItem({ id, index, control, remove }: { id: string; index: number; control: any, remove: (index: number) => void }) {
@@ -101,7 +102,7 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
 }
 
 
-export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: HomePage) => Promise<boolean> }) {
+export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: HomePage) => Promise<any> }) {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<z.infer<typeof HomepageSchema>>({
     resolver: zodResolver(HomepageSchema),
@@ -119,9 +120,12 @@ export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: 
 
   async function onSubmit(values: z.infer<typeof HomepageSchema>) {
     setIsSaving(true);
-    const success = await onSave(values);
-    if (success) {
+    const result = await onSave(values);
+    if (result.ok) {
+      toast({ title: 'Success', description: 'Homepage saved successfully.' });
       form.reset(values);
+    } else {
+       toast({ title: 'Error', description: result.error || "Failed to save homepage.", variant: 'destructive' });
     }
     setIsSaving(false);
   }

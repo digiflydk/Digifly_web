@@ -1,8 +1,7 @@
 
 import type { Metadata } from "next";
 import SiteSeoForm from "@/components/dadmin/site-seo/SiteSeoForm";
-import { getSiteSettings } from "@/lib/cms-server";
-import { SITE_DEFAULTS } from "@/lib/defaults/siteDefaults";
+import { getSiteSettings } from "./actions";
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const settings = await getSiteSettings();
-  return <SiteSeoForm initialData={settings ?? SITE_DEFAULTS} />;
+  const initialData = await getSiteSettings();
+  return <SiteSeoForm initialData={initialData} />;
 }

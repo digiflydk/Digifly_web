@@ -11,65 +11,33 @@ import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { ZodError } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
 import GeneralTab from "./tabs/GeneralTab";
 import ContactTab from "./tabs/ContactTab";
 import OpeningHoursTab from "./tabs/OpeningHoursTab";
 import SeoTab from "./tabs/SeoTab";
-import { emptySiteSeo, coerceToDefaults } from "./utils/formDefaults";
+import { emptySiteSeo } from "./utils/formDefaults";
+import { saveSiteSettings } from "../site-seo/actions";
 
-export default function SiteSeoForm() {
-  const [dbData, setDbData] = useState<Partial<SiteSettings> | null>(null);
-  const [dbDataLoaded, setDbDataLoaded] = useState(false);
 
+export default function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   const form = useForm<SiteSettings>({
     resolver: zodResolver(SiteSettingsSchema),
-    defaultValues: emptySiteSeo,
+    defaultValues: initialData || emptySiteSeo,
     mode: 'onChange',
   });
 
   useEffect(() => {
-    fetch('/api/dadmin/site-seo')
-      .then(res => res.json())
-      .then(result => {
-        if(result.ok) {
-          setDbData(result.data)
-        } else {
-          throw new Error(result.error || "Failed to load data.");
-        }
-      })
-      .catch((e) => {
-        setDbData({});
-        toast({ title: "Warning", description: `Could not load existing settings: ${e.message}`, variant: "destructive" });
-      })
-      .finally(() => setDbDataLoaded(true));
-  }, []);
-
-  useEffect(() => {
-    if (dbDataLoaded && dbData) {
-      form.reset(coerceToDefaults(dbData));
-    }
-  }, [dbDataLoaded, dbData, form]);
+    form.reset(initialData);
+  }, [initialData, form]);
 
   const [isSaving, setIsSaving] = useState(false);
 
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-        const res = await fetch('/api/dadmin/site-seo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(values),
-        });
-
-        const text = await res.text();
-        let json: any;
-        try { json = JSON.parse(text); } catch {
-          throw new Error(`Unexpected response (${res.status}): ${text.slice(0,120)}`);
-        }
-
-        if (!res.ok || !json?.ok) {
-          throw new Error(json?.error || `Save failed (${res.status})`);
+        const result = await saveSiteSettings(values);
+        if (!result.ok) {
+            throw new Error(result.error || `Save failed`);
         }
         
         toast({ title: "✅ Success", description: "Site settings saved." });
@@ -83,10 +51,6 @@ export default function SiteSeoForm() {
     } finally {
       setIsSaving(false);
     }
-  }
-
-  if (!dbDataLoaded) {
-    return <div className="space-y-4"><Skeleton className="h-10 w-1/4" /><Skeleton className="h-64 w-full" /></div>
   }
 
   return (

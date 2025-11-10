@@ -7,36 +7,40 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    // Public site settings (readable by anyone, writable only by admins)
+    // Publicly readable content
     match /site/{doc} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    
-    match /settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Public navigation
     match /navigation/{doc} {
       allow read: if true;
       allow write: if isAdmin();
     }
-
-    // Pages: public can read only published pages; admins can read/write everything
     match /pages/{doc=**} {
       allow read: if resource.data.published == true || isAdmin();
       allow write: if isAdmin();
     }
-
-    // Cases: expose only published
     match /cases/{caseId} {
       allow read: if resource.data.published == true;
       allow write: if isAdmin();
     }
 
-    // Admin-only namespace
+    // Admin-only settings
+    match /settings/{docId} {
+      allow read, write: if isAdmin();
+    }
+    match /siteSettings/{docId} { // Legacy, should be removed later
+        allow read, write: if isAdmin();
+    }
+    match /homePage/{docId} { // Legacy, should be removed later
+        allow read, write: if isAdmin();
+    }
+     match /playwright/{docId} { // Legacy, should be removed later
+        allow read, write: if isAdmin();
+    }
+
+
+    // Admin-only namespace for other tools
     match /dadmin/{doc=**} {
       allow read, write: if isAdmin();
     }
