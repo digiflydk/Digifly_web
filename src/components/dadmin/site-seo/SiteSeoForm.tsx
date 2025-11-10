@@ -16,14 +16,13 @@ import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
 import { ZodError } from "zod";
-import { getSiteSettings, saveSiteSettings } from "@/lib/cms-api";
+import { getDesignSettings, saveDesignSettings } from "@/lib/cms-client";
 import { SeoPreviewCard } from "@/components/cms/forms/SeoPreviewCard";
 import { SITE_DEFAULTS } from "@/lib/defaults/siteDefaults";
 
 async function loadSettings(): Promise<SiteSettings> {
     try {
-        const result = await getSiteSettings();
-        const data = result;
+        const data = await getDesignSettings();
         const parsed = SiteSettingsSchema.safeParse(data || {});
         if (!parsed.success) {
             console.error("API data failed validation:", parsed.error);
@@ -104,7 +103,7 @@ export default function SiteSeoForm() {
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-        const result = await saveSiteSettings(values);
+        const result = await saveDesignSettings(values);
         if (!result) { 
             throw new Error("An unknown error occurred during save.");
         }

@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   title: "Site & SEO",
 };
 
-export default async function Page() {
+export default function Page() {
   return <SiteSeoForm />;
 }
