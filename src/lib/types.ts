@@ -1,7 +1,19 @@
 
 
-export type { SiteSettings, HomePage, CaseDoc, Navigation, HeroSlide } from "./schemas";
+export type { HomePage, CaseDoc, Navigation, HeroSlide } from "./schemas";
 export { SiteSettingsSchema, HomepageSchema, CaseSchema, NavigationSchema, BrandSchema } from "./schemas";
+import { z } from "zod";
+
+export type SiteSettings = {
+  siteTitle: string;
+  social: { tagline: string };
+  defaultSeo: { title?: string; description?: string; defaultThumbnailUrl?: string };
+  brand: {
+    name: string;
+    logo: { src: string; alt: string; height?: number; width?: number };
+    favicon: { src: string };
+  };
+};
 
 export type Media = { src: string; alt?: string; hint?: string };
 

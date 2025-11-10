@@ -1,4 +1,5 @@
 
+
 import { NextResponse } from "next/server";
 import { getSiteSettings, saveSiteSettings } from "@/lib/cms-server";
 import { SiteSettingsSchema } from "@/lib/schemas";
@@ -16,7 +17,6 @@ const json = (payload: any, status = 200) =>
 
 export async function GET() {
   try {
-    // getSiteSettings is now hardened to always return a valid (or default) object.
     const data = await getSiteSettings();
     return json({ ok: true, data });
   } catch (err: any) {
@@ -25,7 +25,7 @@ export async function GET() {
   }
 }
 
-export async function PUT(req: Request) {
+export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
     if (!body) {
@@ -38,7 +38,7 @@ export async function PUT(req: Request) {
     if (err instanceof ZodError) {
       return json({ ok: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid data provided', issues: err.issues } }, 422);
     }
-    console.error(`[PUT /api/cms/site]`, err);
+    console.error(`[POST /api/cms/site]`, err);
     return json({ ok: false, error: { code: 'SERVER_ERROR', message: err.message || 'Failed to save site settings' } }, 500);
   }
 }
