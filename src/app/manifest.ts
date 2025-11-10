@@ -1,13 +1,15 @@
 
 import type { MetadataRoute } from 'next';
-import { getSiteSettings } from '@/lib/cms-server';
+import { readSiteSettings } from '@/lib/dadmin/siteSeoRepo';
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  const s = await getSiteSettings();
-  const faviconUrl = s.brand.favicon.src;
+  const s = await readSiteSettings();
+  const title = s?.general?.title ?? 'Digifly';
+  const faviconUrl = s?.general?.faviconUrl;
+  
   return {
-    name: s.siteTitle,
-    short_name: s.brand.name,
+    name: title,
+    short_name: title,
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

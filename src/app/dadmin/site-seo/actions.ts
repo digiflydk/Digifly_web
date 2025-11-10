@@ -9,7 +9,8 @@ import { readSiteSettings, writeSiteSettings } from "@/lib/dadmin/siteSeoRepo";
  * Server Action: fetch settings
  * Only used from Client/Server Components via direct call – not imported in pages for SSR.
  */
-export async function getSiteSettingsAction(): Promise<SiteSettings | null> {
+export async function getSiteSettingsAction(): Promise<SiteSettings> {
+  // Coerce to defaults in the repo function
   return await readSiteSettings();
 }
 

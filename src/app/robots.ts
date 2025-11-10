@@ -1,10 +1,10 @@
 
 import { MetadataRoute } from "next";
-import { getSiteSettings } from "@/lib/cms-server";
+import { readSiteSettings } from "@/lib/dadmin/siteSeoRepo";
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://digifly.dk";
-  const settings = await getSiteSettings();
+  const settings = await readSiteSettings();
   const allowIndexing = settings?.seo?.allowIndexing ?? true;
 
   return {

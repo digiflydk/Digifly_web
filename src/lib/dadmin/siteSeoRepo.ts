@@ -7,11 +7,16 @@ const COLLECTION = "settings";
 const DOC_ID = "site";
 
 export async function readSiteSettings(): Promise<SiteSettings> {
-  const db = await getDb();
-  const snap = await db.collection(COLLECTION).doc(DOC_ID).get();
-  const data = snap.exists ? snap.data() : {};
-  // Coerce to ensure no undefined values are passed to the form
-  return coerceToDefaults(data);
+  try {
+    const db = await getDb();
+    const snap = await db.collection(COLLECTION).doc(DOC_ID).get();
+    const data = snap.exists ? snap.data() : {};
+    return coerceToDefaults(data);
+  } catch (e: any) {
+    console.error('[readSiteSettings] Failed to fetch settings:', e.message);
+    // On error, return safe defaults to prevent site crashes
+    return coerceToDefaults({});
+  }
 }
 
 export async function writeSiteSettings(data: SiteSettings): Promise<SiteSettings> {

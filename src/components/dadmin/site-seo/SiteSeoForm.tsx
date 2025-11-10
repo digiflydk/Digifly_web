@@ -15,7 +15,7 @@ import GeneralTab from "./tabs/GeneralTab";
 import ContactTab from "./tabs/ContactTab";
 import OpeningHoursTab from "./tabs/OpeningHoursTab";
 import SeoTab from "./tabs/SeoTab";
-import { coerceToDefaults } from "@/components/dadmin/site-seo/utils/formDefaults";
+import { coerceToDefaults } from "./utils/formDefaults";
 import { saveSiteSettingsAction } from "@/app/dadmin/site-seo/actions";
 
 export default function SiteSeoForm({ initialData }: { initialData: SiteSettings | null }) {

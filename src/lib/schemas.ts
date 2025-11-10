@@ -12,7 +12,7 @@ export const SiteSettingsSchema = z.object({
     title: z.string().min(1, "Site name is required").default("Digifly"),
     logoUrl: z.string().url().or(z.literal("")).optional().default(""),
     faviconUrl: z.string().url().or(z.literal("")).optional().default(""),
-  }).default({}),
+  }).default({ title: "Digifly" }),
   contact: z.object({
     email: z.string().email("Invalid email").or(z.literal("")).optional().default(""),
     phone: z.string().optional().default(""),
@@ -22,14 +22,14 @@ export const SiteSettingsSchema = z.object({
     city: z.string().optional().default(""),
     country: z.string().optional().default("Denmark"),
   }).default({}),
-  hours: z.record(z.string(), z.object({ enabled: z.boolean(), from: z.string().optional(), to: z.string().optional() }))
+  hours: z.record(z.string(), z.object({ enabled: z.boolean(), from: z.string(), to: z.string() }))
     .optional().default({}),
   seo: z.object({
     allowIndexing: z.boolean().default(true),
     defaultTitle: z.string().optional().default(''),
     defaultDescription: z.string().optional().default(""),
     ogImage: z.string().url().or(z.literal("")).optional().default(""),
-  }).default({}),
+  }).default({ allowIndexing: true }),
 });
 
 

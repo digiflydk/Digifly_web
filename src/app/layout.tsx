@@ -5,22 +5,18 @@ import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
 import { readSiteSettings } from "@/lib/dadmin/siteSeoRepo";
+import { buildSeo } from '@/lib/seo';
 
 export const revalidate = 60; // refresh settings every 60s
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await readSiteSettings();
-  const title = s?.seo?.defaultTitle || s?.general?.title || "Digifly";
-  const description = s?.seo?.defaultDescription || "";
-  const og = s?.seo?.ogImage ? [{ url: s.seo.ogImage }] : [];
-
-  return {
-    title: { default: title, template: `%s | ${title}` },
-    description,
-    openGraph: { title, description, images: og },
-    icons: s?.general?.faviconUrl ? { icon: s.general.faviconUrl } : undefined,
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://digifly.dk"),
-  };
+  
+  return buildSeo({
+    title: s?.seo?.defaultTitle || s?.general?.title,
+    description: s?.seo?.defaultDescription,
+    images: s?.seo?.ogImage,
+  }, s || undefined);
 }
 
 export default async function RootLayout({

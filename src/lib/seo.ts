@@ -24,8 +24,8 @@ const FALLBACK_TITLE = 'Digifly';
 const FALLBACK_DESC = '';
 const FALLBACK_IMAGE = '/og-default.png';
 
-export async function buildSeo(input: SeoInput = {}): Promise<Metadata> {
-  const s = await readSiteSettings();
+export async function buildSeo(input: SeoInput = {}, overrideSettings?: SiteSettings): Promise<Metadata> {
+  const s = overrideSettings ?? await readSiteSettings();
 
   const title = pickFirst(
     input.title,

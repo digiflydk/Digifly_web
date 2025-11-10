@@ -1,6 +1,44 @@
 
 import type { SiteSettings } from "@/lib/schemas";
 
+type OpeningHoursSpec = {
+  '@type': 'OpeningHoursSpecification';
+  dayOfWeek: string;
+  opens: string;
+  closes: string;
+};
+
+// Null-safe helper to generate opening hours array
+function toOpeningHours(hours?: SiteSettings['hours']): OpeningHoursSpec[] {
+  if (!hours || typeof hours !== 'object') {
+    return [];
+  }
+  
+  const out: OpeningHoursSpec[] = [];
+  const dayMap: Record<string, string> = {
+    monday: 'Monday',
+    tuesday: 'Tuesday',
+    wednesday: 'Wednesday',
+    thursday: 'Thursday',
+    friday: 'Friday',
+    saturday: 'Saturday',
+    sunday: 'Sunday',
+  };
+
+  for (const [key, spec] of Object.entries(hours)) {
+    const dayOfWeek = dayMap[key];
+    if (dayOfWeek && spec?.enabled && spec.from && spec.to) {
+      out.push({
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: dayOfWeek,
+        opens: spec.from,
+        closes: spec.to,
+      });
+    }
+  }
+  return out;
+}
+
 export function orgJsonLd(settings: SiteSettings) {
   if (!settings?.general?.title) return null;
   return {
@@ -12,42 +50,11 @@ export function orgJsonLd(settings: SiteSettings) {
   };
 }
 
-type DaySpec = { enabled?: boolean; from?: string; to?: string };
-type HoursRecord = Record<string, DaySpec | undefined>;
-
-function toOpeningHours(hours?: HoursRecord) {
-  if (!hours || typeof hours !== "object") return [];
-  
-  const out: any[] = [];
-  const dayMap: Record<string, string> = {
-    monday: "Monday",
-    tuesday: "Tuesday",
-    wednesday: "Wednesday",
-    thursday: "Thursday",
-    friday: "Friday",
-    saturday: "Saturday",
-    sunday: "Sunday",
-  };
-
-  for (const [key, spec] of Object.entries(hours)) {
-    const dayOfWeek = dayMap[key];
-    if (dayOfWeek && spec?.enabled && spec.from && spec.to) {
-      out.push({
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: dayOfWeek,
-        opens: spec.from,
-        closes: spec.to,
-      });
-    }
-  }
-  return out;
-}
-
 export function localBusinessJsonLd(settings: SiteSettings) {
   const c = settings.contact;
   if (!c?.street || !c?.city || !settings.general?.title) return null;
 
-  const opening = toOpeningHours(settings.hours ?? undefined);
+  const opening = toOpeningHours(settings.hours);
 
   const jsonLd: any = {
     "@context": "https://schema.org",
