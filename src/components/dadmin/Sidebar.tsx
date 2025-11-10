@@ -1,13 +1,14 @@
 
-
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, Beaker, BookOpen, PlayCircle } from "lucide-react";
+import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, Beaker } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { isSuperadmin } from "@/lib/auth/roles";
+import type { CurrentUser } from "@/lib/auth/serverAuth";
 
 const menuItems = [
   { href: "/dadmin", label: "Dashboard", icon: Home },
@@ -19,14 +20,15 @@ const menuItems = [
 ];
 
 const devMenuItems = [
-    { href: "/dadmin/developer/docs", label: "Docs", icon: FileText },
-    { href: "/dadmin/developer/tests", label: "Playwright Tests", icon: Beaker },
+    { href: "/dadmin/dev/docs", label: "Docs", icon: FileText },
+    { href: "/dadmin/tests", label: "Playwright Tests", icon: Beaker },
     { href: "/dadmin/dev/api-map", label: "API Map", icon: Wrench },
     { href: "/dadmin/api-explorer", label: "API Explorer", icon: Beaker },
 ];
 
-function NavContent() {
+function NavContent({ user }: { user: CurrentUser | null }) {
   const pathname = usePathname();
+  const showDevMenu = isSuperadmin(user?.role);
   
   const renderLink = (item: any) => {
     const isActive = (item.href === '/dadmin' && pathname === item.href) || (item.href !== '/dadmin' && pathname.startsWith(item.href));
@@ -61,18 +63,20 @@ function NavContent() {
         <ul className="space-y-1">
           {menuItems.map(renderLink)}
         </ul>
-        <div className="mt-6">
-            <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Developer</p>
-            <ul className="space-y-1 mt-2">
-                {devMenuItems.map(renderLink)}
-            </ul>
-        </div>
+        {showDevMenu && (
+          <div className="mt-6">
+              <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Developer</p>
+              <ul className="space-y-1 mt-2">
+                  {devMenuItems.map(renderLink)}
+              </ul>
+          </div>
+        )}
       </nav>
     </>
   )
 }
 
-export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boolean, setMobileMenuOpen: (open: boolean) => void }) {
+export function Sidebar({ mobileMenuOpen, setMobileMenuOpen, user }: { mobileMenuOpen: boolean, setMobileMenuOpen: (open: boolean) => void, user: CurrentUser | null }) {
   return (
     <>
         {/* Mobile */}
@@ -81,13 +85,13 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen:
                 <SheetHeader>
                   <SheetTitle className="sr-only">Admin Menu</SheetTitle>
                 </SheetHeader>
-                <NavContent />
+                <NavContent user={user} />
             </SheetContent>
         </Sheet>
         
         {/* Desktop */}
         <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 min-h-screen flex-col hidden md:flex">
-            <NavContent />
+            <NavContent user={user} />
         </aside>
     </>
   );
