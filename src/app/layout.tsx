@@ -9,14 +9,15 @@ import { buildSeo } from '@/lib/seo';
 import { SITE_DEFAULTS } from '@/lib/defaults/siteDefaults';
 
 export async function generateMetadata(): Promise<Metadata> {
-  // buildSeo is now null-safe thanks to getSiteSettings' resilience
   const site = await getSiteSettings();
+  
   return buildSeo({
     title: {
       default: site.siteTitle || SITE_DEFAULTS.siteTitle,
       template: `%s | ${site.siteTitle || SITE_DEFAULTS.siteTitle}`
     },
-    description: site.defaultSeo?.description || SITE_DEFAULTS.defaultSeo.description
+    description: site.defaultSeo?.description || SITE_DEFAULTS.defaultSeo.description,
+    images: site.defaultSeo?.defaultThumbnailUrl ? [site.defaultSeo.defaultThumbnailUrl] : undefined,
   });
 }
 
