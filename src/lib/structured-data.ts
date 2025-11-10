@@ -2,6 +2,7 @@
 import type { SiteSettings } from "@/lib/schemas";
 
 export function orgJsonLd(settings: SiteSettings) {
+  if (!settings?.general?.title) return null;
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -11,7 +12,6 @@ export function orgJsonLd(settings: SiteSettings) {
   };
 }
 
-// DGF-228: New types and null-safe mapping
 type DaySpec = { enabled: boolean; from?: string; to?: string };
 type HoursRecord = Record<string, DaySpec | undefined>;
 
@@ -45,7 +45,7 @@ function toOpeningHours(hours?: HoursRecord) {
 
 export function localBusinessJsonLd(settings: SiteSettings) {
   const c = settings.contact;
-  if (!c?.street || !c?.city) return null;
+  if (!c?.street || !c?.city || !settings.general?.title) return null;
 
   const opening = toOpeningHours(settings.hours ?? undefined);
 

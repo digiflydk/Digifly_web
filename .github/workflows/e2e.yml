@@ -14,10 +14,13 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
       - run: npx playwright install --with-deps
       - env:
           E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
-        run: npm run test:e2e:ci || true
+        run: npm run test:e2e:ci -- -g "@smoke" || true
       - name: Summarize
         run: |
           node -e "

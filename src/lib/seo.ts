@@ -1,12 +1,9 @@
 
 import type { Metadata } from "next";
-import { getSiteSettings } from "@/lib/cms-server";
 import type { SiteSettings } from "./schemas";
 import { readSiteSettings } from "./dadmin/siteSeoRepo";
 
 // Extremely tolerant input shapes to avoid runtime crashes
-type UnknownDict = Record<string, unknown>;
-
 type SeoInput = {
   title?: string;
   description?: string;
@@ -32,6 +29,7 @@ export async function buildSeo(input: SeoInput = {}): Promise<Metadata> {
 
   const title = pickFirst(
     input.title,
+    s?.seo?.defaultTitle,
     s?.general?.title,
     FALLBACK_TITLE
   ) ?? FALLBACK_TITLE;
@@ -51,9 +49,10 @@ export async function buildSeo(input: SeoInput = {}): Promise<Metadata> {
   ) ?? FALLBACK_IMAGE;
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
-  const titleTemplate = `%s | ${s?.general?.title || FALLBACK_TITLE}`;
+  const siteName = s?.general?.title || FALLBACK_TITLE;
+  const titleTemplate = `%s | ${siteName}`;
 
-  const finalTitle = titleTemplate.includes('%s') ? titleTemplate.replace('%s', title) : title;
+  const finalTitle = (input.title && titleTemplate.includes('%s')) ? titleTemplate.replace('%s', input.title) : title;
   
   const allowIndexing = s?.seo?.allowIndexing ?? true;
   const robots = {
@@ -66,7 +65,7 @@ export async function buildSeo(input: SeoInput = {}): Promise<Metadata> {
   return {
     metadataBase: siteUrl ? new URL(siteUrl) : undefined,
     title: {
-      default: s?.general?.title || FALLBACK_TITLE,
+      default: siteName,
       template: titleTemplate,
       absolute: finalTitle,
     },

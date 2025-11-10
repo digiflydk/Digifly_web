@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import SiteSeoForm from "@/components/dadmin/site-seo/SiteSeoForm";
 import { readSiteSettings } from "@/lib/dadmin/siteSeoRepo";
+import { coerceToDefaults } from "@/components/dadmin/site-seo/utils/formDefaults";
 
 export const dynamic = 'force-dynamic';
 
@@ -11,5 +12,6 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   const initialData = await readSiteSettings();
-  return <SiteSeoForm initialData={initialData} />;
+  const safeData = coerceToDefaults(initialData);
+  return <SiteSeoForm initialData={safeData} />;
 }

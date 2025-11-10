@@ -10,7 +10,7 @@ export const revalidate = 60; // refresh settings every 60s
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await readSiteSettings();
-  const title = s?.general?.title || "Digifly";
+  const title = s?.seo?.defaultTitle || s?.general?.title || "Digifly";
   const description = s?.seo?.defaultDescription || "";
   const og = s?.seo?.ogImage ? [{ url: s.seo.ogImage }] : [];
 

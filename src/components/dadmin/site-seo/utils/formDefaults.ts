@@ -5,7 +5,6 @@ import { merge } from "lodash";
 export const emptySiteSeo: SiteSettings = {
   general: {
     title: '',
-    tagline: '',
     logoUrl: '',
     faviconUrl: '',
   },
@@ -29,6 +28,7 @@ export const emptySiteSeo: SiteSettings = {
   },
   seo: {
     allowIndexing: true,
+    defaultTitle: '',
     defaultDescription: '',
     ogImage: '',
   },

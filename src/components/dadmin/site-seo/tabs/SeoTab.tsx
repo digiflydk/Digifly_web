@@ -1,5 +1,4 @@
 
-
 "use client";
 import * as React from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -16,7 +15,7 @@ function WatchedSeoPreview() {
     // Watch the entire form to trigger re-renders
     const formValues = useWatch();
 
-    const title = formValues.general?.title || '';
+    const title = formValues.seo?.defaultTitle || formValues.general?.title || '';
     const description = formValues.seo?.defaultDescription || '';
     const ogImage = formValues.seo?.ogImage || '';
     
@@ -51,6 +50,22 @@ export default function SeoTab() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+                 <FormField
+                    control={control}
+                    name="seo.defaultTitle"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Default Page Title</FormLabel>
+                        <FormControl>
+                            <Input {...field} placeholder="e.g. Digifly | Digital Solutions" value={field.value ?? ""} />
+                        </FormControl>
+                        <FormDescription>
+                            Used as the base title for all pages.
+                        </FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                 control={control}
                 name="seo.defaultDescription"

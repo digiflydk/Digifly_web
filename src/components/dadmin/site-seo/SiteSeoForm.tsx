@@ -26,8 +26,6 @@ export default function SiteSeoForm({ initialData }: { initialData: SiteSettings
   });
 
   useEffect(() => {
-    // This ensures that if the server component re-renders with new data,
-    // the form is updated.
     form.reset(coerceToDefaults(initialData));
   }, [initialData, form]);
 

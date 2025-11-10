@@ -1,7 +1,8 @@
+
 import { test, expect } from '@playwright/test';
 
 test.describe('Smoke', () => {
-  test('Homepage loads and has title', async ({ page }) => {
+  test('Homepage loads and has title @smoke', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Digifly/i);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();

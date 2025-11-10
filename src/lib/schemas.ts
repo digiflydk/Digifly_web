@@ -1,5 +1,4 @@
 
-
 import { z } from "zod";
 
 // Base primitives
@@ -10,8 +9,7 @@ export const NavLinkSchema = z.object({
 
 export const SiteSettingsSchema = z.object({
   general: z.object({
-    title: z.string().min(1, "Site title is required").default("Digifly"),
-    tagline: z.string().optional().default(""),
+    title: z.string().min(1, "Site name is required").default("Digifly"),
     logoUrl: z.string().url().or(z.literal("")).optional().default(""),
     faviconUrl: z.string().url().or(z.literal("")).optional().default(""),
   }).default({}),
@@ -28,6 +26,7 @@ export const SiteSettingsSchema = z.object({
     .optional().default({}),
   seo: z.object({
     allowIndexing: z.boolean().default(true),
+    defaultTitle: z.string().optional().default(''),
     defaultDescription: z.string().optional().default(""),
     ogImage: z.string().url().or(z.literal("")).optional().default(""),
   }).default({}),

@@ -2,15 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import type { SiteSettings } from "@/lib/schemas";
-import { readSiteSettings, writeSiteSettings } from "@/lib/dadmin/siteSeoRepo";
-
-/**
- * Server Action: fetch settings
- * Can be called from Client/Server Components via direct call – not imported in pages for SSR.
- */
-export async function getSiteSettingsAction(): Promise<SiteSettings> {
-  return await readSiteSettings();
-}
+import { writeSiteSettings } from "@/lib/dadmin/siteSeoRepo";
 
 /**
  * Server Action: save settings

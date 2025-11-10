@@ -1,5 +1,4 @@
 
-
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { getNavigation } from "@/lib/cms-server";
