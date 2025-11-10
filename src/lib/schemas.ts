@@ -1,5 +1,4 @@
 
-
 import { z } from "zod";
 
 // Base primitives
@@ -157,8 +156,19 @@ export const CaseSchema = z.object({
   meta: z.object({ industry: z.string().optional(), tags: z.array(z.string()).optional() }).optional(),
   updatedAt: z.string().or(z.date()).or(z.number()).optional(),
 });
-export type CaseDoc = z.infer<typeof CaseSchema>;
 
+export type AdminAction = "site-seo.save" | "site-seo.preview" | "site-seo.deploy" | "homepage.save" | "cases.save" | "playwright.run";
+export interface AuditLog {
+  action: AdminAction;
+  actorUid: string | null;
+  actorEmail?: string | null;
+  path?: string;
+  payloadSummary?: string;
+  status: "ok" | "error";
+  errorMessage?: string;
+  ts: any; // Using `any` for Firebase's serverTimestamp()
+  version?: string;
+}
 
 // ---- Shim the names used across the app (from error logs) ----
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;

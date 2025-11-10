@@ -23,7 +23,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: 'Test runs are disabled in this environment.' }, { status: 403 });
   }
 
-  // Replace with actual authentication check
+  // NOTE: This endpoint is temporarily open for ease of use in Studio.
+  // In production, you MUST uncomment and implement proper authentication.
   // if (!await isAdmin()) {
   //   return NextResponse.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
   // }

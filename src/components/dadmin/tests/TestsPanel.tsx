@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, ExternalLink } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 function getBadgeVariant(status: string) {
     if (status === 'passed') return 'default';
@@ -23,7 +23,10 @@ export default function TestsPanel() {
 
   useEffect(() => setIsClient(true), []);
 
+  const { toast } = useToast();
   useEffect(() => {
+    if (!isClient) return;
+    
     const q = query(collection(db, 'qa_runs'), orderBy('startedAt', 'desc'), limit(10));
     const unsub = onSnapshot(q, snap => {
       const items = snap.docs.map(d => ({ id: d.id, data: d.data() as QARun }));
@@ -35,7 +38,7 @@ export default function TestsPanel() {
         toast({ title: 'Error', description: 'Could not connect to test results.', variant: 'destructive' });
     });
     return () => unsub();
-  }, [toast]);
+  }, [toast, isClient]);
 
   const trigger = useCallback(async () => {
     setIsRunning(true);
