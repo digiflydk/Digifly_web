@@ -8,24 +8,42 @@ export const NavLinkSchema = z.object({
   href: z.string(),
 });
 
+export const OpeningSlotSchema = z.object({
+  open: z.boolean().default(false),
+  from: z.string().optional(), // "09:00"
+  to: z.string().optional(),   // "17:00"
+});
+
 export const SiteSettingsSchema = z.object({
-  siteTitle: z.string().min(3, "Site title must be at least 3 characters").max(80, "Site title must be 80 characters or less"),
-  brand: z.object({
-    name: z.string(),
-    logo: z.object({
-      src: ImageUrlSchema,
-      alt: z.string(),
-      height: z.number().optional(),
-      width: z.number().optional(),
-    }),
-    favicon: z.object({ src: ImageUrlSchema })
-  }),
-  social: z.object({ tagline: z.string() }),
-  defaultSeo: z.object({
-    title: z.string().optional(),
-    description: z.string().min(20, "Description must be at least 20 characters").max(300, "Description must be 300 characters or less").optional(),
-    defaultThumbnailUrl: ImageUrlSchema.optional(),
-  })
+  general: z.object({
+    title: z.string().min(1, "Site title is required."),
+    logoUrl: z.string().url().or(z.literal("")).optional(),
+    faviconUrl: z.string().url().or(z.literal("")).optional(),
+  }).default({ title: 'Digifly' }),
+  contact: z.object({
+    email: z.string().email().or(z.literal("")).optional(),
+    phone: z.string().optional(),
+    company: z.string().optional(),
+    street: z.string().optional(),
+    zip: z.string().optional(),
+    city: z.string().optional(),
+    country: z.string().optional(),
+  }).default({}),
+  openingHours: z.object({
+    sunday: OpeningSlotSchema.default({}),
+    monday: OpeningSlotSchema.default({}),
+    tuesday: OpeningSlotSchema.default({}),
+    wednesday: OpeningSlotSchema.default({}),
+    thursday: OpeningSlotSchema.default({}),
+    friday: OpeningSlotSchema.default({}),
+    saturday: OpeningSlotSchema.default({}),
+  }).default({}),
+  seo: z.object({
+    allowIndexing: z.boolean().default(true),
+    defaultTitleTemplate: z.string().default("%s | Digifly"),
+    defaultDescription: z.string().optional(),
+    ogImage: z.string().url().or(z.literal("")).optional(),
+  }).default({}),
 });
 
 export const NavigationSchema = z.object({

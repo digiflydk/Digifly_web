@@ -1,5 +1,4 @@
 
-
 import { NextResponse } from "next/server";
 import { getSiteSettings, saveSiteSettings } from "@/lib/cms-server";
 import { SiteSettingsSchema } from "@/lib/schemas";
@@ -31,6 +30,7 @@ export async function POST(req: Request) {
     if (!body) {
       return json({ ok: false, error: { code: 'INVALID_JSON', message: 'Invalid JSON body' } }, 400);
     }
+    // The form sends the data directly, not nested under a `data` key
     const parsedData = SiteSettingsSchema.parse(body);
     const saved = await saveSiteSettings(parsedData);
     return json({ ok: true, data: saved });

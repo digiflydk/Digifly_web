@@ -1,7 +1,7 @@
 
 import { getFirestore, DocumentReference } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
-import { ALL_DEFAULTS, defaultCases } from '@/lib/defaults/siteDefaults';
+import { ALL_DEFAULTS, defaultCases, SITE_DEFAULTS } from '@/lib/defaults/siteDefaults';
 import { SiteSettingsSchema, NavigationSchema, HomepageSchema, CaseSchema } from '@/lib/schemas';
 import { z } from 'zod';
 
@@ -30,9 +30,25 @@ async function run() {
     console.log("[SEED] Gracefully skipped.");
     return;
   }
+
+  // Upsert site/settings specifically
+  const siteSettingsRef = db.doc('site/settings');
+  const siteSettingsSnap = await siteSettingsRef.get();
+  const currentSiteSettings = siteSettingsSnap.exists ? siteSettingsSnap.data() : {};
+  const mergedSiteSettings = { ...SITE_DEFAULTS, ...currentSiteSettings };
+  const siteParsed = SiteSettingsSchema.safeParse(mergedSiteSettings);
+  if (siteParsed.success) {
+    await upsert(db, 'site/settings', siteParsed.data);
+  } else {
+    console.warn(`[SEED] Validation failed for site/settings. Seeding with pure defaults.`, siteParsed.error.format());
+    await upsert(db, 'site/settings', SITE_DEFAULTS);
+  }
+  console.log("[SEED] site/settings ready");
   
-  // Upsert singleton documents from ALL_DEFAULTS
+  // Upsert other singleton documents from ALL_DEFAULTS
   for (const [path, defaultData] of Object.entries(ALL_DEFAULTS)) {
+    if (path === 'site/settings') continue; // Already handled
+
     const docRef = db.doc(path) as DocumentReference<any>;
     const snap = await docRef.get();
     const currentData = snap.exists ? snap.data() : {};

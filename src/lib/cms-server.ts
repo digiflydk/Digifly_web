@@ -20,31 +20,43 @@ import { zodErrorToIssues } from './zod-helpers';
 import { SITE_DEFAULTS, defaultHomepage, normalizeHome } from './defaults/siteDefaults';
 import { CMS_PATHS } from './constants';
 
-
 const SITE_TAG = "site-settings";
+
+function mergeDeep(target: any, source: any) {
+    const output = { ...target };
+    if (isObject(target) && isObject(source)) {
+        Object.keys(source).forEach(key => {
+            if (isObject(source[key])) {
+                if (!(key in target)) {
+                    Object.assign(output, { [key]: source[key] });
+                } else {
+                    output[key] = mergeDeep(target[key], source[key]);
+                }
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        });
+    }
+    return output;
+}
+
+function isObject(item: any) {
+    return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
 
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const db = await getDb();
     const settingsSnap = await db.doc(CMS_PATHS.site).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
-    const mergedData = { 
-        ...SITE_DEFAULTS, 
-        ...(data || {}),
-        brand: { 
-            ...SITE_DEFAULTS.brand, 
-            ...(data?.brand || {}),
-            logo: { ...SITE_DEFAULTS.brand.logo, ...(data?.brand?.logo || {}) },
-            favicon: { ...SITE_DEFAULTS.brand.favicon, ...(data?.brand?.favicon || {}) },
-        },
-        social: { ...SITE_DEFAULTS.social, ...(data?.social || {}) },
-        defaultSeo: { ...SITE_DEFAULTS.defaultSeo, ...(data?.defaultSeo || {}) },
-    };
+    // Deep merge with defaults to ensure all nested objects exist
+    const mergedData = mergeDeep(SITE_DEFAULTS, data);
 
     const parsed = SiteSettingsSchema.safeParse(mergedData);
     if (!parsed.success) {
       console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
-      return SITE_DEFAULTS; 
+      return SiteSettingsSchema.parse({});
     }
     return parsed.data;
 }
@@ -58,6 +70,8 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const db = await getDb();
   await db.doc(CMS_PATHS.site).set(parsedData, { merge: true });
   revalidatePath('/', 'layout');
+  revalidatePath('/robots.txt');
+  revalidatePath('/sitemap.xml');
   return parsedData;
 }
 
@@ -97,7 +111,6 @@ export async function saveNavigation(data: Navigation): Promise<void> {
     await batch.commit();
     revalidatePath('/', 'layout');
 }
-
 
 export async function getPageBySlug(slug: string): Promise<any | null> {
     const db = await getDb();

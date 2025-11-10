@@ -1,33 +1,32 @@
-import type { MetadataRoute } from 'next';
-import { getCases } from '@/lib/cms';
-import { siteConfig } from '@/config/site';
+
+import { MetadataRoute } from "next";
+import { getCases } from "@/lib/cms-server";
+
+// Placeholder for a function that would list all published static-like pages
+async function listPublicPages(): Promise<string[]> {
+    // In a real app, this might fetch slugs from a 'pages' collection
+    return ["/", "/about", "/services", "/contact", "/cases"];
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://digifly.dk";
+  const staticPages = await listPublicPages();
+  const cases = await getCases();
 
-  const staticEntries: MetadataRoute.Sitemap = [
-    { url: `${base}/`, lastModified: new Date(), changeFrequency: 'weekly', priority: 1.0 },
-    { url: `${base}/services`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${base}/cases`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${base}/contact`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.5 },
-  ];
+  const staticEntries: MetadataRoute.Sitemap = staticPages.map(p => ({
+    url: `${base}${p}`,
+    changeFrequency: "weekly",
+    priority: p === "/" ? 1 : 0.7,
+  }));
 
-  try {
-    const cases = await getCases();
-    if (cases && cases.length > 0) {
-      const mapped = cases
-        .filter(c => c?.slug)
-        .map(c => ({
-          url: `${base}/cases/${c.slug}`,
-          lastModified: c.updatedAt ? new Date(c.updatedAt) : new Date(),
-          changeFrequency: 'monthly',
-          priority: 0.6
-        } as MetadataRoute.Sitemap[0]));
-      return [...staticEntries, ...mapped];
-    }
-  } catch (e) {
-      console.warn("Could not fetch cases for sitemap, returning static only.", e);
-  }
+  const caseEntries: MetadataRoute.Sitemap = cases
+    .filter(c => c.published && c.slug)
+    .map(c => ({
+        url: `${base}/cases/${c.slug}`,
+        lastModified: c.updatedAt ? new Date(c.updatedAt) : new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.6
+    }));
 
-  return staticEntries;
+  return [...staticEntries, ...caseEntries];
 }

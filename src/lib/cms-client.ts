@@ -1,41 +1,59 @@
-import type { DesignSettings, HomePage, CaseDoc, Page, Navigation } from './types';
 
-async function fetchCms<T>(path: string): Promise<T | null> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+import type { SiteSettings, HomePage, CaseDoc, Page, Navigation } from './types';
+
+async function fetchCmsData(path: string) {
+  const base = process.env.NEXT_PUBLIC_SITE_URL || '';
   try {
-    const res = await fetch(`${base}/api/cms/${path}`, { next: { revalidate: 60 } });
-    if (!res.ok) return null;
-    return res.json();
-  } catch (e) {
-    console.error(`Error fetching CMS data for ${path}:`, e);
-    return null;
+    const res = await fetch(`${base}/api/cms/${path}`, {
+      next: { revalidate: 0 },
+      cache: 'no-store'
+    });
+    const json = await res.json();
+    if (!res.ok || json.ok === false) {
+      throw new Error(json.error || `Failed to fetch /api/cms/${path}`);
+    }
+    return json.data ?? json; // Handle both {ok,data} and direct data responses
+  } catch (e: any) {
+    console.error(`[cms-client] Failed to fetch data for '${path}':`, e.message);
+    throw e; // re-throw to be caught by caller
   }
 }
 
-export async function getDesign(): Promise<DesignSettings | null> {
-  return fetchCms<DesignSettings>('design');
-}
-
-export async function getHomePage(): Promise<HomePage | null> {
-  return fetchCms<HomePage>('home');
-}
-
 // Read current site settings
-export async function getDesignSettings() {
-  const res = await fetch('/api/cms/site', { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to fetch site settings');
-  const json = await res.json();
-  return json.data;
+export async function getSiteSettings(): Promise<SiteSettings> {
+  return fetchCmsData('site');
 }
 
 // Save site settings
-export async function saveDesignSettings(payload: unknown) {
+export async function saveSiteSettings(payload: unknown): Promise<SiteSettings> {
   const res = await fetch('/api/cms/site', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error('Failed to save site settings');
   const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.error?.message || 'Failed to save site settings');
+  }
   return json.data;
+}
+
+
+// Specific page getters
+export async function getHomepage(): Promise<HomePage> {
+    const res = await fetchCmsData('pages/home');
+    return res as HomePage;
+}
+
+export async function updateHomepage(payload: HomePage) {
+    const res = await fetch('/api/cms/pages/home', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || 'Failed to save homepage');
+    }
+    return res.json();
 }

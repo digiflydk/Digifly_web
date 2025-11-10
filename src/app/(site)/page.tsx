@@ -6,7 +6,7 @@ import ServicesOverview from '@/components/sections/services-overview';
 import CasesGrid from '@/components/sections/cases-grid';
 import CtaBanner from '@/components/sections/cta-banner';
 import IntroWhyHowWhat from '@/components/sections/intro-why-how-what';
-import { buildSeo } from '@/lib/seo';
+import { buildPageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
@@ -15,17 +15,11 @@ import type { HomePage } from '@/lib/schemas';
 
 export async function generateMetadata(): Promise<Metadata> {
     const result = await getHomepage();
-    const site = await getSiteSettings();
-
-    // Use sanitized data even if validation fails, it's safer
     const page = result.data as HomePage; 
 
-    const seoTitle = page?.seo?.title ? page.seo.title : site.siteTitle;
-    const seoDesc = page?.seo?.description ? page.seo.description : site.defaultSeo?.description;
-    
-    return buildSeo({
-      title: seoTitle,
-      description: seoDesc,
+    return buildPageMetadata({
+      title: page?.seo?.title,
+      description: page?.seo?.description,
     });
 }
 

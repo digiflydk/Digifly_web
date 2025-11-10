@@ -4,74 +4,55 @@
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
 import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import Image from 'next/image';
 import { ZodError } from "zod";
-import { getDesignSettings, saveDesignSettings } from "@/lib/cms-client";
-import { SeoPreviewCard } from "@/components/cms/forms/SeoPreviewCard";
+import { getSiteSettings, saveSiteSettings } from "@/lib/cms-client";
 import { SITE_DEFAULTS } from "@/lib/defaults/siteDefaults";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import GeneralTab from "./GeneralTab";
+import ContactTab from "./ContactTab";
+import OpeningHoursTab from "./OpeningHoursTab";
+import SeoTab from "./SeoTab";
+import { SeoPreviewCard } from "@/components/cms/forms/SeoPreviewCard";
+
 
 async function loadSettings(): Promise<SiteSettings> {
     try {
-        const data = await getDesignSettings();
+        const data = await getSiteSettings();
+        // Use safeParse to handle potentially incomplete/invalid data from Firestore
         const parsed = SiteSettingsSchema.safeParse(data || {});
         if (!parsed.success) {
-            console.error("API data failed validation:", parsed.error);
+            console.warn("loadSettings: API data failed validation, falling back to defaults.", parsed.error.format());
+            // Return a fully-formed default object on failure
             return SiteSettingsSchema.parse({});
         }
         return parsed.data;
     } catch (e: any) {
-        console.error(`API response was not valid or failed parsing. Error: ${e.message}`);
+        console.error(`loadSettings: API call failed or data is critically malformed. Error: ${e.message}`);
+        // In case of total failure, still return a valid default shape
         return SiteSettingsSchema.parse({});
     }
 }
 
-function ImagePreview({ control, name, alt, width, height }: { control: any; name: "brand.logo.src" | "brand.favicon.src"; alt: string; width: number; height: number; }) {
-    const src = useWatch({ control, name });
-
-    if (!src || typeof src !== 'string' ) {
-        return <div className="h-10 w-24 bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400">No preview</div>;
-    }
-    
-    const isValidSrc = src.startsWith('http') || src.startsWith('/');
-
-    if (!isValidSrc) {
-        return <div className="h-10 w-24 bg-red-100 rounded flex items-center justify-center text-xs text-red-500 text-center p-1">Invalid Path</div>;
-    }
-
-    return (
-        <div className="p-2 border rounded-md bg-slate-50">
-            <Image
-                src={src}
-                alt={alt}
-                width={width}
-                height={height}
-                className="object-contain"
-                unoptimized
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-        </div>
-    );
-}
 
 function LiveSeoPreview({ control, siteUrl }: { control: any, siteUrl: string }) {
     const formData = useWatch({ control });
+    const { seo, general } = formData ?? {};
 
-    const title = formData.siteTitle || SITE_DEFAULTS.siteTitle;
-    const description = formData.defaultSeo?.description || SITE_DEFAULTS.defaultSeo.description;
-    const imageUrl = formData.defaultSeo?.defaultThumbnailUrl || '/og-default.jpg';
+    const title = general?.title || SITE_DEFAULTS.general.title;
+    const description = seo?.defaultDescription || SITE_DEFAULTS.seo.defaultDescription;
+    const imageUrl = seo?.ogImage || '/og-default.png';
     
     return <SeoPreviewCard title={title} description={description} imageUrl={imageUrl} siteUrl={siteUrl} />;
 }
+
 
 export default function SiteSeoForm() {
   const [initialData, setInitialData] = useState<SiteSettings | null>(null);
@@ -79,9 +60,7 @@ export default function SiteSeoForm() {
 
   useEffect(() => {
     loadSettings()
-      .then(data => {
-        setInitialData(data);
-      })
+      .then(data => setInitialData(data))
       .catch(err => {
         setError(err.message);
         setInitialData(SiteSettingsSchema.parse({})); // Fallback to default on error
@@ -90,6 +69,7 @@ export default function SiteSeoForm() {
 
   const form = useForm<SiteSettings>({
     resolver: zodResolver(SiteSettingsSchema),
+    defaultValues: SITE_DEFAULTS,
   });
 
   useEffect(() => {
@@ -103,7 +83,7 @@ export default function SiteSeoForm() {
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-        const result = await saveDesignSettings(values);
+        const result = await saveSiteSettings(values);
         if (!result) { 
             throw new Error("An unknown error occurred during save.");
         }
@@ -133,8 +113,15 @@ export default function SiteSeoForm() {
   if (!initialData) {
      return (
         <div className="space-y-8">
-            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
-            <Card><CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-24 w-full" /></CardContent></Card>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="md:col-span-2 space-y-8">
+              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+            <div className="md:col-span-1">
+              <Skeleton className="h-96 w-full" />
+            </div>
+          </div>
         </div>
     );
   }
@@ -142,80 +129,29 @@ export default function SiteSeoForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Card>
-          <CardHeader><CardTitle>Site Identity</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <FormField control={form.control} name="siteTitle" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Site Title</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ""} placeholder="e.g., Digifly" /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="social.tagline" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tagline</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ""} placeholder="e.g., Strategy, Software & AI" /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Branding</CardTitle></CardHeader>
-          <CardContent className="space-y-6">
-            <FormField control={form.control} name="brand.logo.src" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Logo URL</FormLabel>
-                 <div className="flex items-start gap-4">
-                  <FormControl className="flex-1"><Input type="text" {...field} value={field.value ?? ""} placeholder="https://... or /logo.svg" /></FormControl>
-                  <ImagePreview control={form.control} name="brand.logo.src" alt="Logo Preview" width={120} height={40} />
-                </div>
-                <FormDescription>Accepts https://... or /path/to/logo.svg</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="brand.favicon.src" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Favicon URL</FormLabel>
-                <div className="flex items-start gap-4">
-                  <FormControl><Input type="text" {...field} value={field.value ?? ""} placeholder="/favicon.ico" /></FormControl>
-                  <ImagePreview control={form.control} name="brand.favicon.src" alt="Favicon Preview" width={32} height={32} />
-                </div>
-                <FormDescription>Accepts https://... or /path/to/favicon.ico</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Default SEO</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <FormField control={form.control} name="defaultSeo.description" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Default Meta Description</FormLabel>
-                <FormControl><Textarea {...field} value={field.value ?? ""} placeholder="A concise summary for search engines." /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="defaultSeo.defaultThumbnailUrl" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Default Thumbnail (OG Image)</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ""} placeholder="/og-default.jpg" /></FormControl>
-                <FormDescription>Root-relative (/img.jpg) or absolute (https://...) URL. Recommended size: 1200x630.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <div className="pt-4">
-                <FormLabel>Live Preview</FormLabel>
-                <div className="mt-2 not-prose">
-                    <LiveSeoPreview control={form.control} siteUrl={process.env.NEXT_PUBLIC_SITE_URL || "digifly.app"}/>
-                </div>
+        <div className="grid md:grid-cols-3 gap-8 items-start">
+            <div className="md:col-span-2">
+                <Tabs defaultValue="general">
+                    <TabsList className="grid w-full grid-cols-4 mb-6">
+                        <TabsTrigger value="general">General</TabsTrigger>
+                        <TabsTrigger value="contact">Contact</TabsTrigger>
+                        <TabsTrigger value="hours">Hours</TabsTrigger>
+                        <TabsTrigger value="seo">SEO</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="general"><GeneralTab control={form.control} /></TabsContent>
+                    <TabsContent value="contact"><ContactTab control={form.control} /></TabsContent>
+                    <TabsContent value="hours"><OpeningHoursTab control={form.control} /></TabsContent>
+                    <TabsContent value="seo"><SeoTab control={form.control} /></TabsContent>
+                </Tabs>
             </div>
-          </CardContent>
-        </Card>
+             <div className="md:col-span-1 md:sticky top-24">
+                <h3 className="text-lg font-semibold mb-2">Live SEO Preview</h3>
+                <p className="text-sm text-slate-500 mb-4">This is how your site will generally appear on Google and social media.</p>
+                <LiveSeoPreview control={form.control} siteUrl={process.env.NEXT_PUBLIC_SITE_URL || "digifly.app"}/>
+            </div>
+        </div>
 
-        <div className="sticky bottom-0 bg-slate-50/90 py-4 dark:bg-slate-900/90">
+        <div className="sticky bottom-0 bg-slate-50/90 py-4 dark:bg-slate-900/90 border-t -mx-6 px-6">
           <Button type="submit" disabled={isSaving || !form.formState.isDirty}>
             {isSaving ? "Saving..." : "Save Settings"}
           </Button>

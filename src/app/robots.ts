@@ -1,12 +1,16 @@
-import type { MetadataRoute } from 'next';
 
-export default function robots(): MetadataRoute.Robots {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  return { 
-    rules: [{ 
-      userAgent: '*', 
-      allow: '/' 
-    }], 
-    sitemap: `${base}/sitemap.xml`
+import { MetadataRoute } from "next";
+import { getSiteSettings } from "@/lib/cms-server";
+
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://digifly.dk";
+  const settings = await getSiteSettings();
+  const allowIndexing = settings?.seo?.allowIndexing ?? true;
+
+  return {
+    rules: allowIndexing
+      ? { userAgent: "*", allow: "/" }
+      : { userAgent: "*", disallow: "/" },
+    sitemap: `${base}/sitemap.xml`,
   };
 }

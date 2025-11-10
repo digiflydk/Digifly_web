@@ -1,5 +1,7 @@
+
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+// import { getRedirects } from "@/lib/cms-server"; // Placeholder
 
 const BLOCKED_PATTERNS = [
   /^\/\.git(?:\/|$)/i,
@@ -26,7 +28,9 @@ const BLOCKED_PATTERNS = [
   /^\/s\/[0-9a-f/_;.-]+\/META-INF\/.+$/i,
 ];
 
-export function middleware(req: NextRequest) {
+// let redirectCache: any[] | null = null; // Placeholder for redirect caching
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Block common scanner patterns
@@ -35,6 +39,17 @@ export function middleware(req: NextRequest) {
       return new NextResponse("Not found", { status: 404 });
     }
   }
+
+  // Placeholder for redirect logic
+  // try {
+  //   redirectCache = redirectCache ?? await getRedirects();
+  //   const hit = redirectCache?.find(r => r.active !== false && r.from === pathname);
+  //   if (hit) {
+  //     return NextResponse.redirect(new URL(hit.to, req.url), hit.status ?? 301);
+  //   }
+  // } catch (e) {
+  //   console.warn('[middleware] Could not fetch redirects:', e);
+  // }
 
   // Admin area authentication
   if (pathname.startsWith('/dadmin') && !pathname.startsWith('/dadmin/login')) {
@@ -51,5 +66,5 @@ export function middleware(req: NextRequest) {
 
 // Run middleware on all routes
 export const config = {
-  matcher: ["/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

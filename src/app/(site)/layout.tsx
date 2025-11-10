@@ -1,7 +1,9 @@
 
+
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { getNavigation, getSiteSettings } from "@/lib/cms-server";
+import { orgJsonLd, localBusinessJsonLd } from "@/lib/structured-data";
 
 export default async function SiteLayout({
   children,
@@ -9,9 +11,13 @@ export default async function SiteLayout({
   children: React.ReactNode;
 }) {
   const [navigation, site] = await Promise.all([getNavigation(), getSiteSettings()]);
+  const jsonLdBlocks = [orgJsonLd(site), localBusinessJsonLd(site)].filter(Boolean);
 
   return (
     <div className="flex min-h-screen flex-col">
+      {jsonLdBlocks.map((b, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(b) }} />
+      ))}
       <Header nav={navigation?.header} logo={site.brand?.logo} siteTitle={site.siteTitle} />
       <main className="flex-1" style={{ paddingTop: 'calc(var(--header-height, 64px) + env(safe-area-inset-top))' }}>{children}</main>
       <Footer columns={navigation?.footer?.columns} />
