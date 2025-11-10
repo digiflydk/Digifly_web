@@ -1,4 +1,5 @@
 
+
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { getNavigation } from "@/lib/cms-server";
@@ -20,7 +21,10 @@ export default async function SiteLayout({
       ))}
       <Header 
         nav={navigation?.header} 
-        logo={{ src: site.general?.logoUrl ?? '/logo.svg', alt: site.general?.title ?? 'Digifly' }} 
+        logo={{ 
+          src: site.general?.logoUrl ?? '/logo.svg', 
+          alt: site.general?.title ?? 'Digifly' 
+        }} 
         siteTitle={site.general?.title} 
       />
       <main className="flex-1" style={{ paddingTop: 'calc(var(--header-height, 64px) + env(safe-area-inset-top))' }}>{children}</main>

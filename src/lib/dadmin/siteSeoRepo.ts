@@ -1,4 +1,4 @@
-// src/lib/dadmin/siteSeoRepo.ts
+
 import { getDb } from "@/lib/firebase-admin";
 import type { SiteSettings } from "@/lib/schemas";
 import { coerceToDefaults } from "@/components/dadmin/site-seo/utils/formDefaults";
@@ -16,5 +16,7 @@ export async function readSiteSettings(): Promise<SiteSettings> {
 
 export async function writeSiteSettings(data: SiteSettings): Promise<void> {
   const db = await getDb();
-  await db.collection(COLLECTION).doc(DOC_ID).set(data, { merge: true });
+  // Ensure we save a complete object to avoid undefined fields
+  const safeData = coerceToDefaults(data);
+  await db.collection(COLLECTION).doc(DOC_ID).set(safeData, { merge: true });
 }

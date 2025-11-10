@@ -11,10 +11,45 @@ export function orgJsonLd(settings: SiteSettings) {
   };
 }
 
+// DGF-228: New types and null-safe mapping
+type DaySpec = { enabled: boolean; from?: string; to?: string };
+type HoursRecord = Record<string, DaySpec | undefined>;
+
+function toOpeningHours(hours?: HoursRecord) {
+  if (!hours || typeof hours !== "object") return [];
+  
+  const out: any[] = [];
+  const dayMap: Record<string, string> = {
+    monday: "Monday",
+    tuesday: "Tuesday",
+    wednesday: "Wednesday",
+    thursday: "Thursday",
+    friday: "Friday",
+    saturday: "Saturday",
+    sunday: "Sunday",
+  };
+
+  for (const [key, spec] of Object.entries(hours)) {
+    const dayOfWeek = dayMap[key];
+    if (dayOfWeek && spec?.enabled && spec.from && spec.to) {
+      out.push({
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: dayOfWeek,
+        opens: spec.from,
+        closes: spec.to,
+      });
+    }
+  }
+  return out;
+}
+
 export function localBusinessJsonLd(settings: SiteSettings) {
   const c = settings.contact;
   if (!c?.street || !c?.city) return null;
-  return {
+
+  const opening = toOpeningHours(settings.hours ?? undefined);
+
+  const jsonLd: any = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: settings.general.title,
@@ -26,18 +61,13 @@ export function localBusinessJsonLd(settings: SiteSettings) {
       addressLocality: c.city,
       addressCountry: c.country || "DK",
     },
-    openingHoursSpecification: toOpeningHours(settings),
+    logo: settings.general.logoUrl,
+    url: process.env.NEXT_PUBLIC_SITE_URL,
   };
-}
+  
+  if (opening.length > 0) {
+      jsonLd.openingHoursSpecification = opening;
+  }
 
-function toOpeningHours(s: SiteSettings) {
-  const map: Record<string,string> = {
-    sunday:"Sunday", monday:"Monday", tuesday:"Tuesday",
-    wednesday:"Wednesday", thursday:"Thursday",
-    friday:"Friday", saturday:"Saturday",
-  };
-  return Object.entries(s.openingHours).flatMap(([k,v]) => {
-    if (!v.open || !v.from || !v.to) return [];
-    return [{ "@type":"OpeningHoursSpecification", dayOfWeek: map[k], opens: v.from, closes: v.to }];
-  });
+  return jsonLd;
 }
