@@ -25,7 +25,7 @@ export default function GeneralTab() {
             <FormItem>
               <FormLabel>Site Title</FormLabel>
               <FormControl>
-                <Input placeholder="Digifly | Flow. Digitalisér. Skalér." {...field} />
+                <Input placeholder="Digifly" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

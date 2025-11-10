@@ -6,7 +6,6 @@ import { Toaster } from '@/components/ui/toaster';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
 import { getSiteSettings } from "@/lib/cms-server";
 import { buildSeo } from '@/lib/seo';
-import { SITE_DEFAULTS } from '@/lib/defaults/siteDefaults';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -25,7 +24,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const site = await getSiteSettings();
-  const faviconSrc = site?.brand?.favicon?.src || SITE_DEFAULTS.brand.favicon.src;
+  const faviconSrc = site?.general?.faviconUrl;
 
   return (
     <html lang="en" className="overflow-x-hidden" suppressHydrationWarning>

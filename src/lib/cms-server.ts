@@ -17,32 +17,11 @@ import type { HomePage, Navigation, CaseDoc, SiteSettings } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { unstable_cache as nextCache, unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-import { SITE_DEFAULTS, defaultHomepage, normalizeHome } from './defaults/siteDefaults';
+import { defaultHomepage, normalizeHome } from './defaults/siteDefaults';
 import { CMS_PATHS } from './constants';
+import { merge } from 'lodash';
 
 const SITE_TAG = "site-settings";
-
-function mergeDeep(target: any, source: any) {
-    const output = { ...target };
-    if (isObject(target) && isObject(source)) {
-        Object.keys(source).forEach(key => {
-            if (isObject(source[key])) {
-                if (!(key in target)) {
-                    Object.assign(output, { [key]: source[key] });
-                } else {
-                    output[key] = mergeDeep(target[key], source[key]);
-                }
-            } else {
-                Object.assign(output, { [key]: source[key] });
-            }
-        });
-    }
-    return output;
-}
-
-function isObject(item: any) {
-    return (item && typeof item === 'object' && !Array.isArray(item));
-}
 
 
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
@@ -50,13 +29,13 @@ async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const settingsSnap = await db.doc(CMS_PATHS.site).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
-    // Deep merge with defaults to ensure all nested objects exist
-    const mergedData = mergeDeep(SITE_DEFAULTS, data);
+    const defaults = SiteSettingsSchema.parse({});
+    const mergedData = merge(defaults, data);
 
     const parsed = SiteSettingsSchema.safeParse(mergedData);
     if (!parsed.success) {
       console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
-      return SiteSettingsSchema.parse({});
+      return defaults;
     }
     return parsed.data;
 }

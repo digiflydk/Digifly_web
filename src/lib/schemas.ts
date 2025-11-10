@@ -1,6 +1,5 @@
 
 import { z } from "zod";
-import { ImageUrlSchema } from "./validators";
 
 // Base primitives
 export const NavLinkSchema = z.object({
@@ -17,8 +16,8 @@ export const OpeningSlotSchema = z.object({
 export const SiteSettingsSchema = z.object({
   general: z.object({
     title: z.string().min(1, "Site title is required.").default("Digifly"),
-    logoUrl: z.string().url().or(z.literal("")).optional(),
-    faviconUrl: z.string().url().or(z.literal("")).optional(),
+    logoUrl: z.string().url("Invalid URL").or(z.literal("")).optional(),
+    faviconUrl: z.string().url("Invalid URL").or(z.literal("")).optional(),
   }).default({}),
   contact: z.object({
     email: z.string().email("Invalid email").or(z.literal("")).optional(),
@@ -30,21 +29,30 @@ export const SiteSettingsSchema = z.object({
     country: z.string().optional(),
   }).default({}),
   openingHours: z.object({
-    sunday: OpeningSlotSchema.default({ open: false }),
-    monday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
-    tuesday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
-    wednesday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
-    thursday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
-    friday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
-    saturday: OpeningSlotSchema.default({ open: false }),
-  }).default({}),
+    sunday: OpeningSlotSchema,
+    monday: OpeningSlotSchema,
+    tuesday: OpeningSlotSchema,
+    wednesday: OpeningSlotSchema,
+    thursday: OpeningSlotSchema,
+    friday: OpeningSlotSchema,
+    saturday: OpeningSlotSchema,
+  }).default({
+    sunday: { open: false },
+    monday: { open: true, from: "09:00", to: "17:00" },
+    tuesday: { open: true, from: "09:00", to: "17:00" },
+    wednesday: { open: true, from: "09:00", to: "17:00" },
+    thursday: { open: true, from: "09:00", to: "17:00" },
+    friday: { open: true, from: "09:00", to: "17:00" },
+    saturday: { open: false },
+  }),
   seo: z.object({
     allowIndexing: z.boolean().default(true),
     defaultTitleTemplate: z.string().default("%s | Digifly"),
     defaultDescription: z.string().optional(),
-    ogImageUrl: z.string().url().or(z.literal("")).optional(),
+    ogImageUrl: z.string().url("Invalid URL").or(z.literal("")).optional(),
   }).default({}),
 });
+
 
 export const NavigationSchema = z.object({
   header: z.array(z.object({ label: z.string(), href: z.string() })),

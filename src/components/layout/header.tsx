@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import React, { useEffect, useState } from "react";
 import type { NavLink } from "@/lib/types";
-import type { Brand } from "@/lib/types";
 import Image from "next/image";
 
 type HeaderProps = {
   nav?: NavLink[];
-  logo?: Brand['logo'];
+  logo?: { src?: string, alt?: string, width?: number, height?: number } | null;
   siteTitle?: string | null;
 };
 

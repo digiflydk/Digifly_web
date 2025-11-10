@@ -1,6 +1,6 @@
+
 import type { Metadata } from "next";
 import { getSiteSettings } from "@/lib/cms-server";
-import { SITE_DEFAULTS } from "./defaults/siteDefaults";
 
 // Extremely tolerant input shapes to avoid runtime crashes
 type UnknownDict = Record<string, unknown>;
@@ -38,10 +38,11 @@ export function buildSeo(input: SeoInput = {}, settings?: SiteSettings): Metadat
   const siteTitle = s['siteTitle'] || general['title'];
   const defaultDescription = s['defaultDescription'] || defaultSeo['defaultDescription'];
 
-  // From defaultSeo
+  // From nested defaultSeo
   const dsTitle = defaultSeo['title'];
   const dsDesc = defaultSeo['description'];
-  const dsImage = defaultSeo['image'] || defaultSeo['ogImage'];
+  const dsImage = defaultSeo['image'] || defaultSeo['ogImage'] || defaultSeo['ogImageUrl'];
+  const dsOgImage = (defaultSeo as any)['ogImage']; // tolerate legacy
 
   // From brand
   const brandLogo = ((brand['logo'] ?? {}) as UnknownDict)['src'];
@@ -56,7 +57,7 @@ export function buildSeo(input: SeoInput = {}, settings?: SiteSettings): Metadat
   const description = pickFirst(input.description, dsDesc, defaultDescription, FALLBACK_DESC) ?? FALLBACK_DESC;
   
   const imageInput = Array.isArray(input.images) ? input.images[0] : input.images;
-  const image = pickFirst(imageInput, dsImage, brandLogo, FALLBACK_IMAGE) ?? FALLBACK_IMAGE;
+  const image = pickFirst(imageInput, dsImage, dsOgImage, brandLogo, FALLBACK_IMAGE) ?? FALLBACK_IMAGE;
 
   const allowIndexing = typeof defaultSeo['allowIndexing'] === 'boolean' ? defaultSeo['allowIndexing'] : true;
   const robots = {

@@ -9,11 +9,8 @@ import { Form } from "@/components/ui/form";
 import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ZodError } from "zod";
-import { saveSiteSettings } from "@/lib/cms-client";
+import { getSiteSettings, saveSiteSettings } from "@/lib/cms-client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { withSeoDefaults } from "@/lib/seo-defaults";
 
@@ -22,7 +19,7 @@ import ContactTab from "./ContactTab";
 import OpeningHoursTab from "./OpeningHoursTab";
 import SeoTab from "./SeoTab";
 import { LiveSeoPreview } from "@/components/cms/forms/SeoPreviewCard";
-
+import { Skeleton } from "@/components/ui/skeleton";
 
 function WatchedSeoPreview({ control, siteUrl, initialDescription }: { control: any, siteUrl: string, initialDescription?: string | null }) {
     const seoWatch = useWatch({ control, name: "seo" });
@@ -40,10 +37,16 @@ function WatchedSeoPreview({ control, siteUrl, initialDescription }: { control: 
     );
 }
 
-export default function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
+export default function SiteSeoForm() {
+  const [initialData, setInitialData] = useState<SiteSettings | null>(null);
+
+  useEffect(() => {
+    getSiteSettings().then(setInitialData).catch(() => setInitialData(SiteSettingsSchema.parse({})));
+  }, []);
+  
   const form = useForm<SiteSettings>({
     resolver: zodResolver(SiteSettingsSchema),
-    defaultValues: initialData,
+    defaultValues: initialData || undefined,
     mode: 'onChange',
   });
 
@@ -73,6 +76,10 @@ export default function SiteSeoForm({ initialData }: { initialData: SiteSettings
     } finally {
       setIsSaving(false);
     }
+  }
+
+  if (!initialData) {
+    return <div className="space-y-4"><Skeleton className="h-10 w-1/4" /><Skeleton className="h-64 w-full" /></div>
   }
 
   return (
