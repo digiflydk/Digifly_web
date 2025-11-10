@@ -1,5 +1,5 @@
 
-
+import "server-only";
 import { getDb } from "@/lib/firebase-admin";
 import type { SiteSettings } from "@/lib/schemas";
 import { coerceToDefaults } from "@/components/dadmin/site-seo/utils/formDefaults";

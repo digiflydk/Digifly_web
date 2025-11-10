@@ -10,9 +10,9 @@ service cloud.firestore {
     // --- PUBLIC READS ---
 
     // Public site settings: only this doc is publicly readable by anyone
-    match /settings/site {
-      allow get: if true;
-      allow list, write: if isAdmin(); // List and write only for admin
+    match /site/{docId} {
+      allow read: if docId == "settings";
+      allow write: if isAdmin() && docId == "settings";
     }
     
     // Public content
@@ -32,8 +32,8 @@ service cloud.firestore {
 
     // --- ADMIN-ONLY ---
     
-    // Legacy collections are admin-only
-    match /site/{docId} {
+    // Legacy site/config doc is admin-only
+    match /site/config {
       allow read, write: if isAdmin();
     }
     

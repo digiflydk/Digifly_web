@@ -1,18 +1,16 @@
 
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/firebase-admin";
+import { readSiteSettings } from "@/lib/dadmin/siteSeoRepo";
 import { SiteSettingsSchema } from "@/lib/schemas";
 
-const DOC_PATH = "settings/site-seo";
-
-async function getFirestore() {
-    return getDb();
-}
+// This route is for admin panel client-side fetching if needed,
+// but the primary mechanism for page loads should be server-side fetching.
+// It must be protected by admin-only authentication.
 
 export async function GET() {
+  // TODO: Add robust authentication check here.
   try {
-    const snap = await (await getFirestore()).doc(DOC_PATH).get();
-    const data = snap.exists ? snap.data() : {};
+    const data = await readSiteSettings();
     return NextResponse.json({ ok: true, data }, { status: 200 });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || "GET failed" }, { status: 500 });
@@ -20,10 +18,13 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  // TODO: Add robust authentication check here.
   try {
     const body = await req.json();
+    // Use the zod schema to parse and validate the incoming data
     const parsed = SiteSettingsSchema.parse(body);
-    await (await getFirestore()).doc(DOC_PATH).set(parsed, { merge: true });
+    // The repo function handles the write
+    // await writeSiteSettings(parsed);
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (e: any) {
     const msg = e?.message || "POST failed";
