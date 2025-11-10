@@ -30,7 +30,6 @@ export default function SiteSeoForm() {
 
   useEffect(() => {
     getSiteSettings().then(setInitialData).catch(() => {
-        // On failure, parse an empty object to get defaults
         const defaults = SiteSettingsSchema.parse({});
         setInitialData(defaults);
     });

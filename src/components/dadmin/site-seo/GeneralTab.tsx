@@ -3,7 +3,7 @@
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
 export default function GeneralTab() {
@@ -25,7 +25,7 @@ export default function GeneralTab() {
             <FormItem>
               <FormLabel>Site Title</FormLabel>
               <FormControl>
-                <Input placeholder="Digifly" {...field} />
+                <Input placeholder="Digifly" {...field} value={field.value ?? ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -38,9 +38,8 @@ export default function GeneralTab() {
             <FormItem>
               <FormLabel>Logo URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://..." {...field} />
+                <Input placeholder="https://..." {...field} value={field.value ?? ""} />
               </FormControl>
-              <FormDescription>Link to your logo image file (e.g., SVG, PNG).</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -52,9 +51,8 @@ export default function GeneralTab() {
             <FormItem>
               <FormLabel>Favicon URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://.../favicon.ico" {...field} />
+                <Input placeholder="https://.../favicon.ico" {...field} value={field.value ?? ""} />
               </FormControl>
-              <FormDescription>Link to your site's favicon (e.g., ICO, PNG, SVG).</FormDescription>
               <FormMessage />
             </FormItem>
           )}

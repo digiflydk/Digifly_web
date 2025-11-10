@@ -7,12 +7,11 @@ type Props = {
   seo?: {
     title?: string;
     description?: string;
-    ogImage?: { src: string; alt?: string } | null;
-    twitterCard?: "summary" | "summary_large_image";
+    ogImageUrl?: string | null;
   } | null;
-  fallbackTitle?: string;        // optional: siteTitle or brand name
-  fallbackDescription?: string;  // optional: default description
-  siteUrl?: string; // Add siteUrl to resolve image paths
+  fallbackTitle?: string;
+  fallbackDescription?: string;
+  siteUrl?: string;
 };
 
 export function LiveSeoPreview({ seo, fallbackTitle = "", fallbackDescription = "", siteUrl = "" }: Props) {

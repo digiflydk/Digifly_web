@@ -48,7 +48,7 @@ export default function SeoTab() {
                     <FormItem>
                     <FormLabel>Default Title Template</FormLabel>
                     <FormControl>
-                        <Input {...field} placeholder="%s | Company Name" />
+                        <Input {...field} placeholder="%s | Company Name" value={field.value ?? ""} />
                     </FormControl>
                     <FormDescription>
                         <code>%s</code> will be replaced with the page-specific title.
@@ -64,7 +64,7 @@ export default function SeoTab() {
                     <FormItem>
                     <FormLabel>Default Meta Description</FormLabel>
                     <FormControl>
-                        <Textarea {...field} placeholder="A short, compelling description of your site." />
+                        <Textarea {...field} placeholder="A short, compelling description of your site." value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -77,7 +77,7 @@ export default function SeoTab() {
                     <FormItem>
                     <FormLabel>Default Social Image URL</FormLabel>
                     <FormControl>
-                        <Input {...field} placeholder="https://.../og-image.png" />
+                        <Input {...field} placeholder="https://.../og-image.png" value={field.value ?? ""} />
                     </FormControl>
                     <FormDescription>
                         Recommended size: 1200x630px.
@@ -109,11 +109,11 @@ export default function SeoTab() {
             </CardContent>
             </Card>
         </div>
-        <div className="md:col-span-1 md:sticky top-24">
-            <h3 className="text-lg font-semibold mb-2">Live SEO Preview</h3>
-            <p className="text-sm text-slate-500 mb-4">This is how your site will generally appear on Google and social media.</p>
+        <aside className="md:col-span-1 md:sticky top-24 space-y-4">
+            <h3 className="text-lg font-semibold">Live SEO Preview</h3>
+            <p className="text-sm text-slate-500">This is how your site will generally appear on Google and social media.</p>
             <WatchedSeoPreview />
-        </div>
+        </aside>
     </div>
   );
 }

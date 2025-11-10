@@ -22,7 +22,7 @@ export default function OpeningHoursTab() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {dayMap.map((dayName) => {
+        {dayMap.map((dayName, index) => {
           const isChecked = watch(`openingHours.${dayName}.open`);
           return (
             <div key={dayName} className="grid grid-cols-4 items-center gap-4 p-3 rounded-lg hover:bg-slate-50">
@@ -49,7 +49,7 @@ export default function OpeningHoursTab() {
                     name={`openingHours.${dayName}.from`}
                     render={({ field }) => (
                       <FormItem className="flex-1">
-                        <FormControl><Input type="time" {...field} /></FormControl>
+                        <FormControl><Input type="time" {...field} value={field.value ?? ""} /></FormControl>
                       </FormItem>
                     )}
                   />
@@ -59,7 +59,7 @@ export default function OpeningHoursTab() {
                     name={`openingHours.${dayName}.to`}
                     render={({ field }) => (
                       <FormItem className="flex-1">
-                        <FormControl><Input type="time" {...field} /></FormControl>
+                        <FormControl><Input type="time" {...field} value={field.value ?? ""} /></FormControl>
                       </FormItem>
                     )}
                   />

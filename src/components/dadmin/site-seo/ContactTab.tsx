@@ -23,7 +23,7 @@ export default function ContactTab() {
                 <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                    <Input placeholder="info@digifly.dk" {...field} />
+                    <Input placeholder="info@digifly.dk" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -36,7 +36,7 @@ export default function ContactTab() {
                 <FormItem>
                 <FormLabel>Phone</FormLabel>
                 <FormControl>
-                    <Input placeholder="+45 12 34 56 78" {...field} />
+                    <Input placeholder="+45 12 34 56 78" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -50,7 +50,7 @@ export default function ContactTab() {
                 <FormItem>
                 <FormLabel>Company Name</FormLabel>
                 <FormControl>
-                    <Input placeholder="Digifly ApS" {...field} />
+                    <Input placeholder="Digifly ApS" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -63,7 +63,7 @@ export default function ContactTab() {
                 <FormItem>
                 <FormLabel>Street Address</FormLabel>
                 <FormControl>
-                    <Input placeholder="Vejlebrovej 14K" {...field} />
+                    <Input placeholder="Vejlebrovej 14K" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -77,7 +77,7 @@ export default function ContactTab() {
                     <FormItem>
                     <FormLabel>ZIP / Postal Code</FormLabel>
                     <FormControl>
-                        <Input placeholder="2635" {...field} />
+                        <Input placeholder="2635" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -90,7 +90,7 @@ export default function ContactTab() {
                     <FormItem>
                     <FormLabel>City</FormLabel>
                     <FormControl>
-                        <Input placeholder="Ishøj" {...field} />
+                        <Input placeholder="Ishøj" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -103,7 +103,7 @@ export default function ContactTab() {
                     <FormItem>
                     <FormLabel>Country</FormLabel>
                     <FormControl>
-                        <Input placeholder="Denmark" {...field} />
+                        <Input placeholder="Denmark" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
