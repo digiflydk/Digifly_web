@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
+import { SiteSettingsSchema, type SiteSettings } from "@/app/dadmin/site-seo/actions";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { ZodError } from "zod";
@@ -15,8 +15,8 @@ import GeneralTab from "./tabs/GeneralTab";
 import ContactTab from "./tabs/ContactTab";
 import OpeningHoursTab from "./tabs/OpeningHoursTab";
 import SeoTab from "./tabs/SeoTab";
-import { emptySiteSeo } from "./utils/formDefaults";
-import { saveSiteSettings } from "../site-seo/actions";
+import { DEFAULTS as emptySiteSeo } from "@/app/dadmin/site-seo/actions";
+import { saveSiteSettings } from "@/app/dadmin/site-seo/actions";
 
 
 export default function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
