@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { getSiteSettings } from "@/lib/cms-server";
 import type { SiteSettings } from "./schemas";
-import { getSiteSeo } from "./dadmin/siteSeoRepo";
+import { readSiteSettings as getSiteSeo } from "./dadmin/siteSeoRepo";
 
 // Extremely tolerant input shapes to avoid runtime crashes
 type UnknownDict = Record<string, unknown>;

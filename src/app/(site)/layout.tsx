@@ -2,7 +2,7 @@
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { getNavigation } from "@/lib/cms-server";
-import { getSiteSeo } from "@/lib/dadmin/siteSeoRepo";
+import { readSiteSettings } from "@/lib/dadmin/siteSeoRepo";
 import { orgJsonLd, localBusinessJsonLd } from "@/lib/structured-data";
 
 export default async function SiteLayout({
@@ -10,7 +10,7 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [navigation, site] = await Promise.all([getNavigation(), getSiteSeo()]);
+  const [navigation, site] = await Promise.all([getNavigation(), readSiteSettings()]);
   const jsonLdBlocks = [orgJsonLd(site as any), localBusinessJsonLd(site as any)].filter(Boolean);
 
   return (

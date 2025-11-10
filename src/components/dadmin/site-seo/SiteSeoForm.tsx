@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -6,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { SiteSettingsSchema, type SiteSettings } from "@/app/dadmin/site-seo/actions";
+import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { ZodError } from "zod";
@@ -17,7 +16,6 @@ import OpeningHoursTab from "./tabs/OpeningHoursTab";
 import SeoTab from "./tabs/SeoTab";
 import { emptySiteSeo } from "@/components/dadmin/site-seo/utils/formDefaults";
 import { saveSiteSettings } from "@/app/dadmin/site-seo/actions";
-
 
 export default function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   const form = useForm<SiteSettings>({
@@ -37,7 +35,7 @@ export default function SiteSeoForm({ initialData }: { initialData: SiteSettings
     try {
         const result = await saveSiteSettings(values);
         if (!result.ok) {
-            throw new Error(result.error || `Save failed`);
+            throw new Error( "Save failed");
         }
         
         toast({ title: "✅ Success", description: "Site settings saved." });

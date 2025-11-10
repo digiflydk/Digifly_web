@@ -4,7 +4,7 @@ import './globals.css';
 import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
-import { getSiteSeo } from "@/lib/dadmin/siteSeoRepo";
+import { readSiteSettings as getSiteSeo } from "@/lib/dadmin/siteSeoRepo";
 
 export const revalidate = 60; // refresh settings every 60s
 
