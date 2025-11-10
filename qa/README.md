@@ -1,32 +1,23 @@
-# Digifly – QA & Testing
+# QA & Testing
 
-This directory contains configuration and tests for Playwright, which runs end-to-end smoke tests against a deployed environment.
+## How to run
+1) Set the test target:
+   - Cloud preview/test env: `export E2E_BASE_URL="https://<your-preview-domain>"`
+   - Local: `npm run dev` in another terminal, then no env var needed (defaults to http://localhost:3000)
 
-## Running Tests
+2) Run tests:
+   - Headless CI mode: `npm run test:e2e:ci`
+   - Local dev: `npm run test:e2e`
+   - View HTML report: `npm run test:e2e:report` (report in `qa/report`)
 
-### Local Testing
+## What is covered
+- Page titles & meta descriptions (Home, About, Services, Contact)
+- Canonical link correctness
+- robots.txt contains either `Allow: /` or `Disallow: /`
+- sitemap.xml returns 200 and lists absolute URLs
+- OG image fallback present when page-level OG is missing
+- Single H1 per page
 
-To run tests against your local development server:
-
-1.  Make sure your dev server is running (`npm run dev`). It should be on `http://localhost:9002`.
-2.  Run the tests:
-
-```bash
-npm run test:pw
-```
-
-3.  To view the HTML report after the run:
-
-```bash
-npm run test:pw:report
-```
-
-### CI Testing (Post-Deploy)
-
-Tests are automatically run after every successful deployment to a Firebase App Hosting environment. The CI script (`test:pw:ci`) is configured to use the `BASE_URL` provided by the environment and will never block the overall build status (`|| true`).
-
-Test reports (HTML, JUnit) and artifacts (screenshots, traces) are uploaded on every run, successful or not.
-
-## Adding Tests
-
-New test files should be added under the `qa/tests/` directory. Use simple, resilient locators. Prefer `getByRole`, `getByText`, or `data-testid` attributes over brittle CSS selectors.
+## Notes
+- If CMS seeding/toggles are available in Studio, wire them into `tests/fixtures/cms.ts`.
+- This task does *not* deploy. It targets the existing test/preview environment.
