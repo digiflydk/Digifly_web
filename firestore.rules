@@ -7,41 +7,39 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    // Public site settings (readable by anyone, writable only by admins)
-    match /site/{doc} {
-      allow read: if true;
+    // Public site settings: only this doc is publicly readable
+    match /settings/site {
+      allow get, list: if true;
       allow write: if isAdmin();
     }
-
-    // Public navigation
-    match /navigation/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
+    
+    // Legacy collections locked to admin
+    match /site/{docId} {
+      allow read, write: if isAdmin();
     }
-
-    // Pages: public can read only published pages; admins can read/write everything
-    match /pages/{doc=**} {
+    match /navigation/{doc=**} {
+      allow read, write: if isAdmin();
+    }
+     match /pages/{doc=**} {
       allow read: if resource.data.published == true || isAdmin();
       allow write: if isAdmin();
     }
-
-    // Cases: expose only published
     match /cases/{caseId} {
       allow read: if resource.data.published == true;
       allow write: if isAdmin();
     }
 
     // Admin-only namespace
-    match /dadmin/{doc=**} {
+    match /dadmin/{document=**} {
       allow read, write: if isAdmin();
     }
-
+    
     // QA runs are readable by anyone, writable only by admins/functions
     match /qa_runs/{runId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    
+
     // Default: deny all other access
     match /{document=**} {
       allow read, write: if false;
