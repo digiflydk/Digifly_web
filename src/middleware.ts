@@ -1,7 +1,5 @@
-
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getCurrentUser, isSuperadmin, isAdmin } from "./lib/auth/roles";
 
 const BLOCKED_PATTERNS = [
   /^\/\.git(?:\/|$)/i,
@@ -28,19 +26,6 @@ const BLOCKED_PATTERNS = [
   /^\/s\/[0-9a-f/_;.-]+\/META-INF\/.+$/i,
 ];
 
-// This is a server-function that can't be run in middleware directly
-// so we use a simplified check here. The layout will do the full check.
-async function checkAuth(req: NextRequest): Promise<{ authed: boolean, role: string | null }> {
-    const hasAuthCookie = req.cookies.has('__session');
-    if (!hasAuthCookie) return { authed: false, role: null };
-    
-    // We cannot use the full Admin SDK verification here as it's not supported in Edge runtime.
-    // Instead, we will do a basic check and rely on the page/layout level for full verification.
-    // For middleware, we'll assume the presence of the cookie means "logged in as some user".
-    // The role will be checked on the server-side layout. For now, this is a limitation.
-    return { authed: true, role: null }; // We can't know the role here.
-}
-
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -51,22 +36,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Admin area authentication
-  if (pathname.startsWith('/dadmin') && !pathname.startsWith('/dadmin/login')) {
-    const hasAuth = req.cookies.has('dadmin_auth') && req.cookies.get('dadmin_auth')?.value === 'true';
-    if (!hasAuth) {
-      const loginUrl = new URL('/dadmin/login', req.url);
-      loginUrl.searchParams.set('next', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
-
-  // Developer section guard
-  if (pathname.startsWith('/dadmin/developer') || pathname.startsWith('/dadmin/dev')) {
-      // NOTE: Middleware runs in Edge runtime where Admin SDK isn't available.
-      // We will perform the real role check in a server-side layout that wraps these pages.
-      // This middleware step is now more of a placeholder, the real guard is in the layout.
-  }
+  // Auth is disabled, all dadmin routes are public.
 
   return NextResponse.next();
 }

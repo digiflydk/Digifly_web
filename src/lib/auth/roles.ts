@@ -1,16 +1,8 @@
 
+// Public mode: all checks pass, no session required.
+export function isAdmin() { return true; }
+export function isSuperadmin() { return true; }
+export async function requireAdmin() { return true; }
+export async function requireSuperadmin() { return true; }
+
 export type Role = 'admin' | 'superadmin';
-
-/**
- * Checks if a role string is 'superadmin'.
- * @param r The role string to check.
- * @returns True if the role is 'superadmin'.
- */
-export const isSuperadmin = (r?: string | null): r is 'superadmin' => r === 'superadmin';
-
-/**
- * Checks if a role string is 'admin' or 'superadmin'.
- * @param r The role string to check.
- * @returns True if the user has at least admin privileges.
- */
-export const isAdmin = (r?: string | null): r is 'admin' | 'superadmin' => r === 'admin' || r === 'superadmin';

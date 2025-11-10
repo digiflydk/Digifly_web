@@ -1,10 +1,10 @@
 
 import AdminShell from "./_components/AdminShell";
 import AdminFooter from "@/components/layout/AdminFooter";
-import { getCurrentUser } from "@/lib/auth/serverAuth";
 
 export default async function DadminLayout({ children }: { children: React.ReactNode; }) {
-  const user = await getCurrentUser();
+  // Auth is disabled, so we pass a null user.
+  const user = null;
 
   return (
     <html lang="en" suppressHydrationWarning>

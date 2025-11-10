@@ -20,15 +20,16 @@ const menuItems = [
 ];
 
 const devMenuItems = [
-    { href: "/dadmin/developer/docs", label: "Docs", icon: FileText },
-    { href: "/dadmin/developer/tests", label: "Playwright Tests", icon: Beaker },
+    { href: "/dadmin/docs", label: "Docs", icon: FileText },
+    { href: "/dadmin/tests", label: "Playwright Tests", icon: Beaker },
     { href: "/dadmin/dev/api-map", label: "API Map", icon: Wrench },
     { href: "/dadmin/api-explorer", label: "API Explorer", icon: Beaker },
 ];
 
 function NavContent({ user }: { user: CurrentUser | null }) {
   const pathname = usePathname();
-  const showDevMenu = isSuperadmin(user?.role);
+  // Always show dev menu in public mode
+  const showDevMenu = true; 
   
   const renderLink = (item: any) => {
     const isActive = (item.href === '/dadmin' && pathname === item.href) || (item.href !== '/dadmin' && pathname.startsWith(item.href));
