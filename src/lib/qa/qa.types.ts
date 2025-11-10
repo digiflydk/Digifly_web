@@ -1,5 +1,5 @@
 
-export type QARunStatus = 'queued' | 'running' | 'passed' | 'failed';
+export type QARunStatus = 'queued' | 'running' | 'passed' | 'failed' | 'error';
 
 export interface QARun {
   id?: string;
@@ -7,8 +7,11 @@ export interface QARun {
   requestedBy: string;
   startedAt?: FirebaseFirestore.Timestamp;
   finishedAt?: FirebaseFirestore.Timestamp;
+  environment?: 'studio' | 'deployed';
   commit?: string;
   totals?: { passed: number; failed: number; skipped: number; total: number };
-  artifactUrl?: string;
+  durationMs?: number;
+  reportUrl?: string; 
   workflowRunId?: number;
+  errorMessage?: string;
 }

@@ -15,10 +15,10 @@ const menuItems = [
   { href: "/dadmin/homepage", label: "Homepage", icon: LayoutTemplate },
   { href: "/dadmin/cases", label: "Case Studies", icon: Briefcase },
   { href: "/dadmin/pages", label: "Pages", icon: FileText },
-  { href: "/dadmin/tests", label: "Playwright Tests", icon: ShieldCheck },
 ];
 
 const devMenuItems = [
+    { href: "/dadmin/tests", label: "Playwright Tests", icon: ShieldCheck },
     { href: "/dadmin/dev/api-map", label: "API Map", icon: Wrench },
     { href: "/dadmin/api-explorer", label: "API Explorer", icon: TerminalSquare },
 ];

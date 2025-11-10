@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -35,9 +36,10 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // QA runs are restricted to admins
-    match /qaRuns/{runId} {
-      allow read, write: if isAdmin();
+    // QA runs are readable by anyone, writable only by admins/functions
+    match /qa_runs/{runId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
     
     // Default: deny all other access

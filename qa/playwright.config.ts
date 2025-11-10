@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 // Read from environment variable, default to localhost for local testing
 const BASE_URL = process.env.BASE_URL || 'http://localhost:9002';
+const jsonReportPath = process.env.PW_JSON_OUTPUT_NAME || 'test-results/results.json';
 
 export default defineConfig({
   timeout: 30_000,
@@ -19,7 +20,7 @@ export default defineConfig({
 
   reporter: [
     ['list'],
-    ['json', { outputFile: 'qa/.summary.json' }],
+    ['json', { outputFile: jsonReportPath }],
     ['junit', { outputFile: 'qa/report/junit.xml' }],
     ['html', { outputFolder: 'qa/report/html', open: 'never' }],
   ],
