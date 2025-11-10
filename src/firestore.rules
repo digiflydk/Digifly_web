@@ -37,8 +37,7 @@ service cloud.firestore {
     
     // QA runs are readable by admins
     match /qa_runs/{runId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
+      allow read, write: if isAdmin();
     }
 
     // Audit logs can be created by any authenticated user, but only read by admins

@@ -1,7 +1,7 @@
 
 {
   "name": "nextn",
-  "version": "1.3.0",
+  "version": "1.3.6",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 9002",
@@ -19,9 +19,8 @@
     "test:pw:ci": "BASE_URL=$BASE_URL playwright test --config=qa/playwright.config.ts || true",
     "test:pw:report": "npx playwright show-report qa/report/html",
     "test:e2e": "playwright test",
+    "test:e2e:report": "npm run test:e2e && tsx scripts/pw-publish-report.ts",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:report": "playwright show-report",
-    "test:e2e:ci": "playwright install --with-deps && playwright test --reporter=html,line",
     "ci": "npm run typecheck && npm run build",
     "cms:seed": "tsx scripts/cms-seed.ts",
     "cms:migrate:site": "tsx scripts/migrate-site-config-to-settings.ts",
