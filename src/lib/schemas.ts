@@ -1,5 +1,6 @@
 
 import { z } from "zod";
+import { ImageUrlSchema } from "./validators";
 
 // Base primitives
 export const NavLinkSchema = z.object({
@@ -8,22 +9,22 @@ export const NavLinkSchema = z.object({
 });
 
 export const SiteSettingsSchema = z.object({
-  siteTitle: z.string(),
+  siteTitle: z.string().min(3, "Site title must be at least 3 characters").max(80, "Site title must be 80 characters or less"),
   brand: z.object({
     name: z.string(),
     logo: z.object({
-      src: z.string(),
+      src: ImageUrlSchema,
       alt: z.string(),
       height: z.number().optional(),
       width: z.number().optional(),
     }),
-    favicon: z.object({ src: z.string() })
+    favicon: z.object({ src: ImageUrlSchema })
   }),
   social: z.object({ tagline: z.string() }),
   defaultSeo: z.object({
     title: z.string().optional(),
-    description: z.string().optional(),
-    defaultThumbnailUrl: z.string().optional(),
+    description: z.string().min(20, "Description must be at least 20 characters").max(300, "Description must be 300 characters or less").optional(),
+    defaultThumbnailUrl: ImageUrlSchema.optional(),
   })
 });
 
