@@ -85,8 +85,19 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
                 </SheetTrigger>
                 <SheetContent side="right">
                     <div className="flex flex-col gap-6 pt-12">
-                        <Link href="/" className="font-headline text-lg font-bold text-primary" onClick={() => setMobileMenuOpen(false)}>
-                            {finalSiteTitle}
+                        <Link href="/" className="flex items-center" onClick={() => setMobileMenuOpen(false)}>
+                            {finalLogoUrl ? (
+                                <Image
+                                    src={finalLogoUrl}
+                                    alt={logo?.alt || finalSiteTitle}
+                                    width={120}
+                                    height={32}
+                                    priority
+                                    className="h-8 w-auto object-contain"
+                                />
+                            ) : (
+                                <span className="font-headline text-lg font-bold text-primary">{finalSiteTitle}</span>
+                            )}
                         </Link>
                         <nav className="flex flex-col gap-4">
                             {navLinks.map(link => (
