@@ -2,6 +2,7 @@
 import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
+import JSZip from 'jszip';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,13 +14,14 @@ function getSafeFileList(): string[] {
         return [];
     }
     const files = fs.readdirSync(DOCS_DIR);
-    return files.filter(f => f.toLowerCase().endsWith(".md"));
+    // Allow markdown and potentially other text-based formats if needed in the future
+    return files.filter(f => /\.(md|json|txt|yaml|yml)$/i.test(f));
 }
 
 function createMarkdownBundle(): string {
-  const files = getSafeFileList().sort();
+  const files = getSafeFileList().filter(f => f.toLowerCase().endsWith('.md')).sort();
   if (files.length === 0) {
-    return "# No documentation files found in /docs directory.\n";
+    return "# No markdown documentation files found in /docs directory.\n";
   }
   const parts = files.map((f) => {
     const p = path.join(DOCS_DIR, f);
@@ -72,11 +74,33 @@ export async function GET(req: Request) {
       });
   }
 
+  if (fileParam === 'all-md.zip') {
+      const zip = new JSZip();
+      const mdFiles = getSafeFileList().filter(f => f.toLowerCase().endsWith('.md'));
+      
+      for (const file of mdFiles) {
+          const filePath = path.join(DOCS_DIR, file);
+          const content = fs.readFileSync(filePath, 'utf-8');
+          zip.file(file, content);
+      }
+      
+      const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+
+      return new NextResponse(zipBuffer, {
+          status: 200,
+          headers: {
+              'Content-Type': 'application/zip',
+              'Content-Disposition': 'attachment; filename="digifly-docs-md.zip"',
+          },
+      });
+  }
+
   // --- Single File Download ---
   const safeFiles = getSafeFileList();
-  const requestedFile = fileParam.endsWith('.md') ? fileParam : `${fileParam}.md`;
+  // Allow download with or without extension
+  const requestedFile = safeFiles.find(sf => sf === fileParam || sf.replace(/\.md$/i, '') === fileParam);
   
-  if (!safeFiles.includes(requestedFile)) {
+  if (!requestedFile) {
       return NextResponse.json({ error: "File not found or not allowed." }, { status: 404 });
   }
 
@@ -84,9 +108,10 @@ export async function GET(req: Request) {
 
   try {
     const data = fs.readFileSync(filePath);
+    const mimeType = requestedFile.endsWith('.md') ? 'text/markdown' : 'text/plain';
     return new NextResponse(data, {
       headers: {
-        "Content-Type": "text/markdown; charset=utf-8",
+        "Content-Type": `${mimeType}; charset=utf-8`,
         "Content-Disposition": `attachment; filename="${requestedFile}"`
       }
     });
