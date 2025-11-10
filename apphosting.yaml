@@ -6,6 +6,9 @@ build:
   command: "npm run build"
 # After a successful deployment, run Playwright tests against the live URL.
 # The `|| true` ensures that the build doesn't fail if tests fail.
+postbuild:
+  command: "npm run report:e2e || echo 'Playwright report generation failed, continuing deploy...'"
+
 postdeploy:
   command: "BASE_URL=${LIVE_URL} npm run postdeploy || true"
 
