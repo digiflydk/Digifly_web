@@ -4,9 +4,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ExternalLink, CheckCircle, XCircle, AlertCircle, SkipForward } from 'lucide-react';
+import { Loader2, ExternalLink, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type Summary = {
   status: 'passed' | 'failed' | 'timedout';
@@ -32,25 +33,38 @@ function StatusBadge({ status }: { status: 'passed' | 'failed' | 'unknown' }) {
     return <Badge variant="secondary">Unknown</Badge>
 }
 
-function EmptyState() {
+function EmptyState({ error }: { error?: string | null }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>No report found</CardTitle>
+        <CardTitle>{error ? "Error Loading Report" : "No Report Found"}</CardTitle>
         <CardDescription>
-          The UI expects a Playwright HTML report at <code>/public/__reports/playwright/latest/</code>. It’s created automatically during the build process.
+          {error 
+            ? "There was a problem fetching the test summary." 
+            : "The UI expects a Playwright HTML report at /public/__reports/playwright/latest/."
+          }
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm">If you're running locally and want to see a report, use the script below:</p>
-        <pre className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg text-xs overflow-x-auto">
-          <code>
-            npm run test:e2e:report
-          </code>
-        </pre>
-        <p className="text-sm text-muted-foreground">
-          This page does not depend on Firestore permissions.
-        </p>
+        {error ? (
+           <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Fetch Error</AlertTitle>
+            <AlertDescription className="break-all">{error}</AlertDescription>
+          </Alert>
+        ) : (
+          <>
+            <p className="text-sm">If you're running locally and want to see a report, use the script below:</p>
+            <pre className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg text-xs overflow-x-auto">
+              <code>
+                npm run test:e2e:report
+              </code>
+            </pre>
+            <p className="text-sm text-muted-foreground">
+              This page does not depend on Firestore permissions.
+            </p>
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -60,17 +74,39 @@ function EmptyState() {
 export function PlaywrightReportCard({ hasSummary }: { hasSummary: boolean }) {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!hasSummary) {
         setIsLoading(false);
         return;
     }
-    fetch('/__reports/playwright/latest/summary.json')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => setSummary(data))
-      .catch(() => setSummary(null))
-      .finally(() => setIsLoading(false));
+    
+    async function fetchData() {
+        try {
+            const res = await fetch('/__reports/playwright/latest/summary.json');
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Failed to fetch summary: ${res.status} ${res.statusText} - ${text.slice(0, 100)}`);
+            }
+            // Check content type before parsing
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Expected JSON but received ${contentType}`);
+            }
+            const data = await res.json();
+            setSummary(data);
+        } catch (e: any) {
+            console.error(e);
+            setError(e.message || "An unknown error occurred.");
+            setSummary(null);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    
+    fetchData();
+
   }, [hasSummary]);
 
   if (isLoading) {
@@ -84,7 +120,7 @@ export function PlaywrightReportCard({ hasSummary }: { hasSummary: boolean }) {
   }
 
   if (!summary) {
-    return <EmptyState />;
+    return <EmptyState error={error} />;
   }
   
   const status = getStatus(summary);

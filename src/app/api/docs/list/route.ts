@@ -29,6 +29,7 @@ export async function GET() {
     return NextResponse.json({ files });
   } catch (error) {
     console.error("Failed to list doc files:", error);
+    // Always return JSON, even for errors
     return NextResponse.json({ error: "Failed to list files" }, { status: 500 });
   }
 }

@@ -2,8 +2,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, FileJson, FileText, Loader2 } from "lucide-react";
+import { Download, FileJson, FileText, Loader2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type DocFile = {
   name: string;
@@ -47,15 +48,29 @@ function groupFiles(files: DocFile[]) {
 
 export function DocsList() {
   const [files, setFiles] = useState<DocFile[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
     setIsFetching(true);
     fetch("/api/docs/list")
-      .then(res => res.ok ? res.json() : { files: [] })
+      .then(async (res) => {
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Failed to list docs: ${res.status} - ${text}`);
+        }
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error(`Expected JSON but received ${contentType}`);
+        }
+        return res.json();
+      })
       .then(data => setFiles(data.files || []))
-      .catch(() => setFiles([]))
+      .catch((e) => {
+          setFiles([]);
+          setError(e.message || "An unknown error occurred while fetching docs list.");
+      })
       .finally(() => setIsFetching(false));
   }, []);
 
@@ -82,6 +97,56 @@ export function DocsList() {
 
   const groupedFiles = groupFiles(files);
 
+  const renderContent = () => {
+    if (isFetching) {
+       return (
+           <div className="text-center py-12 text-slate-500">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                <p className="mt-2">Loading documentation index...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Error Loading Documentation</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        );
+    }
+
+    if (Object.keys(groupedFiles).length === 0) {
+        return (
+          <div className="text-center py-12 text-slate-500">
+            <p>No documentation files found in the <code>/docs</code> directory.</p>
+          </div>
+        );
+    }
+    
+    return Object.entries(groupedFiles).map(([groupName, files]) => (
+        <div key={groupName}>
+            <h2 className="text-lg font-semibold mb-3 border-b pb-2">{groupName}</h2>
+            <ul className="space-y-1">
+            {files.map(f => (
+                <li key={f.name} className="flex justify-between items-center py-2 border-b last:border-0 hover:bg-slate-50 -mx-2 px-2 rounded-md">
+                <span className="flex items-center gap-2">
+                    {f.type === 'markdown' ? <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : <FileJson className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                    <span className="font-mono text-sm break-all">{f.name}</span>
+                </span>
+                 <Button asChild variant="ghost" size="sm">
+                    <Link href={f.url} download>
+                        <Download className="h-4 w-4 mr-2" /> Download
+                    </Link>
+                </Button>
+                </li>
+            ))}
+            </ul>
+        </div>
+       ));
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap gap-4">
@@ -92,37 +157,7 @@ export function DocsList() {
       </div>
 
       <div className="space-y-6">
-        {isFetching ? (
-           <div className="text-center py-12 text-slate-500">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                <p className="mt-2">Loading documentation index...</p>
-            </div>
-        ) : Object.keys(groupedFiles).length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
-            <p>No documentation files found in the <code>/docs</code> directory.</p>
-          </div>
-        ) : (
-          Object.entries(groupedFiles).map(([groupName, files]) => (
-            <div key={groupName}>
-                <h2 className="text-lg font-semibold mb-3 border-b pb-2">{groupName}</h2>
-                <ul className="space-y-1">
-                {files.map(f => (
-                    <li key={f.name} className="flex justify-between items-center py-2 border-b last:border-0 hover:bg-slate-50 -mx-2 px-2 rounded-md">
-                    <span className="flex items-center gap-2">
-                        {f.type === 'markdown' ? <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : <FileJson className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                        <span className="font-mono text-sm break-all">{f.name}</span>
-                    </span>
-                     <Button asChild variant="ghost" size="sm">
-                        <Link href={f.url} download>
-                            <Download className="h-4 w-4 mr-2" /> Download
-                        </Link>
-                    </Button>
-                    </li>
-                ))}
-                </ul>
-            </div>
-           ))
-        )}
+        {renderContent()}
       </div>
 
       <p className="text-xs text-muted-foreground pt-4">
