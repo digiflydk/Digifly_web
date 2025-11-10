@@ -1,35 +1,43 @@
 
-export default function PlaywrightPage() {
-  return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Playwright — Test Reports</h1>
-      <p>
-        This page exposes Playwright test artifacts so they’re easy to find from Admin.
-      </p>
+export const runtime = "nodejs"; // allow fs in server component
 
-      <div className="space-y-2">
-        <h2 className="text-base font-medium">Quick links</h2>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>
-            <a className="text-primary underline" href="/playwright-report/index.html" target="_blank" rel="noreferrer">
-              Open latest HTML report (if present)
-            </a>
-          </li>
-          <li>
-            <a className="text-primary underline" href="/playwright-report.zip" target="_blank" rel="noreferrer">
-              Download zipped report (if present)
-            </a>
-          </li>
-          <li>
-            <a className="text-primary underline" href="/test-results.json" target="_blank" rel="noreferrer">
-              Download results JSON (if present)
-            </a>
-          </li>
-        </ul>
-        <p className="text-sm text-muted-foreground">
-          Note: Links are safe to click even if files are missing; the server will return 404 for absent artifacts.
-        </p>
-      </div>
+import fs from "node:fs";
+import path from "node:path";
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+
+export default async function PlaywrightPage() {
+  const reportIndex = path.join(process.cwd(), "public", "playwright-report", "index.html");
+  const hasReport = fs.existsSync(reportIndex);
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      <h1 className="text-2xl font-semibold">Playwright Tests</h1>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Latest report</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center gap-3">
+          {hasReport ? (
+            <Link href="/playwright-report/" className={buttonVariants()}>
+              Open latest report
+            </Link>
+          ) : (
+            <button
+              className={buttonVariants({ variant: "secondary" })}
+              disabled
+              title="No report found in /public/playwright-report/"
+            >
+              No report found
+            </button>
+          )}
+          <p className="text-sm text-muted-foreground">
+            This page does not run tests; it links to generated reports if they exist.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

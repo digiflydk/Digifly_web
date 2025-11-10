@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, ShieldCheck, Beaker, BookOpen } from "lucide-react";
+import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, ShieldCheck, Beaker, BookOpen, PlayCircle } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -19,7 +19,7 @@ const menuItems = [
 
 const devMenuItems = [
     { href: "/dadmin/developer/docs", label: "Docs", icon: BookOpen },
-    { href: "/dadmin/developer/tests", label: "Playwright tests", icon: Beaker },
+    { href: "/dadmin/developer/tests", label: "Playwright tests", icon: PlayCircle },
     { href: "/dadmin/dev/api-map", label: "API Map", icon: Wrench },
     { href: "/dadmin/api-explorer", label: "API Explorer", icon: Beaker },
 ];
