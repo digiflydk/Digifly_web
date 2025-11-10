@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import { getSiteSettings } from "@/lib/cms-server";
 import type { SiteSettings } from "./schemas";
-import { readSiteSettings as getSiteSeo } from "./dadmin/siteSeoRepo";
+import { readSiteSettings } from "./dadmin/siteSeoRepo";
 
 // Extremely tolerant input shapes to avoid runtime crashes
 type UnknownDict = Record<string, unknown>;
@@ -28,34 +28,34 @@ const FALLBACK_DESC = '';
 const FALLBACK_IMAGE = '/og-default.png';
 
 export async function buildSeo(input: SeoInput = {}): Promise<Metadata> {
-  const s = await getSiteSeo();
+  const s = await readSiteSettings();
 
   const title = pickFirst(
     input.title,
-    s.general?.title,
+    s?.general?.title,
     FALLBACK_TITLE
   ) ?? FALLBACK_TITLE;
 
   const description = pickFirst(
     input.description,
-    s.seo?.defaultDescription,
+    s?.seo?.defaultDescription,
     FALLBACK_DESC
   ) ?? FALLBACK_DESC;
 
   const imageInput = Array.isArray(input.images) ? input.images[0] : input.images;
   const image = pickFirst(
     imageInput,
-    s.seo?.ogImage,
-    s.general?.logoUrl,
+    s?.seo?.ogImage,
+    s?.general?.logoUrl,
     FALLBACK_IMAGE
   ) ?? FALLBACK_IMAGE;
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
-  const titleTemplate = `%s | ${s.general?.title || FALLBACK_TITLE}`;
+  const titleTemplate = `%s | ${s?.general?.title || FALLBACK_TITLE}`;
 
   const finalTitle = titleTemplate.includes('%s') ? titleTemplate.replace('%s', title) : title;
   
-  const allowIndexing = s.seo?.allowIndexing ?? true;
+  const allowIndexing = s?.seo?.allowIndexing ?? true;
   const robots = {
     index: input.noIndex ? false : allowIndexing,
     follow: input.noIndex ? false : allowIndexing,
@@ -66,7 +66,7 @@ export async function buildSeo(input: SeoInput = {}): Promise<Metadata> {
   return {
     metadataBase: siteUrl ? new URL(siteUrl) : undefined,
     title: {
-      default: s.general?.title || FALLBACK_TITLE,
+      default: s?.general?.title || FALLBACK_TITLE,
       template: titleTemplate,
       absolute: finalTitle,
     },

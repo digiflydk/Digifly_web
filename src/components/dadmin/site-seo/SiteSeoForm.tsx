@@ -14,18 +14,20 @@ import GeneralTab from "./tabs/GeneralTab";
 import ContactTab from "./tabs/ContactTab";
 import OpeningHoursTab from "./tabs/OpeningHoursTab";
 import SeoTab from "./tabs/SeoTab";
-import { emptySiteSeo } from "@/components/dadmin/site-seo/utils/formDefaults";
-import { saveSiteSettings } from "@/app/dadmin/site-seo/actions";
+import { coerceToDefaults } from "@/components/dadmin/site-seo/utils/formDefaults";
+import { saveSiteSettingsAction } from "@/app/dadmin/site-seo/actions";
 
-export default function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
+export default function SiteSeoForm({ initialData }: { initialData: SiteSettings | null }) {
   const form = useForm<SiteSettings>({
     resolver: zodResolver(SiteSettingsSchema),
-    defaultValues: initialData || emptySiteSeo,
+    defaultValues: coerceToDefaults(initialData),
     mode: 'onChange',
   });
 
   useEffect(() => {
-    form.reset(initialData);
+    // This ensures that if the server component re-renders with new data,
+    // the form is updated.
+    form.reset(coerceToDefaults(initialData));
   }, [initialData, form]);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -33,13 +35,13 @@ export default function SiteSeoForm({ initialData }: { initialData: SiteSettings
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-        const result = await saveSiteSettings(values);
+        const result = await saveSiteSettingsAction(values);
         if (!result.ok) {
             throw new Error( "Save failed");
         }
         
-        toast({ title: "✅ Success", description: "Site settings saved." });
-        form.reset(values); 
+        toast({ title: "✅ Success", description: "Site settings have been saved." });
+        form.reset(values); // Re-sync form state to saved values to clear isDirty
     } catch (e: any) {
         if (e instanceof ZodError) {
              toast({ title: "Validation Error", description: "Please check the form for errors.", variant: "destructive" });

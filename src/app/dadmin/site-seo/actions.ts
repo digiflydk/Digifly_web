@@ -1,15 +1,25 @@
-'use server';
+"use server";
 
 import { revalidatePath } from "next/cache";
 import type { SiteSettings } from "@/lib/schemas";
 import { readSiteSettings, writeSiteSettings } from "@/lib/dadmin/siteSeoRepo";
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+/**
+ * Server Action: fetch settings
+ * Can be called from Client/Server Components via direct call – not imported in pages for SSR.
+ */
+export async function getSiteSettingsAction(): Promise<SiteSettings> {
   return await readSiteSettings();
 }
 
-export async function saveSiteSettings(input: SiteSettings): Promise<{ ok: true }> {
+/**
+ * Server Action: save settings
+ */
+export async function saveSiteSettingsAction(
+  input: SiteSettings
+): Promise<{ ok: true }> {
   await writeSiteSettings(input);
+  // revalidate frontend + admin
   revalidatePath("/", "layout");
   revalidatePath("/dadmin/site-seo", "page");
   return { ok: true };

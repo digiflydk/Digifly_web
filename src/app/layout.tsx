@@ -4,21 +4,21 @@ import './globals.css';
 import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
-import { readSiteSettings as getSiteSeo } from "@/lib/dadmin/siteSeoRepo";
+import { readSiteSettings } from "@/lib/dadmin/siteSeoRepo";
 
 export const revalidate = 60; // refresh settings every 60s
 
 export async function generateMetadata(): Promise<Metadata> {
-  const s = await getSiteSeo();
-  const title = s.general?.title || "Digifly";
-  const description = s.seo?.defaultDescription || "";
-  const og = s.seo?.ogImage ? [{ url: s.seo.ogImage }] : [];
+  const s = await readSiteSettings();
+  const title = s?.general?.title || "Digifly";
+  const description = s?.seo?.defaultDescription || "";
+  const og = s?.seo?.ogImage ? [{ url: s.seo.ogImage }] : [];
 
   return {
     title: { default: title, template: `%s | ${title}` },
     description,
     openGraph: { title, description, images: og },
-    icons: s.general?.faviconUrl ? { icon: s.general.faviconUrl } : undefined,
+    icons: s?.general?.faviconUrl ? { icon: s.general.faviconUrl } : undefined,
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://digifly.dk"),
   };
 }
@@ -28,7 +28,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const site = await getSiteSeo();
+  const site = await readSiteSettings();
   const faviconSrc = site?.general?.faviconUrl;
 
   return (
