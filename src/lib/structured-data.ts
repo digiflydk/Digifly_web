@@ -12,7 +12,7 @@ export function orgJsonLd(settings: SiteSettings) {
   };
 }
 
-type DaySpec = { enabled: boolean; from?: string; to?: string };
+type DaySpec = { enabled?: boolean; from?: string; to?: string };
 type HoursRecord = Record<string, DaySpec | undefined>;
 
 function toOpeningHours(hours?: HoursRecord) {

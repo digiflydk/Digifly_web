@@ -5,9 +5,9 @@ import { readSiteSettings } from "./dadmin/siteSeoRepo";
 
 // Extremely tolerant input shapes to avoid runtime crashes
 type SeoInput = {
-  title?: string;
-  description?: string;
-  images?: string | string[];
+  title?: string | null;
+  description?: string | null;
+  images?: string | string[] | null;
   noIndex?: boolean;
   canonical?: string;
 };
@@ -50,9 +50,6 @@ export async function buildSeo(input: SeoInput = {}): Promise<Metadata> {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
   const siteName = s?.general?.title || FALLBACK_TITLE;
-  const titleTemplate = `%s | ${siteName}`;
-
-  const finalTitle = (input.title && titleTemplate.includes('%s')) ? titleTemplate.replace('%s', input.title) : title;
   
   const allowIndexing = s?.seo?.allowIndexing ?? true;
   const robots = {
@@ -66,18 +63,17 @@ export async function buildSeo(input: SeoInput = {}): Promise<Metadata> {
     metadataBase: siteUrl ? new URL(siteUrl) : undefined,
     title: {
       default: siteName,
-      template: titleTemplate,
-      absolute: finalTitle,
+      template: `%s | ${siteName}`,
     },
     description: description,
     openGraph: {
-      title: finalTitle,
+      title: title,
       description: description,
       images: image ? [{ url: image }] : [],
     },
     twitter: {
       card: "summary_large_image",
-      title: finalTitle,
+      title: title,
       description: description,
       images: image ? [image] : [],
     },

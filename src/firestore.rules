@@ -7,50 +7,47 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    // Publicly readable content
-    match /site/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
+    // --- PUBLIC READS ---
+
+    // Public site settings: only this doc is publicly readable by anyone
+    match /settings/site {
+      allow get: if true;
+      allow list, write: if isAdmin(); // List and write only for admin
     }
-    match /navigation/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
+    
+    // Public content
     match /pages/{doc=**} {
-      allow read: if resource.data.published == true || isAdmin();
-      allow write: if isAdmin();
+      allow get: if resource.data.published == true;
+      allow list, write: if isAdmin();
     }
     match /cases/{caseId} {
-      allow read: if resource.data.published == true;
-      allow write: if isAdmin();
+      allow get: if resource.data.published == true;
+      allow list, write: if isAdmin();
+    }
+     match /navigation/{doc=**} {
+      allow get: if true;
+      allow list, write: if isAdmin();
     }
 
-    // Admin-only settings
-    match /settings/{docId} {
+
+    // --- ADMIN-ONLY ---
+    
+    // Legacy collections are admin-only
+    match /site/{docId} {
       allow read, write: if isAdmin();
     }
-    match /siteSettings/{docId} { // Legacy, should be removed later
-        allow read, write: if isAdmin();
-    }
-    match /homePage/{docId} { // Legacy, should be removed later
-        allow read, write: if isAdmin();
-    }
-     match /playwright/{docId} { // Legacy, should be removed later
-        allow read, write: if isAdmin();
-    }
-
-
-    // Admin-only namespace for other tools
-    match /dadmin/{doc=**} {
+    
+    // Entire admin namespace
+    match /dadmin/{document=**} {
       allow read, write: if isAdmin();
     }
-
+    
     // QA runs are readable by anyone, writable only by admins/functions
     match /qa_runs/{runId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    
+
     // Default: deny all other access
     match /{document=**} {
       allow read, write: if false;

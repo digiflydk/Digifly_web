@@ -14,9 +14,10 @@ export async function readSiteSettings(): Promise<SiteSettings> {
   return coerceToDefaults(data);
 }
 
-export async function writeSiteSettings(data: SiteSettings): Promise<void> {
+export async function writeSiteSettings(data: SiteSettings): Promise<SiteSettings> {
   const db = await getDb();
   // Ensure we save a complete object to avoid undefined fields
   const safeData = coerceToDefaults(data);
   await db.collection(COLLECTION).doc(DOC_ID).set(safeData, { merge: true });
+  return safeData;
 }

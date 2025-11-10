@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { getSiteSettings, saveSiteSettings } from "@/lib/cms-server";
+import { readSiteSettings, writeSiteSettings } from "@/lib/dadmin/siteSeoRepo";
 import { SiteSettingsSchema } from "@/lib/schemas";
 import { ZodError } from "zod";
 
@@ -16,7 +16,7 @@ const json = (payload: any, status = 200) =>
 
 export async function GET() {
   try {
-    const data = await getSiteSettings();
+    const data = await readSiteSettings();
     return json({ ok: true, data });
   } catch (err: any) {
     console.error(`[GET /api/cms/site]`, err);
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     }
     // The form sends the data directly, not nested under a `data` key
     const parsedData = SiteSettingsSchema.parse(body);
-    const saved = await saveSiteSettings(parsedData);
+    const saved = await writeSiteSettings(parsedData);
     return json({ ok: true, data: saved });
   } catch (err: any) {
     if (err instanceof ZodError) {
