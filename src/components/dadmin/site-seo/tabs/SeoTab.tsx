@@ -1,4 +1,5 @@
 
+
 "use client";
 import * as React from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -11,17 +12,27 @@ import { LiveSeoPreview } from "@/components/cms/forms/SeoPreviewCard";
 import { withSeoDefaults } from "@/lib/seo-defaults";
 
 function WatchedSeoPreview() {
-    const { control, getValues } = useFormContext();
-    const seoWatch = useWatch({ control, name: "seo" });
-    const siteTitleWatch = useWatch({ control, name: "general.title" });
+    const { getValues } = useFormContext();
+    // Watch the entire form to trigger re-renders
+    const formValues = useWatch();
 
-    const seoForPreview = withSeoDefaults(seoWatch);
+    const title = formValues.general?.title || '';
+    const description = formValues.seo?.defaultDescription || '';
+    const ogImage = formValues.seo?.ogImage || '';
+    
+    // Create a temporary object for the preview component
+    const seoForPreview = {
+        title: title,
+        description: description,
+        ogImage: { src: ogImage, alt: title }
+    };
 
     return (
         <LiveSeoPreview
             seo={seoForPreview}
-            fallbackTitle={siteTitleWatch || getValues("general.title") || "Site"}
-            fallbackDescription={getValues("seo.defaultDescription") || ""}
+            fallbackTitle={title}
+            fallbackDescription={description}
+            siteUrl={process.env.NEXT_PUBLIC_SITE_URL || ""}
         />
     );
 }
@@ -30,64 +41,73 @@ export default function SeoTab() {
   const { control } = useFormContext();
 
   return (
-    <div className="space-y-6">
-        <Card>
-        <CardHeader>
-            <CardTitle>Default SEO Settings</CardTitle>
-            <CardDescription>
-            These are the fallback settings for pages that don't have their own specific SEO metadata.
-            </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-            <FormField
-            control={control}
-            name="seo.defaultTitle"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Default Title</FormLabel>
-                <FormControl>
-                    <Input {...field} placeholder="Digifly | Your Partner in Digital Growth" value={field.value ?? ""} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={control}
-            name="seo.defaultDescription"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Default Meta Description</FormLabel>
-                <FormControl>
-                    <Textarea {...field} placeholder="A short, compelling description of your site." value={field.value ?? ""} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={control}
-            name="seo.ogImage"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Default Social Image URL</FormLabel>
-                <FormControl>
-                    <Input {...field} placeholder="https://.../og-image.png" value={field.value ?? ""} />
-                </FormControl>
-                <FormDescription>
-                    Recommended size: 1200x630px.
-                </FormDescription>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-        </CardContent>
-        </Card>
-        <section className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Live SEO Preview</h3>
-            <p className="text-sm text-slate-500 mb-4">This is how your site will generally appear on Google and social media, using the fields above.</p>
+    <div className="grid md:grid-cols-3 gap-8 items-start">
+        <div className="md:col-span-2">
+            <Card>
+            <CardHeader>
+                <CardTitle>Default SEO Settings</CardTitle>
+                <CardDescription>
+                These are the fallback settings for pages that don't have their own specific SEO metadata.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <FormField
+                control={control}
+                name="seo.defaultDescription"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Default Meta Description</FormLabel>
+                    <FormControl>
+                        <Textarea {...field} placeholder="A short, compelling description of your site." value={field.value ?? ""} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={control}
+                name="seo.ogImage"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Default Social Image URL</FormLabel>
+                    <FormControl>
+                        <Input {...field} placeholder="https://.../og-image.png" value={field.value ?? ""} />
+                    </FormControl>
+                    <FormDescription>
+                        Recommended size: 1200x630px.
+                    </FormDescription>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                    control={control}
+                    name="seo.allowIndexing"
+                    render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                        <FormLabel className="text-base">Allow Indexing</FormLabel>
+                        <FormDescription>
+                            Allow search engines like Google to index your site. Turn this off for staging sites.
+                        </FormDescription>
+                        </div>
+                        <FormControl>
+                        <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                        />
+                        </FormControl>
+                    </FormItem>
+                    )}
+                />
+            </CardContent>
+            </Card>
+        </div>
+        <aside className="md:col-span-1 md:sticky top-24 space-y-4">
+            <h3 className="text-lg font-semibold">Live SEO Preview</h3>
+            <p className="text-sm text-slate-500">This is how your site will generally appear on Google and social media.</p>
             <WatchedSeoPreview />
-        </section>
+        </aside>
     </div>
   );
 }

@@ -30,7 +30,6 @@ export const emptySiteSeo: SiteSettings = {
   },
   seo: {
     allowIndexing: true,
-    defaultTitle: '',
     defaultDescription: '',
     ogImage: '',
   },

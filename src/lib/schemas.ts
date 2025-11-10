@@ -1,4 +1,5 @@
 
+
 import { z } from "zod";
 
 // Base primitives
@@ -8,7 +9,7 @@ export const NavLinkSchema = z.object({
 });
 
 export const OpeningSlotSchema = z.object({
-  open: z.boolean().default(false),
+  enabled: z.boolean().default(false),
   from: z.string().optional(), // "09:00"
   to: z.string().optional(),   // "17:00"
 });
@@ -16,6 +17,7 @@ export const OpeningSlotSchema = z.object({
 export const SiteSettingsSchema = z.object({
   general: z.object({
     title: z.string().min(1, "Site title is required.").default("Digifly"),
+    tagline: z.string().optional(),
     logoUrl: z.string().url("Invalid URL").or(z.literal("")).optional(),
     faviconUrl: z.string().url("Invalid URL").or(z.literal("")).optional(),
   }).default({}),
@@ -28,7 +30,7 @@ export const SiteSettingsSchema = z.object({
     city: z.string().optional(),
     country: z.string().optional(),
   }).default({}),
-  openingHours: z.object({
+  hours: z.object({
     sunday: OpeningSlotSchema,
     monday: OpeningSlotSchema,
     tuesday: OpeningSlotSchema,
@@ -37,19 +39,18 @@ export const SiteSettingsSchema = z.object({
     friday: OpeningSlotSchema,
     saturday: OpeningSlotSchema,
   }).default({
-    sunday: { open: false },
-    monday: { open: true, from: "09:00", to: "17:00" },
-    tuesday: { open: true, from: "09:00", to: "17:00" },
-    wednesday: { open: true, from: "09:00", to: "17:00" },
-    thursday: { open: true, from: "09:00", to: "17:00" },
-    friday: { open: true, from: "09:00", to: "17:00" },
-    saturday: { open: false },
+    sunday: { enabled: false },
+    monday: { enabled: true, from: "09:00", to: "17:00" },
+    tuesday: { enabled: true, from: "09:00", to: "17:00" },
+    wednesday: { enabled: true, from: "09:00", to: "17:00" },
+    thursday: { enabled: true, from: "09:00", to: "17:00" },
+    friday: { enabled: true, from: "09:00", to: "17:00" },
+    saturday: { enabled: false },
   }),
   seo: z.object({
     allowIndexing: z.boolean().default(true),
-    defaultTitleTemplate: z.string().default("%s | Digifly"),
     defaultDescription: z.string().optional(),
-    ogImageUrl: z.string().url("Invalid URL").or(z.literal("")).optional(),
+    ogImage: z.string().url("Invalid URL").or(z.literal("")).optional(),
   }).default({}),
 });
 

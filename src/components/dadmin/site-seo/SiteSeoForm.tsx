@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from "react";
@@ -10,7 +11,6 @@ import { SiteSettingsSchema, type SiteSettings } from "@/lib/schemas";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { ZodError } from "zod";
-import { getSiteSettings, saveSiteSettings } from "@/lib/cms-client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import GeneralTab from "./tabs/GeneralTab";
@@ -30,8 +30,9 @@ export default function SiteSeoForm() {
   });
 
   useEffect(() => {
-    getSiteSettings()
-      .then(data => setDbData(data))
+    fetch('/api/dadmin/site-seo')
+      .then(res => res.json())
+      .then(result => setDbData(result.data))
       .catch(() => {
         setDbData({});
         toast({ title: "Warning", description: "Could not load existing settings. Using defaults.", variant: "destructive" });
@@ -50,9 +51,14 @@ export default function SiteSeoForm() {
   async function onSubmit(values: SiteSettings) {
     setIsSaving(true);
     try {
-        const result = await saveSiteSettings(values);
-        if (!result) { 
-            throw new Error("An unknown error occurred during save.");
+        const res = await fetch('/api/dadmin/site-seo', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(values),
+        });
+        const result = await res.json();
+        if (!result.ok) { 
+            throw new Error(result.error || "An unknown error occurred during save.");
         }
         toast({ title: "✅ Success", description: "Site settings saved." });
         form.reset(values); 
