@@ -1,14 +1,14 @@
 
 import { getFirestore, DocumentReference } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
-import { ALL_DEFAULTS, defaultCases, defaultNavigation } from '@/lib/defaults/siteDefaults';
+import { ALL_DEFAULTS, defaultCases, defaultNavigation, SITE_DEFAULTS } from '@/lib/defaults/siteDefaults';
 import { SiteSettingsSchema, NavigationSchema, HomepageSchema, CaseSchema } from '@/lib/schemas';
 import { z } from 'zod';
 
 const SCHEMAS: Record<string, z.ZodSchema<any>> = {
     'site/settings': SiteSettingsSchema,
-    'navigation/main': z.object({ items: z.array(z.object({ label: z.string(), href: z.string() })) }),
-    'navigation/footer': z.object({ items: z.array(z.object({ label: z.string(), href: z.string() })) }),
+    'navigation/main': z.object({ header: z.array(z.object({ label: z.string(), href: z.string() })) }),
+    'navigation/footer': z.object({ footer: z.any() }), // simple footer schema
     'pages/home': HomepageSchema,
 };
 

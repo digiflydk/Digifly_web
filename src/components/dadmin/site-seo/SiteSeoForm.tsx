@@ -13,31 +13,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ZodError } from "zod";
-import { getSiteSettings, saveSiteSettings } from "@/lib/cms-client";
-import { SITE_DEFAULTS } from "@/lib/defaults/siteDefaults";
+import { saveSiteSettings } from "@/lib/cms-client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { withSeoDefaults } from "@/lib/seo-defaults";
 
 import GeneralTab from "./GeneralTab";
 import ContactTab from "./ContactTab";
 import OpeningHoursTab from "./OpeningHoursTab";
 import SeoTab from "./SeoTab";
 import { LiveSeoPreview } from "@/components/cms/forms/SeoPreviewCard";
-import { withSeoDefaults } from "@/lib/seo-defaults";
 
-async function loadSettings(): Promise<SiteSettings> {
-    try {
-        const data = await getSiteSettings();
-        const parsed = SiteSettingsSchema.safeParse(data || {});
-        if (!parsed.success) {
-            console.warn("loadSettings: API data failed validation, falling back to defaults.", parsed.error.format());
-            return SiteSettingsSchema.parse({});
-        }
-        return parsed.data;
-    } catch (e: any) {
-        console.error(`loadSettings: API call failed or data is critically malformed. Error: ${e.message}`);
-        return SiteSettingsSchema.parse({});
-    }
-}
 
 function WatchedSeoPreview({ control, siteUrl, initialDescription }: { control: any, siteUrl: string, initialDescription?: string | null }) {
     const seoWatch = useWatch({ control, name: "seo" });
@@ -55,32 +40,16 @@ function WatchedSeoPreview({ control, siteUrl, initialDescription }: { control: 
     );
 }
 
-export default function SiteSeoForm() {
-  const [initialData, setInitialData] = useState<SiteSettings | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadSettings()
-      .then(data => setInitialData(data))
-      .catch(err => {
-        setError(err.message);
-        setInitialData(SiteSettingsSchema.parse({})); 
-      })
-  }, []);
-
+export default function SiteSeoForm({ initialData }: { initialData: SiteSettings }) {
   const form = useForm<SiteSettings>({
     resolver: zodResolver(SiteSettingsSchema),
-    defaultValues: SITE_DEFAULTS,
+    defaultValues: initialData,
     mode: 'onChange',
   });
 
   useEffect(() => {
     if (initialData) {
-        const safeData = {
-            ...initialData,
-            seo: withSeoDefaults(initialData.seo)
-        }
-        form.reset(safeData);
+        form.reset(initialData);
     }
   }, [initialData, form]);
 
@@ -105,32 +74,6 @@ export default function SiteSeoForm() {
       setIsSaving(false);
     }
   }
-  
-  if (error && !initialData) {
-    return (
-      <Alert variant="destructive">
-        <Terminal className="h-4 w-4" />
-        <AlertTitle>Failed to Load Settings</AlertTitle>
-        <AlertDescription className="break-all">{error}</AlertDescription>
-      </Alert>
-    )
-  }
-
-  if (!initialData) {
-     return (
-        <div className="space-y-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-2 space-y-8">
-              <Skeleton className="h-64 w-full" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-            <div className="md:col-span-1">
-              <Skeleton className="h-96 w-full" />
-            </div>
-          </div>
-        </div>
-    );
-  }
 
   return (
     <Form {...form}>
@@ -144,10 +87,10 @@ export default function SiteSeoForm() {
                         <TabsTrigger value="hours">Hours</TabsTrigger>
                         <TabsTrigger value="seo">SEO</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="general"><GeneralTab control={form.control} /></TabsContent>
-                    <TabsContent value="contact"><ContactTab control={form.control} /></TabsContent>
-                    <TabsContent value="hours"><OpeningHoursTab control={form.control} /></TabsContent>
-                    <TabsContent value="seo"><SeoTab control={form.control} /></TabsContent>
+                    <TabsContent value="general"><GeneralTab /></TabsContent>
+                    <TabsContent value="contact"><ContactTab /></TabsContent>
+                    <TabsContent value="hours"><OpeningHoursTab /></TabsContent>
+                    <TabsContent value="seo"><SeoTab /></TabsContent>
                 </Tabs>
             </div>
              <div className="md:col-span-1 md:sticky top-24">
@@ -155,7 +98,7 @@ export default function SiteSeoForm() {
                 <p className="text-sm text-slate-500 mb-4">This is how your site will generally appear on Google and social media.</p>
                 <WatchedSeoPreview 
                     control={form.control} 
-                    siteUrl={process.env.NEXT_PUBLIC_SITE_URL || "digifly.app"}
+                    siteUrl={process.env.NEXT_PUBLIC_SITE_URL || ""}
                     initialDescription={initialData.seo?.defaultDescription}
                 />
             </div>

@@ -313,6 +313,10 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'navigation') {
     return getNavigation();
   }
+   if (path === 'navigation/main' || path === 'navigation/footer') {
+    const nav = await getNavigation();
+    return path === 'navigation/main' ? nav : { footer: nav.footer };
+  }
   if (path === 'home') {
     const result = await getHomepage();
     if (!result.ok) throw new Error(result.error);

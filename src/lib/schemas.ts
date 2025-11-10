@@ -16,12 +16,12 @@ export const OpeningSlotSchema = z.object({
 
 export const SiteSettingsSchema = z.object({
   general: z.object({
-    title: z.string().min(1, "Site title is required."),
+    title: z.string().min(1, "Site title is required.").default("Digifly"),
     logoUrl: z.string().url().or(z.literal("")).optional(),
     faviconUrl: z.string().url().or(z.literal("")).optional(),
-  }).default({ title: 'Digifly' }),
+  }).default({}),
   contact: z.object({
-    email: z.string().email().or(z.literal("")).optional(),
+    email: z.string().email("Invalid email").or(z.literal("")).optional(),
     phone: z.string().optional(),
     company: z.string().optional(),
     street: z.string().optional(),
@@ -30,19 +30,19 @@ export const SiteSettingsSchema = z.object({
     country: z.string().optional(),
   }).default({}),
   openingHours: z.object({
-    sunday: OpeningSlotSchema.default({}),
-    monday: OpeningSlotSchema.default({}),
-    tuesday: OpeningSlotSchema.default({}),
-    wednesday: OpeningSlotSchema.default({}),
-    thursday: OpeningSlotSchema.default({}),
-    friday: OpeningSlotSchema.default({}),
-    saturday: OpeningSlotSchema.default({}),
+    sunday: OpeningSlotSchema.default({ open: false }),
+    monday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
+    tuesday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
+    wednesday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
+    thursday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
+    friday: OpeningSlotSchema.default({ open: true, from: "09:00", to: "17:00" }),
+    saturday: OpeningSlotSchema.default({ open: false }),
   }).default({}),
   seo: z.object({
     allowIndexing: z.boolean().default(true),
     defaultTitleTemplate: z.string().default("%s | Digifly"),
     defaultDescription: z.string().optional(),
-    ogImage: z.string().url().or(z.literal("")).optional(),
+    ogImageUrl: z.string().url().or(z.literal("")).optional(),
   }).default({}),
 });
 
