@@ -5,8 +5,8 @@ export function tokensFromSettings(s: SiteSettings){
   const out: Record<string,string> = {};
   
   // Use fallbacks to avoid errors if the structure is not yet populated
-  const colors = (s as any).colors ?? {};
-  const typography = (s as any).typography ?? {};
+  const colors = (s as any).design?.colors ?? {};
+  const typography = (s as any).design?.typography ?? {};
 
   // Colors
   if(colors.primary) out["--color-primary"] = colors.primary;
