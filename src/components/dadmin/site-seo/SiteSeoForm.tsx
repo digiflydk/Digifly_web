@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from "react";
@@ -32,10 +31,16 @@ export default function SiteSeoForm() {
   useEffect(() => {
     fetch('/api/dadmin/site-seo')
       .then(res => res.json())
-      .then(result => setDbData(result.data))
-      .catch(() => {
+      .then(result => {
+        if(result.ok) {
+          setDbData(result.data)
+        } else {
+          throw new Error(result.error || "Failed to load data.");
+        }
+      })
+      .catch((e) => {
         setDbData({});
-        toast({ title: "Warning", description: "Could not load existing settings. Using defaults.", variant: "destructive" });
+        toast({ title: "Warning", description: `Could not load existing settings: ${e.message}`, variant: "destructive" });
       })
       .finally(() => setDbDataLoaded(true));
   }, []);
@@ -52,14 +57,21 @@ export default function SiteSeoForm() {
     setIsSaving(true);
     try {
         const res = await fetch('/api/dadmin/site-seo', {
-          method: 'PUT',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(values),
         });
-        const result = await res.json();
-        if (!result.ok) { 
-            throw new Error(result.error || "An unknown error occurred during save.");
+
+        const text = await res.text();
+        let json: any;
+        try { json = JSON.parse(text); } catch {
+          throw new Error(`Unexpected response (${res.status}): ${text.slice(0,120)}`);
         }
+
+        if (!res.ok || !json?.ok) {
+          throw new Error(json?.error || `Save failed (${res.status})`);
+        }
+        
         toast({ title: "✅ Success", description: "Site settings saved." });
         form.reset(values); 
     } catch (e: any) {

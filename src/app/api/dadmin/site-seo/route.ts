@@ -1,33 +1,32 @@
 
-import { NextResponse } from 'next/server';
-import { ZodError } from 'zod';
-import { getSiteSeo, saveSiteSeo } from '@/lib/dadmin/siteSeoRepo';
-import { SiteSettingsSchema } from '@/lib/schemas';
+import { NextResponse } from "next/server";
+import { getDb } from "@/lib/firebase-admin";
+import { SiteSettingsSchema } from "@/lib/schemas";
 
-export const dynamic = 'force-dynamic';
+const DOC_PATH = "settings/site-seo";
 
-const json = (data: any, status = 200) => NextResponse.json(data, { status });
+async function getFirestore() {
+    return getDb();
+}
 
 export async function GET() {
   try {
-    const data = await getSiteSeo();
-    return json({ ok: true, data });
+    const snap = await (await getFirestore()).doc(DOC_PATH).get();
+    const data = snap.exists ? snap.data() : {};
+    return NextResponse.json({ ok: true, data }, { status: 200 });
   } catch (e: any) {
-    return json({ ok: false, error: e.message || 'Server error' }, 500);
+    return NextResponse.json({ ok: false, error: e?.message || "GET failed" }, { status: 500 });
   }
 }
 
-export async function PUT(req: Request) {
-  // TODO: Add admin auth check
+export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const parsedData = SiteSettingsSchema.parse(body);
-    await saveSiteSeo(parsedData);
-    return json({ ok: true });
+    const parsed = SiteSettingsSchema.parse(body);
+    await (await getFirestore()).doc(DOC_PATH).set(parsed, { merge: true });
+    return NextResponse.json({ ok: true }, { status: 200 });
   } catch (e: any) {
-    if (e instanceof ZodError) {
-      return json({ ok: false, error: 'Validation failed', issues: e.issues }, 400);
-    }
-    return json({ ok: false, error: e.message || 'Server error' }, 500);
+    const msg = e?.message || "POST failed";
+    return NextResponse.json({ ok: false, error: msg }, { status: 400 });
   }
 }

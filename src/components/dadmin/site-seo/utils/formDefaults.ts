@@ -17,7 +17,7 @@ export const emptySiteSeo: SiteSettings = {
     street: '',
     zip: '',
     city: '',
-    country: '',
+    country: 'Denmark',
   },
   hours: {
     sunday:   { enabled: false, from: '09:00', to: '17:00' },

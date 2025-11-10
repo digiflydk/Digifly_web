@@ -10,47 +10,32 @@ export const NavLinkSchema = z.object({
 
 export const OpeningSlotSchema = z.object({
   enabled: z.boolean().default(false),
-  from: z.string().optional(), // "09:00"
-  to: z.string().optional(),   // "17:00"
+  from: z.string().default("09:00"),
+  to: z.string().default("17:00"),
 });
 
 export const SiteSettingsSchema = z.object({
   general: z.object({
-    title: z.string().min(1, "Site title is required.").default("Digifly"),
-    tagline: z.string().optional(),
-    logoUrl: z.string().url("Invalid URL").or(z.literal("")).optional(),
-    faviconUrl: z.string().url("Invalid URL").or(z.literal("")).optional(),
+    title: z.string().min(1, "Site title is required").default("Digifly"),
+    tagline: z.string().optional().default(""),
+    logoUrl: z.string().url().or(z.literal("")).optional().default(""),
+    faviconUrl: z.string().url().or(z.literal("")).optional().default(""),
   }).default({}),
   contact: z.object({
-    email: z.string().email("Invalid email").or(z.literal("")).optional(),
-    phone: z.string().optional(),
-    company: z.string().optional(),
-    street: z.string().optional(),
-    zip: z.string().optional(),
-    city: z.string().optional(),
-    country: z.string().optional(),
+    email: z.string().email("Invalid email").or(z.literal("")).optional().default(""),
+    phone: z.string().optional().default(""),
+    company: z.string().optional().default(""),
+    street: z.string().optional().default(""),
+    zip: z.string().optional().default(""),
+    city: z.string().optional().default(""),
+    country: z.string().optional().default("Denmark"),
   }).default({}),
-  hours: z.object({
-    sunday: OpeningSlotSchema,
-    monday: OpeningSlotSchema,
-    tuesday: OpeningSlotSchema,
-    wednesday: OpeningSlotSchema,
-    thursday: OpeningSlotSchema,
-    friday: OpeningSlotSchema,
-    saturday: OpeningSlotSchema,
-  }).default({
-    sunday: { enabled: false },
-    monday: { enabled: true, from: "09:00", to: "17:00" },
-    tuesday: { enabled: true, from: "09:00", to: "17:00" },
-    wednesday: { enabled: true, from: "09:00", to: "17:00" },
-    thursday: { enabled: true, from: "09:00", to: "17:00" },
-    friday: { enabled: true, from: "09:00", to: "17:00" },
-    saturday: { enabled: false },
-  }),
+  hours: z.record(z.string(), z.object({ open: z.string(), closed: z.boolean(), from: z.string().optional(), to: z.string().optional() }))
+    .optional().default({}),
   seo: z.object({
     allowIndexing: z.boolean().default(true),
-    defaultDescription: z.string().optional(),
-    ogImage: z.string().url("Invalid URL").or(z.literal("")).optional(),
+    defaultDescription: z.string().optional().default(""),
+    ogImage: z.string().url().or(z.literal("")).optional().default(""),
   }).default({}),
 });
 
