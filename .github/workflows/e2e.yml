@@ -1,0 +1,53 @@
+
+name: E2E
+on:
+  workflow_dispatch:
+    inputs:
+      qaRunId:
+        required: true
+        type: string
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - env:
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+        run: npm run test:e2e:ci || true
+      - name: Summarize
+        run: |
+          node -e "
+          const fs=require('fs');
+          const p=process.env.PW_SUMMARY_PATH||'qa/summary.json';
+          const s={passed:0,failed:0,skipped:0,total:0,status:'passed'};
+          try{
+            const j=JSON.parse(fs.readFileSync('qa/.summary.json','utf8'));
+            Object.assign(s,j);
+          }catch(e){}
+          if(s.failed>0) s.status='failed';
+          fs.mkdirSync('qa',{recursive:true});
+          fs.writeFileSync(p,JSON.stringify(s));
+          "
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: qa/report
+      - name: Notify Firebase
+        env:
+          QA_RUN_ID: ${{ inputs.qaRunId }}
+          FIREBASE_QA_WEBHOOK: ${{ secrets.FIREBASE_QA_WEBHOOK }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          SUMMARY=$(cat qa/summary.json)
+          curl -s -X POST "$FIREBASE_QA_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"qaRunId\":\"$QA_RUN_ID\",\"status\":$(echo $SUMMARY | jq -r '.status|@json'),\"totals\":$SUMMARY,\"artifactUrl\":\"$ARTIFACT_URL\",\"commit\":\"$GITHUB_SHA\",\"workflowRunId\":${{ github.run_id }}}"
+      - name: Fail if needed
+        run: |
+          if [ "$(jq -r .status qa/summary.json)" = "failed" ]; then exit 1; fi

@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -13,6 +14,12 @@ service cloud.firestore {
     match /settings/{document=**} {
       allow read: if true;
       allow write: if false;
+    }
+
+    // DGF-206: Allow admin users to read QA runs, deny all writes.
+    match /qaRuns/{runId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false; // Only functions can write
     }
 
     // Deny all other reads and writes by default for security.

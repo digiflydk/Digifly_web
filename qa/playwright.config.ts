@@ -1,3 +1,4 @@
+
 import { defineConfig, devices } from '@playwright/test';
 
 // Read from environment variable, default to localhost for local testing
@@ -18,6 +19,7 @@ export default defineConfig({
 
   reporter: [
     ['list'],
+    ['json', { outputFile: 'qa/.summary.json' }],
     ['junit', { outputFile: 'qa/report/junit.xml' }],
     ['html', { outputFolder: 'qa/report/html', open: 'never' }],
   ],
