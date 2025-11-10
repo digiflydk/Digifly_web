@@ -1,11 +1,11 @@
 "use client";
 import * as React from "react";
 
-export default function ContactTab() {
+export default function OpeningHoursTab() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Contact information fields will appear here (stub).
+        Opening hours configuration will appear here (stub).
       </p>
     </div>
   );
