@@ -12,34 +12,38 @@ import { useState, useEffect } from "react";
 import { ZodError } from "zod";
 import { getSiteSettings, saveSiteSettings } from "@/lib/cms-client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import GeneralTab from "./GeneralTab";
-import ContactTab from "./ContactTab";
-import OpeningHoursTab from "./OpeningHoursTab";
-import SeoTab from "./SeoTab";
 import { Skeleton } from "@/components/ui/skeleton";
+import GeneralTab from "./tabs/GeneralTab";
+import ContactTab from "./tabs/ContactTab";
+import OpeningHoursTab from "./tabs/OpeningHoursTab";
+import SeoTab from "./tabs/SeoTab";
+import { emptySiteSeo, coerceToDefaults } from "./utils/formDefaults";
 
 export default function SiteSeoForm() {
-  const [initialData, setInitialData] = useState<SiteSettings | null>(null);
+  const [dbData, setDbData] = useState<Partial<SiteSettings> | null>(null);
+  const [dbDataLoaded, setDbDataLoaded] = useState(false);
 
   const form = useForm<SiteSettings>({
     resolver: zodResolver(SiteSettingsSchema),
-    defaultValues: initialData || undefined,
+    defaultValues: emptySiteSeo,
     mode: 'onChange',
   });
 
   useEffect(() => {
-    getSiteSettings().then(setInitialData).catch(() => {
-        const defaults = SiteSettingsSchema.parse({});
-        setInitialData(defaults);
-    });
+    getSiteSettings()
+      .then(data => setDbData(data))
+      .catch(() => {
+        setDbData({});
+        toast({ title: "Warning", description: "Could not load existing settings. Using defaults.", variant: "destructive" });
+      })
+      .finally(() => setDbDataLoaded(true));
   }, []);
 
   useEffect(() => {
-    if (initialData) {
-        form.reset(initialData);
+    if (dbDataLoaded && dbData) {
+      form.reset(coerceToDefaults(dbData));
     }
-  }, [initialData, form]);
+  }, [dbDataLoaded, dbData, form]);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -63,7 +67,7 @@ export default function SiteSeoForm() {
     }
   }
 
-  if (!initialData) {
+  if (!dbDataLoaded) {
     return <div className="space-y-4"><Skeleton className="h-10 w-1/4" /><Skeleton className="h-64 w-full" /></div>
   }
 
