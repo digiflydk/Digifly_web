@@ -168,16 +168,20 @@ export async function updateHomepage(data: HomePage) {
 }
 
 
-export async function getCasesServer() {
+export async function getCasesServer(options: { publishedOnly?: boolean } = { publishedOnly: true }) {
   noStore();
   const db = await getDb();
-  const snap = await db.collection(CMS_PATHS.cases).get();
+  let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection(CMS_PATHS.cases);
+  if (options.publishedOnly) {
+    query = query.where('published', '==', true);
+  }
+  const snap = await query.get();
   const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   return z.array(CaseSchema.partial()).parse(rows);
 }
 
 export async function getCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
-    const data = await getCasesServer();
+    const data = await getCasesServer({ publishedOnly: true });
     return data as CaseDoc[];
 }
 

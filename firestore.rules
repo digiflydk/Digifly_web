@@ -1,30 +1,50 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read access to all documents under the 'content' collection.
-    // This is necessary for the client-side app to fetch CMS data.
-    match /content/{document=**} {
+
+    // Public, non-sensitive display settings
+    match /site/{docId} {
       allow read: if true;
-      allow write: if false; // Disallow client-side writes.
+      allow write: if isAdmin();
     }
 
-    // Allow public read access to the design settings for the real-time listener.
-    match /settings/{document=**} {
+    // Public navigation docs
+    match /navigation/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
-    // DGF-206: Allow admin users to read QA runs, deny all writes.
+    // Pages: only published pages are public
+    match /pages/{slug} {
+      allow read: if resource.data.published == true;
+      allow write: if isAdmin();
+    }
+
+    // Cases: expose only published
+    match /cases/{caseId} {
+      allow read: if resource.data.published == true;
+      allow write: if isAdmin();
+    }
+
+    // QA runs are restricted to admins
     match /qaRuns/{runId} {
-      allow read: if request.auth != null && request.auth.token.admin == true;
-      allow write: if false; // Only functions can write
+      allow read, write: if isAdmin();
     }
 
-    // Deny all other reads and writes by default for security.
+    // Everything under dadmin is restricted to admins
+    match /dadmin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // Default: deny
     match /{document=**} {
       allow read, write: if false;
+    }
+
+    function isAdmin() {
+      return request.auth != null
+             && request.auth.token.role == 'admin';
     }
   }
 }
