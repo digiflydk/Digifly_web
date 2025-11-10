@@ -1,10 +1,11 @@
 
+
 import { getDb } from "@/lib/firebase-admin";
 import type { SiteSettings } from "@/lib/schemas";
 import { coerceToDefaults } from "@/components/dadmin/site-seo/utils/formDefaults";
 
-const COLLECTION = "settings";
-const DOC_ID = "site";
+const COLLECTION = "site";
+const DOC_ID = "settings";
 
 export async function readSiteSettings(): Promise<SiteSettings> {
   try {

@@ -1,5 +1,10 @@
 
+
 import type { SiteSettings } from "@/lib/schemas";
+
+type DaySpec = { day: string; opens: string; closes: string };
+type HoursRecord = Record<string, { enabled?: boolean; from?: string; to?: string } | undefined>;
+
 
 type OpeningHoursSpec = {
   '@type': 'OpeningHoursSpecification';
@@ -9,7 +14,7 @@ type OpeningHoursSpec = {
 };
 
 // Null-safe helper to generate opening hours array
-function toOpeningHours(hours?: SiteSettings['hours']): OpeningHoursSpec[] {
+function toOpeningHours(hours?: HoursRecord): OpeningHoursSpec[] {
   if (!hours || typeof hours !== 'object') {
     return [];
   }

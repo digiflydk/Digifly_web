@@ -1,4 +1,5 @@
 
+
 import type { Metadata } from 'next';
 import './globals.css';
 import '@/styles/bluebook.css';
@@ -16,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: s?.seo?.defaultTitle || s?.general?.title,
     description: s?.seo?.defaultDescription,
     images: s?.seo?.ogImage,
-  }, s || undefined);
+  }, s);
 }
 
 export default async function RootLayout({
@@ -49,7 +50,7 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body className="font-body antialiased text-[var(--color-graphite)] bg-white overflow-x-hidden">
-        <DesignTokensClient settings={site as any} />
+        <DesignTokensClient settings={site} />
         {children}
         <Toaster />
       </body>
