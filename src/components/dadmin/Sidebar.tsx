@@ -19,7 +19,7 @@ const menuItems = [
 ];
 
 const devMenuItems = [
-    { href: "/dadmin/developer/docs", label: "Docs", icon: BookOpen },
+    { href: "/dadmin/docs", label: "Docs", icon: BookOpen },
     { href: "/dadmin/tests", label: "Playwright tests", icon: PlayCircle },
     { href: "/dadmin/dev/api-map", label: "API Map", icon: Wrench },
     { href: "/dadmin/api-explorer", label: "API Explorer", icon: Beaker },

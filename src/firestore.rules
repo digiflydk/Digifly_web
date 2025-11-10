@@ -30,7 +30,7 @@ service cloud.firestore {
 
     // --- ADMIN-ONLY ---
     
-    // Entire admin namespace
+    // Entire admin namespace for CMS data
     match /dadmin/{document=**} {
       allow read, write: if isAdmin();
     }
