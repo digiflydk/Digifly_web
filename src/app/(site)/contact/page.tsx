@@ -1,4 +1,4 @@
-import { getContactPage } from "@/lib/cms";
+import { getContactPage, getSiteSettings } from "@/lib/cms";
 import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { ContactForm } from "@/components/sections/contact-form";
@@ -10,13 +10,18 @@ import { safeStr } from "@/lib/safe";
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const rawPage = await getContactPage();
-  const page = ContactPageSchema.parse(rawPage || {});
+  try {
+    const [rawPage, siteSettings] = await Promise.all([getContactPage(), getSiteSettings()]);
+    const page = ContactPageSchema.parse(rawPage || {});
 
-  return buildSeo({
-    title: safeStr(page.seo?.title, page.title),
-    description: safeStr(page.seo?.description, page.subtitle),
-  });
+    return buildSeo({
+      title: safeStr(page.seo?.title, page.title),
+      description: safeStr(page.seo?.description, page.subtitle),
+    }, siteSettings || undefined);
+  } catch(e) {
+    console.warn(`[ContactPage] generateMetadata failed, using safe defaults.`, e);
+    return buildSeo({ title: "Contact Us" });
+  }
 }
 
 export default async function ContactPage() {

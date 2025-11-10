@@ -1,5 +1,5 @@
 
-import { getServicesPage } from "@/lib/cms";
+import { getServicesPage, getSiteSettings } from "@/lib/cms";
 import { Container } from "@/components/layout/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,13 +12,18 @@ import { safeStr } from "@/lib/safe";
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const rawPage = await getServicesPage();
-  const page = ServicesPageSchema.parse(rawPage || {});
-  
-  return buildSeo({
-    title: safeStr(page.seo?.title, page.title),
-    description: safeStr(page.seo?.description, page.subtitle),
-  });
+  try {
+    const [rawPage, siteSettings] = await Promise.all([getServicesPage(), getSiteSettings()]);
+    const page = ServicesPageSchema.parse(rawPage || {});
+    
+    return buildSeo({
+      title: safeStr(page.seo?.title, page.title),
+      description: safeStr(page.seo?.description, page.subtitle),
+    }, siteSettings || undefined);
+  } catch (e) {
+    console.warn(`[ServicesPage] generateMetadata failed, using safe defaults.`, e);
+    return buildSeo({ title: 'Our Services' });
+  }
 }
 
 export default async function ServicesPage() {

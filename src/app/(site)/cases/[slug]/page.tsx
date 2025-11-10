@@ -1,8 +1,7 @@
 
-
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getCaseBySlug, getCases } from "@/lib/cms";
+import { getCaseBySlug, getCases, getSiteSettings } from "@/lib/cms";
 import { Metadata } from "next";
 import { buildSeo } from "@/lib/seo";
 import { CaseSchema } from "@/lib/schemas";
@@ -16,16 +15,22 @@ type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
     const { slug } = await params;
-    const item = await getCaseBySlug(slug);
-    if (!item || !item.published) return buildSeo({ title: 'Not Found' });
+    try {
+      const [item, siteSettings] = await Promise.all([getCaseBySlug(slug), getSiteSettings()]);
+      
+      if (!item || !item.published) return buildSeo({ title: 'Not Found' });
 
-    const parsed = CaseSchema.parse(item);
+      const parsed = CaseSchema.parse(item);
 
-    return buildSeo({
-      title: parsed.seo?.title || parsed.title,
-      description: parsed.seo?.description || parsed.excerpt,
-      images: parsed.cover?.src
-    });
+      return buildSeo({
+        title: parsed.seo?.title || parsed.title,
+        description: parsed.seo?.description || parsed.excerpt,
+        images: parsed.cover?.src
+      }, siteSettings || undefined);
+    } catch (e) {
+      console.warn(`[CasePage/${slug}] generateMetadata failed, using safe defaults.`, e);
+      return buildSeo({ title: "Case Study" });
+    }
 }
 
 

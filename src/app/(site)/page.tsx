@@ -1,12 +1,12 @@
 
 
-import { getHomepage, getSiteSettings } from '@/lib/cms-server';
+import { getHomepage } from '@/lib/cms-server';
 import Hero from '@/components/sections/hero';
 import ServicesOverview from '@/components/sections/services-overview';
 import CasesGrid from '@/components/sections/cases-grid';
 import CtaBanner from '@/components/sections/cta-banner';
 import IntroWhyHowWhat from '@/components/sections/intro-why-how-what';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildSeo } from '@/lib/seo';
 import type { Metadata } from 'next';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const result = await getHomepage();
     const page = result.data as HomePage; 
 
-    return buildPageMetadata({
+    return buildSeo({
       title: page?.seo?.title,
       description: page?.seo?.description,
     });

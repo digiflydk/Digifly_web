@@ -9,8 +9,13 @@ import { buildSeo } from '@/lib/seo';
 import { SITE_DEFAULTS } from '@/lib/defaults/siteDefaults';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const site = await getSiteSettings();
-  return buildSeo({}, site);
+  try {
+    const site = await getSiteSettings();
+    return buildSeo({}, site || undefined);
+  } catch (e) {
+    console.warn('[RootLayout] generateMetadata failed, using default SEO.', e);
+    return buildSeo({});
+  }
 }
 
 
@@ -20,7 +25,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const site = await getSiteSettings();
-  const faviconSrc = site.brand?.favicon?.src || SITE_DEFAULTS.brand.favicon.src;
+  const faviconSrc = site?.brand?.favicon?.src || SITE_DEFAULTS.brand.favicon.src;
 
   return (
     <html lang="en" className="overflow-x-hidden" suppressHydrationWarning>

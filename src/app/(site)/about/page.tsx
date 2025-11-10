@@ -6,17 +6,23 @@ import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
 import { AboutPageSchema } from "@/lib/schemas";
 import { safeStr } from "@/lib/safe";
+import { getSiteSettings } from "@/lib/cms-server";
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const rawPage = await getAboutPage();
-  const page = AboutPageSchema.parse(rawPage || {});
-  
-  return buildSeo({
-    title: safeStr(page.seo?.title, page.title),
-    description: safeStr(page.seo?.description, page.subtitle),
-  });
+  try {
+    const [rawPage, siteSettings] = await Promise.all([getAboutPage(), getSiteSettings()]);
+    const page = AboutPageSchema.parse(rawPage || {});
+    
+    return buildSeo({
+      title: safeStr(page.seo?.title, page.title),
+      description: safeStr(page.seo?.description, page.subtitle),
+    }, siteSettings || undefined);
+  } catch (e) {
+    console.warn('[AboutPage] generateMetadata failed, using safe defaults.', e);
+    return buildSeo({ title: 'About' });
+  }
 }
 
 export default async function AboutPage() {
