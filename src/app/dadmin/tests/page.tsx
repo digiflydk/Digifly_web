@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   return await buildSeo({
-    title: 'Playwright Tests',
+    title: 'Playwright tests',
     description: 'Latest automated UI test runs.',
     noIndex: true,
   });
