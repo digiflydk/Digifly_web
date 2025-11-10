@@ -2,9 +2,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, FileJson, FileText } from "lucide-react";
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
-import { siteConfig } from "@/config/site";
 
 type DocFile = {
   name: string;
@@ -32,13 +29,20 @@ function groupFiles(files: DocFile[]) {
         }
     });
 
+    // Remove empty groups
+    for (const key in groups) {
+      if (groups[key].length === 0) {
+        delete groups[key];
+      }
+    }
+
     return groups;
 }
 
 
 export function DocsList() {
   const [files, setFiles] = useState<DocFile[]>([]);
-  const [isLoading, setIsLoading] = useState({ md: false, json: false });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/docs/list")
@@ -46,25 +50,23 @@ export function DocsList() {
       .then(data => setFiles(data.files || []));
   }, []);
 
-  const handleDownloadAll = async (type: 'md' | 'json') => {
-    setIsLoading(prev => ({ ...prev, [type]: true }));
-
-    const filesToDownload = files.filter(f => f.type === (type === 'md' ? 'markdown' : 'json'));
-    const zip = new JSZip();
-
-    for (const file of filesToDownload) {
-      try {
-        const res = await fetch(file.url);
+  const handleDownloadAll = async () => {
+    setIsLoading(true);
+    try {
+        const res = await fetch(`/api/docs/download?file=all-md`);
+        if (!res.ok) throw new Error("Failed to create bundle.");
         const blob = await res.blob();
-        zip.file(file.name, blob);
-      } catch (error) {
-        console.error(`Failed to fetch ${file.name}`, error);
-      }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `digifly-docs-md.zip`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    } catch(e) {
+        console.error(e);
+        alert("Could not download bundle.");
+    } finally {
+        setIsLoading(false);
     }
-
-    const zipBlob = await zip.generateAsync({ type: "blob" });
-    saveAs(zipBlob, `${siteConfig.name}-docs-${type}-bundle.zip`);
-    setIsLoading(prev => ({ ...prev, [type]: false }));
   }
 
   const groupedFiles = groupFiles(files);
@@ -73,23 +75,25 @@ export function DocsList() {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap gap-4">
-        <Button onClick={() => handleDownloadAll('md')} disabled={isLoading.md}>
-            {isLoading.md ? 'Bundling...' : 'Download Markdown Bundle (.zip)'}
-        </Button>
-        <Button variant="secondary" onClick={() => handleDownloadAll('json')} disabled={isLoading.json}>
-            {isLoading.json ? 'Bundling...' : 'Download JSON Bundle (.zip)'}
+        <Button onClick={handleDownloadAll} disabled={isLoading}>
+            {isLoading ? 'Bundling...' : <><Download className="h-4 w-4 mr-2" /> Download Markdown Bundle (.zip)</>}
         </Button>
       </div>
 
       <div className="space-y-6">
+        {Object.keys(groupedFiles).length === 0 && (
+          <div className="text-center py-12 text-slate-500">
+            <p>No documentation files found.</p>
+          </div>
+        )}
         {Object.entries(groupedFiles).map(([groupName, files]) => {
             if (files.length === 0) return null;
             return (
                 <div key={groupName}>
-                    <h2 className="text-xl font-semibold mb-3 border-b pb-2">{groupName}</h2>
+                    <h2 className="text-lg font-semibold mb-3 border-b pb-2">{groupName}</h2>
                     <ul className="space-y-2 mt-4">
                     {files.map(f => (
-                        <li key={f.name} className="flex justify-between items-center border-b pb-2 last:border-b-0">
+                        <li key={f.name} className="flex justify-between items-center border-b pb-2 last:border-b-0 hover:bg-slate-50 -mx-2 px-2 rounded-md">
                         <span className="flex items-center gap-2">
                             {f.type === 'markdown' ? <FileText className="h-4 w-4 text-muted-foreground" /> : <FileJson className="h-4 w-4 text-muted-foreground" />}
                             {f.name}
