@@ -7,8 +7,9 @@ import type { QARun } from '@/lib/qa/qa.types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, ExternalLink } from 'lucide-react';
+import { Loader2, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 function getBadgeVariant(status: string) {
     if (status === 'passed') return 'default';
@@ -27,7 +28,7 @@ export default function TestsPanel() {
   useEffect(() => {
     if (!isClient) return;
     
-    const q = query(collection(db, 'qa_runs'), orderBy('startedAt', 'desc'), limit(10));
+    const q = query(collection(db, 'qa_runs'), orderBy('startedAt', 'desc'), limit(50));
     const unsub = onSnapshot(q, snap => {
       const items = snap.docs.map(d => ({ id: d.id, data: d.data() as QARun }));
       setRuns(items);
@@ -52,7 +53,6 @@ export default function TestsPanel() {
     } catch (e: any) {
       console.error(e);
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
-      // isRunning will be reset by the Firestore listener if the run fails to start
     }
   }, [toast]);
 
@@ -65,9 +65,6 @@ export default function TestsPanel() {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-xl font-semibold">Playwright Tests</h1>
-          <p className="text-sm text-slate-500">
-            Runs are executed in the Studio environment.
-          </p>
         </div>
         <Button
           onClick={trigger}
@@ -76,46 +73,50 @@ export default function TestsPanel() {
           {isRunning ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running…</> : 'Run tests now'}
         </Button>
       </div>
+      
+      <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Test Environment</AlertTitle>
+          <AlertDescription>
+            Runs are executed against the live deployed preview environment. Results are posted automatically by the CI post-deploy step.
+          </AlertDescription>
+      </Alert>
 
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Started</TableHead>
-              <TableHead>Duration</TableHead>
+              <TableHead>Run</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Totals</TableHead>
+              <TableHead>Duration</TableHead>
+              <TableHead>Passed</TableHead>
+              <TableHead>Failed</TableHead>
               <TableHead>Report</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {runs.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center h-24 text-slate-500">No test runs found.</TableCell>
+                    <TableCell colSpan={6} className="text-center h-24 text-slate-500">No Playwright runs found yet.</TableCell>
                 </TableRow>
             )}
             {runs.map(({id, data}) => (
               <TableRow key={id}>
                 <TableCell className="py-2.5">
-                    {data.startedAt?.toDate().toLocaleString() ?? '—'}
-                </TableCell>
-                <TableCell>
-                    {data.durationMs ? `${(data.durationMs / 1000).toFixed(2)}s` : '—'}
+                    <div className="font-medium">{new Date(data.startedAt?.toDate() ?? 0).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">{data.commit?.slice(0,7) ?? '—'}</div>
                 </TableCell>
                 <TableCell className="capitalize">
                     <Badge variant={getBadgeVariant(data.status)}>{data.status}</Badge>
                 </TableCell>
                 <TableCell>
-                  {data.totals
-                    ? <span className="text-sm">
-                        <span className="text-green-600">{data.totals.passed} passed</span>,{' '}
-                        <span className={data.totals.failed > 0 ? 'text-red-600' : ''}>{data.totals.failed} failed</span>
-                      </span>
-                    : data.status === 'running' || data.status === 'queued' ? <span className="text-xs text-slate-500">In progress...</span> : '—'}
+                    {data.durationMs ? `${(data.durationMs / 1000).toFixed(2)}s` : '—'}
                 </TableCell>
+                <TableCell className="text-green-600">{data.totals?.passed ?? '—'}</TableCell>
+                <TableCell className={data.totals?.failed ?? 0 > 0 ? 'text-red-600' : ''}>{data.totals?.failed ?? '—'}</TableCell>
                 <td>
                   {data.reportUrl
-                    ? <a className="underline text-primary text-sm inline-flex items-center" href={data.reportUrl} target="_blank" rel="noreferrer">View report <ExternalLink className="ml-1 h-3 w-3" /></a>
+                    ? <Button asChild variant="outline" size="sm"><a href={data.reportUrl} target="_blank" rel="noreferrer">Open report <ExternalLink className="ml-2 h-3 w-3" /></a></Button>
                     : '—'}
                 </td>
               </TableRow>

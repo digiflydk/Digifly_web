@@ -7,6 +7,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return await buildSeo({
     title: "API Explorer",
     description: "Run live queries against the CMS API.",
+    noIndex: true
   });
 }
 
