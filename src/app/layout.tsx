@@ -4,17 +4,23 @@ import './globals.css';
 import '@/styles/bluebook.css';
 import { Toaster } from '@/components/ui/toaster';
 import DesignTokensClient from '@/components/providers/design-tokens-client';
-import { getSiteSettings } from "@/lib/cms-server";
-import { buildSeo } from '@/lib/seo';
+import { getSiteSeo } from "@/lib/dadmin/siteSeoRepo";
+
+export const revalidate = 60; // refresh settings every 60s
 
 export async function generateMetadata(): Promise<Metadata> {
-  try {
-    const site = await getSiteSettings();
-    return buildSeo({}, site || undefined);
-  } catch (e) {
-    console.warn('[RootLayout] generateMetadata failed, using default SEO.', e);
-    return buildSeo({});
-  }
+  const s = await getSiteSeo();
+  const title = s.general?.title || "Digifly";
+  const description = s.seo?.defaultDescription || "";
+  const og = s.seo?.ogImage ? [{ url: s.seo.ogImage }] : [];
+
+  return {
+    title: { default: title, template: `%s | ${title}` },
+    description,
+    openGraph: { title, description, images: og },
+    icons: s.general?.faviconUrl ? { icon: s.general.faviconUrl } : undefined,
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://digifly.dk"),
+  };
 }
 
 export default async function RootLayout({
@@ -22,7 +28,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const site = await getSiteSettings();
+  const site = await getSiteSeo();
   const faviconSrc = site?.general?.faviconUrl;
 
   return (
@@ -47,7 +53,7 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body className="font-body antialiased text-[var(--color-graphite)] bg-white overflow-x-hidden">
-        <DesignTokensClient settings={site} />
+        <DesignTokensClient settings={site as any} />
         {children}
         <Toaster />
       </body>

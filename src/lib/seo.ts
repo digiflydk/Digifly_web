@@ -1,11 +1,12 @@
 
 import type { Metadata } from "next";
 import { getSiteSettings } from "@/lib/cms-server";
+import type { SiteSettings } from "./schemas";
+import { getSiteSeo } from "./dadmin/siteSeoRepo";
 
 // Extremely tolerant input shapes to avoid runtime crashes
 type UnknownDict = Record<string, unknown>;
 
-type SiteSettings = UnknownDict; // We won't rely on strict typing here
 type SeoInput = {
   title?: string;
   description?: string;
@@ -26,40 +27,35 @@ const FALLBACK_TITLE = 'Digifly';
 const FALLBACK_DESC = '';
 const FALLBACK_IMAGE = '/og-default.png';
 
-export function buildSeo(input: SeoInput = {}, settings?: SiteSettings): Metadata {
-  const s = (settings ?? {}) as UnknownDict;
+export async function buildSeo(input: SeoInput = {}): Promise<Metadata> {
+  const s = await getSiteSeo();
 
-  // Support a variety of potential shapes:
-  const general = (s['general'] ?? {}) as UnknownDict;
-  const brand = (s['brand'] ?? {}) as UnknownDict;
-  const defaultSeo = (s['defaultSeo'] ?? s['seo'] ?? {}) as UnknownDict;
+  const title = pickFirst(
+    input.title,
+    s.general?.title,
+    FALLBACK_TITLE
+  ) ?? FALLBACK_TITLE;
 
-  // Legacy/alternate keys we’ve seen in crashes/logs:
-  const siteTitle = s['siteTitle'] || general['title'];
-  const defaultDescription = s['defaultDescription'] || defaultSeo['defaultDescription'];
+  const description = pickFirst(
+    input.description,
+    s.seo?.defaultDescription,
+    FALLBACK_DESC
+  ) ?? FALLBACK_DESC;
 
-  // From nested defaultSeo
-  const dsTitle = defaultSeo['title'];
-  const dsDesc = defaultSeo['description'];
-  const dsImage = defaultSeo['image'] || defaultSeo['ogImage'] || defaultSeo['ogImageUrl'];
-  const dsOgImage = (defaultSeo as any)['ogImage']; // tolerate legacy
+  const imageInput = Array.isArray(input.images) ? input.images[0] : input.images;
+  const image = pickFirst(
+    imageInput,
+    s.seo?.ogImage,
+    s.general?.logoUrl,
+    FALLBACK_IMAGE
+  ) ?? FALLBACK_IMAGE;
 
-  // From brand
-  const brandLogo = ((brand['logo'] ?? {}) as UnknownDict)['src'];
-  
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
-  const titleTemplate = pickFirst(defaultSeo['defaultTitleTemplate']) || '%s | Digifly';
-
-  const title = pickFirst(input.title, dsTitle, siteTitle, FALLBACK_TITLE) ?? FALLBACK_TITLE;
+  const titleTemplate = `%s | ${s.general?.title || FALLBACK_TITLE}`;
 
   const finalTitle = titleTemplate.includes('%s') ? titleTemplate.replace('%s', title) : title;
   
-  const description = pickFirst(input.description, dsDesc, defaultDescription, FALLBACK_DESC) ?? FALLBACK_DESC;
-  
-  const imageInput = Array.isArray(input.images) ? input.images[0] : input.images;
-  const image = pickFirst(imageInput, dsImage, dsOgImage, brandLogo, FALLBACK_IMAGE) ?? FALLBACK_IMAGE;
-
-  const allowIndexing = typeof defaultSeo['allowIndexing'] === 'boolean' ? defaultSeo['allowIndexing'] : true;
+  const allowIndexing = s.seo?.allowIndexing ?? true;
   const robots = {
     index: input.noIndex ? false : allowIndexing,
     follow: input.noIndex ? false : allowIndexing,
@@ -70,7 +66,7 @@ export function buildSeo(input: SeoInput = {}, settings?: SiteSettings): Metadat
   return {
     metadataBase: siteUrl ? new URL(siteUrl) : undefined,
     title: {
-      default: siteTitle as string || FALLBACK_TITLE,
+      default: s.general?.title || FALLBACK_TITLE,
       template: titleTemplate,
       absolute: finalTitle,
     },
@@ -91,11 +87,9 @@ export function buildSeo(input: SeoInput = {}, settings?: SiteSettings): Metadat
   };
 }
 
-
 // Wrapper for page-level generateMetadata functions
 export async function buildPageMetadata(page: Partial<Metadata>): Promise<Metadata> {
   try {
-    const settings = await getSiteSettings();
     const imageUrls = (page.openGraph as any)?.images?.map((img: any) => typeof img === 'string' ? img : img.url).filter(Boolean);
 
     return buildSeo({
@@ -104,7 +98,7 @@ export async function buildPageMetadata(page: Partial<Metadata>): Promise<Metada
       images: imageUrls,
       noIndex: (page.robots as any)?.noindex,
       canonical: (page.alternates as any)?.canonical,
-    }, settings || undefined);
+    });
   } catch (e) {
     console.warn(`[buildPageMetadata] Failed to fetch settings, using safe defaults.`, e);
     return buildSeo({
