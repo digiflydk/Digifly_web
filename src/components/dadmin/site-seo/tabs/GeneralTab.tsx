@@ -1,10 +1,10 @@
-
 "use client";
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ImagePreview } from "../components/ImagePreview";
 
 export default function GeneralTab() {
   const { control } = useFormContext();
@@ -43,6 +43,8 @@ export default function GeneralTab() {
               <FormControl>
                 <Input placeholder="https://..." {...field} value={field.value ?? ""} />
               </FormControl>
+              <FormDescription>Used in header and mobile menu.</FormDescription>
+              <ImagePreview url={field.value} alt="Logo" />
               <FormMessage />
             </FormItem>
           )}
@@ -56,6 +58,8 @@ export default function GeneralTab() {
               <FormControl>
                 <Input placeholder="https://.../favicon.ico" {...field} value={field.value ?? ""} />
               </FormControl>
+              <FormDescription>Shown in browser tab. Use PNG/ICO/SVG.</FormDescription>
+              <ImagePreview url={field.value} alt="Favicon" />
               <FormMessage />
             </FormItem>
           )}

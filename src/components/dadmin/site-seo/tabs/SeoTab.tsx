@@ -1,4 +1,3 @@
-
 "use client";
 import * as React from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -9,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { LiveSeoPreview } from "@/components/cms/forms/SeoPreviewCard";
 import { withSeoDefaults } from "@/lib/seo-defaults";
+import { ImagePreview } from "../components/ImagePreview";
 
 function WatchedSeoPreview() {
     const { getValues } = useFormContext();
@@ -37,7 +37,7 @@ function WatchedSeoPreview() {
 }
 
 export default function SeoTab() {
-  const { control } = useFormContext();
+  const { control, watch } = useFormContext();
 
   return (
     <div className="grid md:grid-cols-3 gap-8 items-start">
@@ -91,6 +91,7 @@ export default function SeoTab() {
                     <FormDescription>
                         Recommended size: 1200x630px.
                     </FormDescription>
+                    <ImagePreview url={watch("seo.ogImage") ?? ""} alt="Default Open Graph image" className="mt-2" />
                     <FormMessage />
                     </FormItem>
                 )}
