@@ -31,6 +31,7 @@ export default function TestsPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastRunResult, setLastRunResult] = useState<any>(null);
 
   useEffect(() => setIsClient(true), []);
 
@@ -54,11 +55,13 @@ export default function TestsPanel() {
   const trigger = useCallback(async () => {
     setIsRunning(true);
     setError(null);
+    setLastRunResult(null);
     toast({ title: 'Test run requested', description: 'The Playwright test suite is starting...' });
     try {
       const res = await fetch('/api/developer/tests/run', { method: 'POST' });
       if (!res.ok) {
-        throw new Error(`Run failed: HTTP ${res.status} — ${await res.text()}`);
+        const txt = await res.text();
+        throw new Error(`HTTP ${res.status} — ${txt}`);
       }
       
       const data = await safeJson(res);
@@ -66,10 +69,13 @@ export default function TestsPanel() {
       if (!data.ok) {
         throw new Error(data.error || 'Failed to start test run.');
       }
+      setLastRunResult(data);
+      toast({ title: 'Success', description: 'Playwright run completed.'});
     } catch (e: any) {
       console.error(e);
       setError(e.message);
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
       setIsRunning(false);
     }
   }, [toast]);
@@ -84,7 +90,7 @@ export default function TestsPanel() {
         <div className="space-y-1">
           <h1 className="text-xl font-semibold">Playwright Tests</h1>
            <p className="text-sm text-muted-foreground">
-             Latest automated UI test runs.
+             Trigger and view automated UI test runs.
            </p>
         </div>
         <Button
@@ -103,13 +109,16 @@ export default function TestsPanel() {
         </Alert>
       )}
 
-      <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Test Environment</AlertTitle>
-          <AlertDescription>
-            Runs are executed against the live deployed preview environment. Results are posted automatically by the CI post-deploy step.
-          </AlertDescription>
-      </Alert>
+      {lastRunResult && (
+        <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Run Completed</AlertTitle>
+            <AlertDescription>
+                Passed: {lastRunResult.summary.passed}, Failed: {lastRunResult.summary.failed}
+                <a href={lastRunResult.artifacts.htmlReportUrl} target="_blank" rel="noreferrer" className="underline ml-4">View Report</a>
+            </AlertDescription>
+        </Alert>
+      )}
 
       <div className="border rounded-lg">
         <Table>
@@ -124,7 +133,7 @@ export default function TestsPanel() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {runs.length === 0 && (
+            {runs.length === 0 && !isRunning && (
                 <TableRow>
                     <TableCell colSpan={6} className="text-center h-24 text-slate-500">No Playwright runs found yet.</TableCell>
                 </TableRow>
