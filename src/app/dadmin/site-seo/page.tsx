@@ -1,7 +1,7 @@
 
 import type { Metadata } from "next";
 import SiteSeoForm from "@/components/dadmin/site-seo/SiteSeoForm";
-import { getSiteSettings } from "./actions";
+import { getSiteSettings } from "@/app/dadmin/site-seo/actions";
 
 export const dynamic = 'force-dynamic';
 
