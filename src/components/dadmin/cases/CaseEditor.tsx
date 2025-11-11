@@ -41,8 +41,14 @@ export default function CaseEditor({ id, initial }: { id: string; initial: CaseD
   const save = async () => {
     setSaving(true);
     try {
-      // The schema is applied on the server, so we can send the model as is
-      await updateCase(id, model);
+      // DGF-298: Harden payload to ensure cover.src is a string
+      const payload = {
+        ...model,
+        cover: model.cover
+          ? { src: model.cover.src ?? "", alt: model.cover.alt }
+          : { src: "", alt: "" },
+      };
+      await updateCase(id, payload);
       toast({ title: "Success", description: "Case study saved." });
     } catch (e: any) {
         toast({ title: "Error", description: e.message || "Could not save case study.", variant: "destructive" });
