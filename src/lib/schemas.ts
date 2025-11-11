@@ -1,4 +1,5 @@
 
+
 import { z } from "zod";
 
 // Base primitives
@@ -47,9 +48,9 @@ export const NavigationSchema = z.object({
 export const HeroSlideSchema = z.object({
       heading: z.string(),
       subheading: z.string(),
-      body: z.string(),
-      image: z.object({ src: z.string(), alt: z.string() }),
-      cta: z.object({ href: z.string(), label: z.string() }),
+      body: z.string().optional(),
+      image: z.object({ src: z.string().optional(), alt: z.string().optional() }).optional(),
+      cta: z.object({ href: z.string().optional(), label: z.string().optional() }).optional(),
       visible: z.boolean().default(true)
 });
 
