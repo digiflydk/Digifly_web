@@ -10,16 +10,14 @@ import {
   ServicesPageSchema,
   CasesIndexSchema,
   ContactPageSchema,
-  NavLinkSchema,
-  CmsLinkSchema,
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { HomePage, Navigation, Case, SiteSettings, CmsLink } from '@/lib/schemas';
+import type { HomePage, Navigation, Case, SiteSettings } from '@/lib/schemas';
 
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-import { defaultHomepage, normalizeHome } from './defaults/siteDefaults';
+import { defaultHomepage, defaultNavigation, normalizeHome } from './defaults/siteDefaults';
 import { CMS_PATHS } from './constants';
 import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
 import { normalizeLink } from './links';
@@ -54,70 +52,30 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   return parsedData;
 }
 
-const PAGE_ID_TO_PATH_MAP: Record<string, string> = {
-  home: '/',
-  about: '/about',
-  services: '/services',
-  contact: '/contact',
-  'cases-index': '/cases',
-};
-
-// Migration helper to convert old string links to new CmsLink objects
-function migrateLink(item: any): CmsLink {
-    if (!item || typeof item !== 'object') {
-        return normalizeLink({ label: "Missing Link", type: "external", externalUrl: "#error" }) as CmsLink;
-    }
-    // If the item already has a 'link' property, it's in the new format.
-    if (item.link && typeof item.link === 'object' && item.link.type) {
-        return normalizeLink(item.link) as CmsLink;
-    }
-
-    // Otherwise, it's a legacy item ({ label, href }) that needs migration.
-    const href = (item.href || '').trim();
-    const label = item.label || 'Untitled';
-
-    let linkObject: Partial<CmsLink>;
-
-    if (href.startsWith('http')) {
-        linkObject = { type: 'external', label, externalUrl: href, newTab: true };
-    } else {
-        const pageId = Object.keys(PAGE_ID_TO_PATH_MAP).find(key => PAGE_ID_TO_PATH_MAP[key] === href) || href.replace(/^\//, '');
-        linkObject = { type: 'internal', label, internalRef: pageId, newTab: false };
-    }
-    return normalizeLink(linkObject as CmsLink) as CmsLink;
-}
-
-
 export async function getNavigation(): Promise<Navigation> {
     noStore();
     const db = await getDb();
-    const mainSnap = await db.doc(CMS_PATHS.navigation.main).get();
-    const footerSnap = await db.doc(CMS_PATHS.navigation.footer).get();
+    const navSnap = await db.doc(CMS_PATHS.navigation).get();
     
-    const mainData = mainSnap.exists ? mainSnap.data() : { header: [] };
-    const footerData = footerSnap.exists ? footerSnap.data() : { footer: { columns: [] } };
+    let navData = navSnap.exists ? navSnap.data() : defaultNavigation;
 
-    const navData = {
-        header: (mainData?.header || []).filter(Boolean).map((item: any, index: number) => ({
-            id: item.id || String(index),
-            link: migrateLink(item)
-        })),
-        footer: {
-            columns: (footerData?.footer?.columns || []).filter(Boolean).map((col: any) => ({
+    // Run migration/normalization logic
+    if (navData) {
+        navData.header = (navData.header || []).map((item: any, i: number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) }));
+        navData.footer = {
+            ...navData.footer,
+            columns: (navData.footer?.columns || []).map((col: any) => ({
                 ...col,
-                links: (col.links || []).filter(Boolean).map((item: any, index: number) => ({
-                    id: item.id || String(index),
-                    link: migrateLink(item)
-                }))
+                links: (col.links || []).map((item: any, i:number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) }))
             }))
-        }
-    };
+        };
+    }
     
     const parsedNav = NavigationSchema.safeParse(navData);
 
     if (!parsedNav.success) {
-        console.warn("[getNavigation] Zod validation failed, returning empty nav structure.", parsedNav.error.format());
-        return { header: [], footer: { columns: [] }};
+        console.warn("[getNavigation] Zod validation failed, returning default nav structure.", parsedNav.error.format());
+        return defaultNavigation;
     }
     
     return parsedNav.data;
@@ -126,14 +84,10 @@ export async function getNavigation(): Promise<Navigation> {
 export async function saveNavigation(data: Navigation): Promise<void> {
     const parsedData = NavigationSchema.parse(data);
     const db = await getDb();
-    const batch = db.batch();
-    
-    batch.set(db.doc(CMS_PATHS.navigation.main), { header: parsedData.header }, { merge: true });
-    batch.set(db.doc(CMS_PATHS.navigation.footer), { footer: parsedData.footer }, { merge: true });
-
-    await batch.commit();
+    await db.doc(CMS_PATHS.navigation).set(parsedData, { merge: true });
     revalidatePath('/', 'layout');
 }
+
 
 export async function getPageBySlug(slug: string): Promise<any | null> {
     const db = await getDb();
@@ -349,10 +303,7 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   if (path === 'navigation') {
     return getNavigation();
   }
-   if (path === 'navigation/main' || path === 'navigation/footer') {
-    const nav = await getNavigation();
-    return path === 'navigation/main' ? nav : { footer: nav.footer };
-  }
+
   if (path === 'home') {
     const result = await getHomepage();
     if (!result.ok) throw new Error(result.error);

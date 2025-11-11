@@ -7,8 +7,8 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { NavLinkSchema, NavigationSchema } from "@/lib/schemas";
-import { useState, useEffect } from "react";
+import { NavigationSchema, NavLinkSchema } from "@/lib/schemas";
+import { useState, useEffect, useTransition } from "react";
 import { GripVertical, Plus, Trash } from "lucide-react";
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -62,7 +62,7 @@ function SortableItem({ id, index, control, remove }: { id: string; index: numbe
 }
 
 export function NavEditor({ title, description, items, onSaveKey, initialData }: NavEditorProps) {
-  const [isSaving, setIsSaving] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -81,32 +81,36 @@ export function NavEditor({ title, description, items, onSaveKey, initialData }:
   });
 
   async function onSubmit(values: z.infer<typeof FormSchema>) {
-    setIsSaving(true);
-    try {
-      let fullNavPayload: Navigation;
-      if (onSaveKey === 'header') {
-        fullNavPayload = { ...initialData, header: values.items };
-      } else {
-        fullNavPayload = { 
-            ...initialData, 
-            footer: { 
-                ...initialData.footer, 
-                columns: [{ title: initialData.footer.columns[0]?.title || "Links", links: values.items }] 
-            }
-        };
+    startTransition(async () => {
+      try {
+        let fullNavPayload: Navigation;
+        if (onSaveKey === 'header') {
+          fullNavPayload = { ...initialData, header: values.items };
+        } else {
+          // This logic assumes a single-column footer for now.
+          const footerColumns = initialData.footer?.columns ?? [];
+          const newColumns = [
+              { title: footerColumns[0]?.title ?? "Links", links: values.items },
+              ...footerColumns.slice(1)
+          ];
+          fullNavPayload = { 
+              ...initialData, 
+              footer: { columns: newColumns }
+          };
+        }
+        
+        const result = await saveNavigationAction(fullNavPayload);
+        
+        if (result.ok) {
+          toast({ title: "Success", description: "Navigation saved." });
+          form.reset(values);
+        } else {
+          throw new Error(result.error || "An unknown error occurred.");
+        }
+      } catch (e: any) {
+        toast({ title: "Error", description: e.message, variant: "destructive" });
       }
-      const result = await saveNavigationAction(fullNavPayload);
-      if (result.ok) {
-        toast({ title: "Success", description: "Navigation saved." });
-        form.reset(values);
-      } else {
-        throw new Error(result.error || "An unknown error occurred.");
-      }
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setIsSaving(false);
-    }
+    });
   }
 
   function handleDragEnd(event: DragEndEvent) {
@@ -145,13 +149,13 @@ export function NavEditor({ title, description, items, onSaveKey, initialData }:
             </DndContext>
 
             <div className="flex justify-between items-center pt-4">
-              <Button type="button" variant="outline" size="sm" onClick={() => append({ link: { label: "", type: 'internal', internalRef: 'home', externalUrl: '', newTab: false } })}>
+              <Button type="button" variant="outline" size="sm" onClick={() => append({ link: { label: "", type: 'internal', internalRef: null, externalUrl: '', newTab: false } })}>
                 <Plus className="mr-2 h-4 w-4" /> Add Link
               </Button>
               <div className="flex gap-2">
                 <Button type="button" variant="ghost" disabled={!form.formState.isDirty} onClick={() => form.reset({ items })}>Reset</Button>
-                <Button type="submit" disabled={isSaving || !form.formState.isDirty}>
-                  {isSaving ? "Saving..." : "Save Changes"}
+                <Button type="submit" disabled={isPending || !form.formState.isDirty}>
+                  {isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </div>

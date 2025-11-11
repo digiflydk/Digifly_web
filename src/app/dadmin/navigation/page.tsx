@@ -19,7 +19,7 @@ export default async function NavigationPage() {
       <NavEditor 
           title="Footer Navigation"
           description="Manage the first column of links in the footer."
-          items={nav.footer.columns[0]?.links ?? []}
+          items={nav.footer?.columns?.[0]?.links ?? []}
           onSaveKey="footer"
           initialData={nav}
       />

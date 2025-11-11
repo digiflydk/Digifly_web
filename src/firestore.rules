@@ -5,28 +5,21 @@ service cloud.firestore {
 
     function signedIn() { return request.auth != null; }
     function isAdmin() {
-      // In public mode, we can't check claims. For now, allow writes if signed in.
-      // In a real app, this would be:
-      // return signedIn() && request.auth.token.admin == true;
+      // For this app, we assume writes are server-side via Admin SDK,
+      // which bypasses rules. This rule is a safeguard for any client-side attempts.
+      // A real implementation would check for a custom claim: request.auth.token.admin == true
       return signedIn();
     }
 
     // Public reads for content needed by the site
     match /site/{doc} {
-      allow get: if true;
-      allow write: if isAdmin(); // Admin can write
+      allow read: if true;
+      allow write: if isAdmin();
     }
     
     match /pages/{pageId} {
-      // Allow public read only if the document is marked as published
-      allow get: if resource.data.published == true;
-      // Admins can list and write to all pages regardless of published status
-      allow list, write: if isAdmin();
-    }
-
-    // Special case for homepage, which might not have `published` field initially
-    match /pages/home {
       allow read: if true;
+      allow write: if isAdmin();
     }
     
     match /cases/{caseId} {
@@ -34,19 +27,18 @@ service cloud.firestore {
       allow list, write: if isAdmin();
     }
     
-    // --- Admin-gated sections ---
-    
-    // Navigation is read-only for public, writable by admins.
-    // However, the admin panel now uses server-side writes, so this rule
-    // primarily serves as a client-side read lock for non-admins.
-    match /navigation/{doc=**} {
+    // CMS singletons like navigation are public-read, admin-write.
+    match /cms/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Admin-only area
+    // Admin-only area for audit logs etc.
     match /admins/{uid} {
       allow read, write: if isAdmin();
+    }
+    match /auditLogs/{logId} {
+        allow read, write: if isAdmin();
     }
   }
 }

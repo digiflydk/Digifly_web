@@ -4,11 +4,13 @@
 import { revalidatePath } from "next/cache";
 import { saveNavigation } from "@/lib/cms-server";
 import type { Navigation } from "@/lib/types";
+import { NavigationSchema } from "@/lib/schemas";
 import { ZodError } from "zod";
 
 export async function saveNavigationAction(data: Navigation): Promise<{ ok: boolean; error?: string; issues?: any[] }> {
   try {
-    await saveNavigation(data);
+    const parsedData = NavigationSchema.parse(data);
+    await saveNavigation(parsedData);
     revalidatePath("/dadmin/navigation");
     revalidatePath("/", "layout"); // Revalidate public site layout
     return { ok: true };
