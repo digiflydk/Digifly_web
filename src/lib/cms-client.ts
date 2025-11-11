@@ -1,4 +1,5 @@
 
+
 import type { SiteSettings, HomePage, CaseDoc, Page, Navigation } from './types';
 
 async function fetchCmsData(path: string, options?: RequestInit) {

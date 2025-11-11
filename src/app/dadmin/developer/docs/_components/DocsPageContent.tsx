@@ -1,7 +1,8 @@
-"use client";
-import { useMemo } from "react";
-import docs from "@/data/developer-docs";
-import DocCard from "./DocCard";
+
+'use client';
+import { useMemo } from 'react';
+import docs from '@/data/developer-docs';
+import DocCard from './DocCard';
 
 export default function DocsPageContent() {
   const items = useMemo(() => docs, []);
