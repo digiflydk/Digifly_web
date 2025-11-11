@@ -10,12 +10,26 @@ export default defineConfig({
   testDir: './tests',
   expect: { timeout: 5_000 },
   retries: 0,
-  reporter: [['html', { outputFolder: 'qa/report' }], ['line']],
+  reporter: [['html', { outputFolder: 'playwright-report' }], ['line']],
   use: {
     baseURL,
     trace: 'on-first-retry',
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'predeploy',
+      testDir: './tests/smoke',
+      testMatch: /predeploy\.spec\.ts/,
+      timeout: 30_000,
+      retries: 0,
+      use: {
+        baseURL,
+        headless: true,
+        screenshot: 'off',
+        video: 'off',
+        trace: 'off',
+      },
+    },
   ],
 });

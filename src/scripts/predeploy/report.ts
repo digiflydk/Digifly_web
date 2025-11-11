@@ -2,56 +2,45 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-const reportDir = path.join(process.cwd(), 'public', 'dev', 'reports');
-
-async function readJson(file: string) {
-  try {
-    const content = await fs.readFile(path.join(reportDir, file), 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return null;
-  }
-}
+const reportDir = path.join(process.cwd(), 'public', 'predeploy', 'reports');
 
 async function main() {
-  const guards = await readJson('guards.json') ?? [];
-  const typecheck = await readJson('typecheck.json') ?? { ok: false, error: "Typecheck did not run." };
-  const schema = await readJson('schema.json') ?? { ok: false, error: "Schema validation did not run." };
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const reportName = `report-${timestamp}.html`;
+  const latestJsonPath = path.join(reportDir, 'index.json');
+  const sourceHtmlPath = path.join(process.cwd(), 'playwright-report', 'index.html');
+  const targetHtmlPath = path.join(reportDir, reportName);
 
-  const guardChecks = guards.map((g: any) => ({
-    name: g.name,
-    status: g.ok ? 'ok' : 'fail',
-    details: g.details ? `${g.details} (${g.file})` : 'Passed',
-    docsUrl: g.docsUrl,
-  }));
+  try {
+    await fs.mkdir(reportDir, { recursive: true });
+    
+    // Copy the generated report to its new timestamped location
+    await fs.copyFile(sourceHtmlPath, targetHtmlPath);
+    console.log(`[report] Copied Playwright report to ${targetHtmlPath}`);
 
-  const overallStatus = 
-      guardChecks.some((c:any) => c.status === 'fail') || !typecheck.ok || !schema.ok 
-          ? 'fail' 
-          : 'ok';
+    // Update the index file
+    const indexData = {
+      latestUrl: `/predeploy/reports/${reportName}`,
+      generatedAt: new Date().toISOString(),
+    };
+    await fs.writeFile(latestJsonPath, JSON.stringify(indexData, null, 2));
+    console.log(`[report] Updated latest report index: ${latestJsonPath}`);
 
-  const report = {
-    status: overallStatus,
-    generatedAt: new Date().toISOString(),
-    checks: [
-      ...guardChecks,
-      { name: "Type Safety (tsc)", status: typecheck.ok ? 'ok' : 'fail', details: typecheck.ok ? "Passed" : "TypeScript errors found. See build logs." },
-      { name: "Schema & Defaults", status: schema.ok ? 'ok' : 'fail', details: schema.ok ? "Passed" : schema.error || "Schema validation failed." },
-    ],
-  };
-
-  const finalReportPath = path.join(reportDir, 'predeploy.json');
-  await fs.writeFile(finalReportPath, JSON.stringify(report, null, 2));
-
-  console.log(`[report] Pre-deploy report generated at ${finalReportPath}`);
-  
-  if (overallStatus === 'fail') {
-    console.error('[report] One or more pre-deploy checks failed.');
-    process.exit(1);
+  } catch (err: any) {
+    console.error('[report] Failed to process report:', err);
+    // Create an index file indicating failure
+    const errorIndexData = {
+        latestUrl: null,
+        error: `Failed to generate report: ${err.message}`,
+        generatedAt: new Date().toISOString(),
+    };
+    try {
+        await fs.writeFile(latestJsonPath, JSON.stringify(errorIndexData, null, 2));
+    } catch (writeErr) {
+        console.error('[report] Could not even write error index:', writeErr);
+    }
+    process.exit(1); // Exit with error code so CI can fail if needed
   }
 }
 
-main().catch((err) => {
-  console.error('[report] Failed to generate report:', err);
-  process.exit(1);
-});
+main();
