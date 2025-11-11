@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         ? Object.entries(body.metrics).map(([label, value]) => ({ label, value: String(value) }))
         : undefined;
 
-    const payload: Partial<CaseDoc> = { ...body, metrics };
+    const payload = { ...body, metrics };
 
     const parsed = CaseSchema.safeParse(payload);
     if (!parsed.success) {

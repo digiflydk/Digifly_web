@@ -8,19 +8,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
-import type { CaseDoc } from "@/lib/schemas"; // Adjusted to correct import if available
+import type { CaseDoc } from "@/lib/schemas"; 
 
 export default function CaseEditor({ id, initial }: { id: string; initial: CaseDoc | null }) {
   const [model, setModel] = useState<CaseDoc>(
     initial ?? {
+      id,
       title: "",
       slug: "",
       published: false,
-      status: "draft" as const,
+      status: "draft",
       excerpt: "",
       cover: { src: "", alt: "" },
-      content: { body: [] as any[] },
-      meta: { tags: [] as string[] },
+      content: { body: [] },
+      meta: { tags: [] },
     }
   );
   const [saving, setSaving] = useState(false);
