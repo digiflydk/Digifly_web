@@ -74,25 +74,32 @@ export const defaultHomepage: HomePage = HomepageSchema.parse({
   },
   whatWeDo: {
     enabled: true,
-    eyebrow: "WHY, HOW, WHAT",
+    subtitle: "WHY, HOW, WHAT",
     title: "What We Do",
-    subtitle: "Strategy, software development, and AI-driven automation.",
-    body: "We help businesses identify opportunities for growth and efficiency, then build the technology to make it happen.",
+    body: "Strategy, software development, and AI-driven automation. We help businesses identify opportunities for growth and efficiency, then build the technology to make it happen.",
+    image: {
+      src: "/media/intro-1.jpg",
+      alt: "Team collaborating on product strategy"
+    },
+    cta: {
+      label: "Start Your Project",
+      type: "internal", internalRef: "contact", newTab: false
+    }
   },
   services: {
     enabled: true,
     title: "Our Core Services",
     subtitle: "End-to-end capabilities to bring your digital vision to life.",
     items: [
-      { id: 'strategy', icon: 'BrainCircuit', title: "Strategy & Automation", description: "Process optimization, AI integration, and workflow automation.", link: { type: 'internal', internalRef: 'services' } },
-      { id: 'software', icon: 'Code', title: "Software & SaaS", description: "Custom web & mobile apps, API development, and cloud architecture.", link: { type: 'internal', internalRef: 'services' } },
-      { id: 'design', icon: 'PenTool', title: "Design & UX", description: "User research, prototyping, and creating intuitive design systems.", link: { type: 'internal', internalRef: 'services' } },
+      { id: 'strategy', icon: 'BrainCircuit', title: "Strategy & Automation", body: "Process optimization, AI integration, and workflow automation.", link: { type: 'internal', internalRef: 'services' } },
+      { id: 'software', icon: 'Code', title: "Software & SaaS", body: "Custom web & mobile apps, API development, and cloud architecture.", link: { type: 'internal', internalRef: 'services' } },
+      { id: 'design', icon: 'PenTool', title: "Design & UX", body: "User research, prototyping, and creating intuitive design systems.", link: { type: 'internal', internalRef: 'services' } },
     ],
   },
   featuredCases: ['autostream-ai', 'connect-app'],
   cta: {
     text: "Let's build something intelligent together.",
-    button: { type: 'internal', label: 'Book a Call', internalRef: 'contact', newTab: false, externalUrl: '' }
+    button: { type: 'internal', label: 'Book a Call', internalRef: 'contact', newTab: false }
   },
    seo: {
     title: 'Digifly | Strategy, Software & Automation with AI',
@@ -133,7 +140,7 @@ export function normalizeHome(data: any): Partial<HomePage> {
 const defaultCmsLink = (label: string, ref: string, external = false): CmsLink => ({
   label,
   type: external ? 'external' : 'internal',
-  internalRef: external ? undefined : ref,
+  internalRef: external ? null : ref,
   externalUrl: external ? ref : '',
   newTab: external,
 });

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash } from "lucide-react";
+import { Plus } from "lucide-react";
 import { LinkPicker } from "../../inputs/LinkPicker";
 
 function ServiceItemFields({ index, remove }: { index: number, remove: (index: number) => void }) {
@@ -31,10 +31,10 @@ function ServiceItemFields({ index, remove }: { index: number, remove: (index: n
                     )}
                 />
                 <FormField
-                    name={`services.items.${index}.description`}
+                    name={`services.items.${index}.body`}
                     control={control}
                     render={({ field }) => (
-                        <FormItem><FormLabel className="text-xs">Description</FormLabel><FormControl><Textarea placeholder="Service description" {...field} rows={2} value={field.value ?? ""} /></FormControl></FormItem>
+                        <FormItem><FormLabel className="text-xs">Body Text</FormLabel><FormControl><Textarea placeholder="Service description" {...field} rows={2} value={field.value ?? ""} /></FormControl></FormItem>
                     )}
                 />
             </div>
@@ -103,7 +103,7 @@ export default function ServicesForm() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => append({ icon: "", title: "", description: "", link: { type: 'internal', label: '', internalRef: null, externalUrl: '', newTab: false } })}
+              onClick={() => append({ icon: "", title: "", body: "", link: { type: 'internal', label: '', internalRef: null, externalUrl: '', newTab: false } })}
             >
               <Plus className="mr-2 h-4 w-4" /> Add Service
             </Button>

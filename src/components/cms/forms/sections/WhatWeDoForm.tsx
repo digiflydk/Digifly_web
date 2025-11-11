@@ -7,6 +7,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { LinkPicker } from "../../inputs/LinkPicker";
 
 export default function WhatWeDoForm() {
   const { control } = useFormContext<HomePage>();
@@ -32,7 +33,7 @@ export default function WhatWeDoForm() {
             )}
         />
         <FormField
-            name="whatWeDo.eyebrow"
+            name="whatWeDo.subtitle"
             control={control}
             render={({ field }) => (
                 <FormItem><FormLabel>Eyebrow Text</FormLabel><FormControl><Input placeholder="WHY, HOW, WHAT" {...field} value={field.value ?? ""} /></FormControl></FormItem>
@@ -46,19 +47,30 @@ export default function WhatWeDoForm() {
             )}
         />
         <FormField
-            name="whatWeDo.subtitle"
-            control={control}
-            render={({ field }) => (
-                <FormItem><FormLabel>Subtitle</FormLabel><FormControl><Input placeholder="Section subtitle" {...field} value={field.value ?? ""} /></FormControl></FormItem>
-            )}
-        />
-        <FormField
             name="whatWeDo.body"
             control={control}
             render={({ field }) => (
                 <FormItem><FormLabel>Body Text</FormLabel><FormControl><Textarea placeholder="Section body text" {...field} value={field.value ?? ""} /></FormControl></FormItem>
             )}
         />
+         <FormField
+            name="whatWeDo.image.src"
+            control={control}
+            render={({ field }) => (
+                <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="/media/image.jpg" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+            )}
+        />
+        <FormField
+            name="whatWeDo.image.alt"
+            control={control}
+            render={({ field }) => (
+                <FormItem><FormLabel>Image Alt Text</FormLabel><FormControl><Input placeholder="Description of image" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+            )}
+        />
+        <div className="pt-2">
+            <FormLabel>Call to Action Button</FormLabel>
+            <LinkPicker namePrefix="whatWeDo.cta" />
+        </div>
       </CardContent>
     </Card>
   );

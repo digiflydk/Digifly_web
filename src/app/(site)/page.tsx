@@ -44,11 +44,11 @@ export default async function HomePage() {
       <Hero data={page.hero} />
       
       {page.whatWeDo?.enabled !== false && page.whatWeDo && (
-        <WhatWeDo {...page.whatWeDo} />
+        <WhatWeDo data={page.whatWeDo} />
       )}
 
       {page.services?.enabled !== false && page.services && (
-        <Services {...page.services} />
+        <Services data={page.services} />
       )}
 
       {page.featuredCases && page.featuredCases.length > 0 && (

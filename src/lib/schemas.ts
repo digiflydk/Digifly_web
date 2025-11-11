@@ -1,4 +1,5 @@
 
+
 import { z } from "zod";
 
 // Base primitives
@@ -73,26 +74,30 @@ export const HeroSlideSchema = z.object({
 
 export const WhatWeDoSchema = z.object({
   enabled: z.boolean().default(true),
-  eyebrow: z.string().default("WHY, HOW, WHAT"),
-  title: z.string().default("What We Do"),
-  subtitle: z.string().optional().default(""),
-  body: z.string().optional().default(""),
+  subtitle: z.string(),
+  title: z.string(),
+  body: z.string(),
+  image: z.object({
+    src: z.string(),
+    alt: z.string().default(""),
+  }),
+  cta: CmsLinkSchema.optional(),
 });
 
 export const ServiceItemSchema = z.object({
-  id: z.string().optional(),
-  icon: z.string().optional().default(""), 
+  icon: z.string().optional(),
   title: z.string().min(1, "Title is required"),
-  description: z.string().default(""),
+  body: z.string().default(""),
   link: CmsLinkSchema.optional(),
 });
 
 export const ServicesSchema = z.object({
   enabled: z.boolean().default(true),
-  title: z.string().default("Our Services"),
-  subtitle: z.string().optional().default(""),
-  items: z.array(ServiceItemSchema).default([]),
+  subtitle: z.string(),
+  title: z.string(),
+  items: z.array(ServiceItemSchema),
 });
+
 
 export const HomepageSchema = z.object({
   hero: z.object({
@@ -216,7 +221,6 @@ export const DesignSettingsSchema = SiteSettingsSchema; // alias to satisfy impo
 export type Navigation = z.infer<typeof NavigationSchema>;
 export type HeroSlide = z.infer<typeof HeroSlideSchema>;
 export type Case = z.infer<typeof CaseSchema>;
-export type CmsLink = z.infer<typeof CmsLinkSchema>;
 export type WhatWeDo = z.infer<typeof WhatWeDoSchema>;
 export type ServiceItem = z.infer<typeof ServiceItemSchema>;
 export type Services = z.infer<typeof ServicesSchema>;

@@ -2,66 +2,39 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { SectionHeading } from "../ui/section-heading";
-import { Container } from "../layout/container";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { resolveCmsLink } from "@/lib/links";
-import type { CmsLink } from "@/lib/types";
+import type { Homepage, ServiceItem } from "@/lib/schemas";
 
-export type ServiceCard = {
-  icon?: string;
-  title: string;
-  description?: string;
-  link?: CmsLink;
-};
-
-export function Services({
-  title,
-  subtitle,
-  items,
-}: {
-  title: string;
-  subtitle?: string;
-  items: ServiceCard[];
-}) {
+export function Services({ data }: { data: Homepage["services"] }) {
+  if (!data) return null;
   return (
-    <section className="py-16 md:py-24 bg-slate-50 dark:bg-slate-900/50">
-      <Container>
-        <SectionHeading title={title} subtitle={subtitle} textCenter />
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-12">
-          {items?.map((s, idx) => {
-            const { href, target, rel } = resolveCmsLink(s.link);
-
-            const CardInner = (
-              <Card className="h-full rounded-2xl border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg transition-shadow">
-                <CardHeader className="p-0">
-                  {s.icon ? (
-                    <div className="mb-4">
-                      {/* Placeholder for icon */}
-                      <div className="text-sm text-slate-500">{s.icon}</div>
-                    </div>
-                  ) : null}
-                  <CardTitle className="text-xl font-semibold mb-2">{s.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {s.description ? (
-                    <p className="text-slate-600">{s.description}</p>
-                  ) : null}
-                </CardContent>
-              </Card>
-            );
-
-            return href ? (
-              <Link key={idx} href={href} target={target} rel={rel} className="block h-full">
-                {CardInner}
-              </Link>
-            ) : (
-              <div key={idx}>{CardInner}</div>
+    <section className="py-16 md:py-24 bg-slate-50">
+      <div className="container mx-auto">
+        {data.subtitle && (
+          <p className="text-sm font-semibold tracking-widest text-accent">
+            {data.subtitle}
+          </p>
+        )}
+        <h2 className="mt-2 text-3xl md:text-5xl font-semibold text-slate-900">
+          {data.title}
+        </h2>
+        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {data.items?.map((item: ServiceItem, i: number) => {
+            const { href } = resolveCmsLink(item.link);
+            const Wrapper = href ? Link : 'div';
+            const wrapperProps = href ? { href } : {};
+            
+            return (
+              <Wrapper key={i} {...wrapperProps} className="block">
+                <div className="h-full rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 hover:shadow-md transition">
+                  <div className="text-xl font-semibold">{item.title}</div>
+                  <p className="mt-2 text-slate-600">{item.body}</p>
+                </div>
+              </Wrapper>
             );
           })}
         </div>
-      </Container>
+      </div>
     </section>
   );
 }
