@@ -6,15 +6,15 @@ export const CmsLinkSchema = z.object({
   label: z.string().default(''),
   type: z.enum(['internal', 'external']).default('internal'),
   internalRef: z.string().nullable().default(null),
-  externalUrl: z.string().url().or(z.literal('')).default(''),
+  externalUrl: z.string().url().or(z.literal('')).optional().default(''),
   newTab: z.boolean().default(false),
-}).superRefine((data, ctx) => {
-    if (data.type === 'internal' && !data.internalRef) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['internalRef'], message: 'Internal page selection is required.' });
-    }
-    if (data.type === 'external' && !data.externalUrl) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['externalUrl'], message: 'External URL is required.' });
-    }
+}).refine(data => {
+    if (data.type === 'internal') return !!data.internalRef;
+    if (data.type === 'external') return !!data.externalUrl;
+    return true;
+}, {
+    message: "Required field is missing for the selected link type.",
+    path: ['internalRef'], // or externalUrl, but refine needs one path
 });
 
 export const NavLinkSchema = z.object({

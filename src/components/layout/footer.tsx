@@ -17,7 +17,7 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
         <div className="max-w-6xl mx-auto px-6 py-10 text-center text-muted-foreground">
           Footer navigation not configured.
         </div>
-        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.21 • DGF-316</div>
+        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.32 • DGF-322</div>
       </footer>
     );
   }
@@ -35,7 +35,9 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
             <ul className="space-y-1">
               {col.links.map(l => {
                 const { href, label, target, rel } = resolveCmsLink(l.link);
-                if (!href) return null;
+                if (!href) return (
+                  <li key={l.id}><span className="text-muted-foreground/50 cursor-not-allowed">{label || 'Empty Link'}</span></li>
+                );
                 return (
                   <li key={l.id}><Link href={href} target={target} rel={rel} className="text-muted-foreground hover:text-primary transition-colors">{label}</Link></li>
                 )
@@ -44,7 +46,7 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
           </div>
         ))}
       </div>
-      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.21 • DGF-316</div>
+      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.32 • DGF-322</div>
     </footer>
   );
 }

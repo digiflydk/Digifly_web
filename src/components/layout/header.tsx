@@ -33,31 +33,27 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
 
   const renderLink = (item: NavLink, isMobile = false) => {
     const { href, target, rel, label, isActive } = resolveCmsLink(item.link, path);
-    if (!href) return null;
+    const commonClasses = isMobile 
+      ? "text-lg font-medium text-foreground/80 transition-colors hover:text-primary"
+      : `text-sm font-medium text-[var(--color-graphite)] hover:text-[var(--color-blue)] ${isActive ? "text-[var(--color-blue)]" : ""}`;
     
-    if (isMobile) {
+    if (!href) {
       return (
-        <Link
-          key={item.id}
-          href={href}
-          target={target}
-          rel={rel}
-          onClick={() => setMobileMenuOpen(false)}
-          className="text-lg font-medium text-foreground/80 transition-colors hover:text-primary"
-        >
+        <span key={item.id} className={`${commonClasses} opacity-50 cursor-not-allowed`} aria-disabled="true">
           {label}
-        </Link>
+        </span>
       );
     }
-
+    
     return (
       <Link
         key={item.id}
         href={href}
         target={target}
         rel={rel}
+        onClick={isMobile ? () => setMobileMenuOpen(false) : undefined}
+        className={commonClasses}
         aria-current={isActive ? "page" : undefined}
-        className={`text-sm font-medium text-[var(--color-graphite)] hover:text-[var(--color-blue)] ${isActive ? "text-[var(--color-blue)]" : ""}`}
       >
         {label}
       </Link>

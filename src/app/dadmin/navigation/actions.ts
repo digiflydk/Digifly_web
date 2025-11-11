@@ -1,4 +1,3 @@
-
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -16,6 +15,7 @@ export async function saveNavigationAction(data: Navigation): Promise<{ ok: bool
     return { ok: true };
   } catch (err: any) {
     if (err instanceof ZodError) {
+      console.error("[saveNavigationAction] Validation Error:", err.issues);
       return { ok: false, error: "Validation failed", issues: err.issues };
     }
     console.error("[saveNavigationAction] Error:", err);
