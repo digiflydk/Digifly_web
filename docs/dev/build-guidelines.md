@@ -84,3 +84,4 @@ If any step fails, the process will exit with a non-zero code, blocking the depl
 - "Require `@types/lodash` to satisfy TS" for modules using it.
 - "Page components must fetch and pass required props (e.g. `initialData`)"
 - "Missing npm scripts referenced by predeploy (e.g. predeploy:guard, predeploy:typecheck). Ensure they exist in package.json before deploy."
+- "If a page uses useSearchParams/usePathname/useRouter, the hooks must live in a client component wrapped by <Suspense>, or the page must be dynamic. Otherwise the build can fail during prerender."

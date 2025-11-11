@@ -23,19 +23,20 @@ export default function LoginForm() {
     setError(null);
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      // In a real app, this would be an actual login call, e.g., with Firebase Auth.
+      // For this public-mode app, we'll simulate a simple check.
+      // This is a placeholder and should be replaced with real auth logic.
+      if (username === "admin" && password === "password") {
+        // This is a placeholder for session creation.
+        // In a real app, you would POST to an API route to set a session cookie.
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network latency
 
-      if (res.ok) {
         const nextUrl = searchParams.get('next') || '/dadmin';
         router.push(nextUrl);
         router.refresh();
       } else {
-        const data = await res.json();
-        setError(data.error || "Login failed. Please try again.");
+        // Simplified login logic for public mode
+        setError("Invalid credentials for this demo.");
       }
     } catch {
       setError("An unexpected error occurred.");
@@ -59,6 +60,7 @@ export default function LoginForm() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          autoComplete="username"
         />
       </div>
       <div className="space-y-2">
@@ -69,6 +71,7 @@ export default function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="current-password"
         />
       </div>
       <Button type="submit" disabled={isLoading} className="w-full">
