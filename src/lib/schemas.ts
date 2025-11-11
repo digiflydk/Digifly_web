@@ -101,26 +101,11 @@ export const HomepageSchema = z.object({
   }),
   whatWeDo: WhatWeDoSchema.optional(),
   services: ServicesSchema.optional(),
+  featuredCases: z.array(z.string()).optional(),
   cta: z.object({
     text: z.string(),
     button: CmsLinkSchema
   }).optional(),
-  intro: z.object({
-    tagline: z.string().optional(),
-    heading: z.string().optional(),
-    body: z.string().optional(),
-    image: z.object({
-      src: z.string().optional(),
-      alt: z.string().optional(),
-      hint: z.string().optional()
-    }).optional(),
-  }).optional(),
-  servicesPreview: z.array(z.object({
-    title: z.string(),
-    bullets: z.array(z.string()),
-    href: z.string()
-  })).optional(),
-   featuredCases: z.array(z.string()).optional(),
   seo: z.object({
     title: z.string().optional(),
     description: z.string().optional()

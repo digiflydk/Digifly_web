@@ -89,17 +89,6 @@ export const defaultHomepage: HomePage = HomepageSchema.parse({
       { id: 'design', icon: 'PenTool', title: "Design & UX", description: "User research, prototyping, and creating intuitive design systems.", link: { type: 'internal', internalRef: 'services' } },
     ],
   },
-  intro: { 
-    tagline: 'Why, How, What',
-    heading: 'What We Do',
-    body: 'Strategy & process optimization, software & automation with AI as an enabler.',
-    image: { src: '/media/intro-1.jpg', alt: 'Team collaboration' }
-  },
-  servicesPreview: [
-    { title: "Strategy & Automation", bullets: ["Process Optimization", "AI Integration", "Workflow Automation"], href: "/services#strategy" },
-    { title: "Software & SaaS", bullets: ["Web & Mobile Apps", "API Development", "Cloud Architecture"], href: "/services#software" },
-    { title: "Design & UX", bullets: ["UI/UX Research", "Prototyping", "Design Systems"], href: "/services#design" }
-  ],
   featuredCases: ['autostream-ai', 'connect-app'],
   cta: {
     text: "Let's build something intelligent together.",
@@ -134,8 +123,6 @@ export function normalizeHome(data: any): Partial<HomePage> {
     d.services = { ...defaultHomepage.services, ...(d.services || {}) };
     d.services.items = Array.isArray(d.services.items) ? d.services.items : [];
 
-    d.intro = { ...defaultHomepage.intro, ...(d.intro || {}) };
-    d.servicesPreview = Array.isArray(d.servicesPreview) ? d.servicesPreview : [];
     d.featuredCases = Array.isArray(d.featuredCases) ? d.featuredCases : [];
     d.cta = { ...defaultHomepage.cta, ...(d.cta || {}) };
     d.seo = { ...defaultHomepage.seo, ...(d.seo || {}) };
@@ -234,8 +221,7 @@ export const defaultCases: z.infer<typeof CaseSchema>[] = [
 
 export const ALL_DEFAULTS = {
   'site/settings': SITE_DEFAULTS,
-  'navigation/main': { header: defaultNavigation.header },
-  'navigation/footer': { footer: defaultNavigation.footer },
+  'cms/navigation': defaultNavigation,
   'pages/home': defaultHomepage,
   'pages/about': defaultAboutPage,
   'pages/services': defaultServicesPage,
