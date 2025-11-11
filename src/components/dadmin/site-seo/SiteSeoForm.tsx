@@ -18,7 +18,9 @@ import SeoTab from "./tabs/SeoTab";
 import { coerceToDefaults } from "./utils/formDefaults";
 import { saveSiteSettingsAction } from "@/app/dadmin/site-seo/actions";
 
-export default function SiteSeoForm({ initialData }: { initialData: SiteSettings | null }) {
+export type SiteSeoFormProps = { initialData?: SiteSettings | null };
+
+export default function SiteSeoForm({ initialData = null }: SiteSeoFormProps) {
   const form = useForm<SiteSettings>({
     resolver: zodResolver(SiteSettingsSchema),
     defaultValues: coerceToDefaults(initialData),
