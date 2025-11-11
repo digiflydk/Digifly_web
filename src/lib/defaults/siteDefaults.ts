@@ -1,5 +1,5 @@
 
-import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc } from '@/lib/types';
+import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc, CmsLink } from '@/lib/types';
 import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema } from '../schemas';
 import { z } from 'zod';
 import { emptySiteSettings } from '@/components/dadmin/site-seo/utils/formDefaults';
@@ -54,7 +54,7 @@ export const defaultHeroSlide: HeroSlide = {
   heading: "New Slide",
   subheading: "A compelling subtitle for your new slide.",
   body: "",
-  cta: { label: "Learn More", href: "/" },
+  cta: { type: 'internal', label: 'Learn More', internalRef: 'home', newTab: false },
   visible: true,
 };
 
@@ -66,7 +66,7 @@ export const defaultHomepage: HomePage = {
         heading: "From Idea to Intelligent Solution",
         subheading: "Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.",
         body: "",
-        cta: { label: "Start Your Project", href: "/contact" },
+        cta: { type: 'internal', label: 'Start Your Project', internalRef: 'contact', newTab: false },
         visible: true,
       }
     ],
@@ -86,7 +86,7 @@ export const defaultHomepage: HomePage = {
   featuredCases: ['autostream-ai', 'connect-app'],
   cta: {
     text: "Let's build something intelligent together.",
-    button: { label: 'Book a Call', href: '/contact' }
+    button: { type: 'internal', label: 'Book a Call', internalRef: 'contact', newTab: false }
   },
    seo: {
     title: 'Digifly | Strategy, Software & Automation with AI',
@@ -125,26 +125,34 @@ export function normalizeHome(data: any): Partial<HomePage> {
     return d;
 }
 
+const defaultCmsLink = (label: string, ref: string, external = false): CmsLink => ({
+  label,
+  type: external ? 'external' : 'internal',
+  internalRef: external ? undefined : ref,
+  externalUrl: external ? ref : undefined,
+  newTab: external,
+});
+
 export const defaultNavigation: Navigation = NavigationSchema.parse({
   header: [
-    { label: "Services", href: "/services" },
-    { label: "Cases", href: "/cases" },
-    { label: "About", href: "/about" },
+    { link: defaultCmsLink("Services", "services") },
+    { link: defaultCmsLink("Cases", "cases-index") },
+    { link: defaultCmsLink("About", "about") },
   ],
   footer: {
     columns: [
       {
         title: "Company",
         links: [
-          { label: "About", href: "/about" },
-          { label: "Contact", href: "/contact" },
+          { link: defaultCmsLink("About", "about") },
+          { link: defaultCmsLink("Contact", "contact") },
         ],
       },
       {
         title: "Legal",
         links: [
-          { label: "Privacy", href: "/privacy" },
-          { label: "Cookies", href: "/cookies" },
+          { link: defaultCmsLink("Privacy", "privacy") },
+          { link: defaultCmsLink("Cookies", "cookies") },
         ],
       },
     ],

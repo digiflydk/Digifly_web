@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,7 +17,7 @@ export default function NavigationPage() {
 
     const handleSave = async (values: Navigation) => {
         try {
-          await updateNavigation(values);
+          await saveNavigation(values);
           toast({ title: "Success", description: "Navigation saved." });
           // Re-fetch to get the latest state after save, ensuring consistency
           getNavigation().then(setData);
@@ -45,11 +46,11 @@ export default function NavigationPage() {
         />
         <NavEditor 
             title="Footer Navigation"
-            description="Manage the single column of links in the footer."
+            description="Manage the first column of links in the footer."
             items={data.footer.columns[0]?.links ?? []}
             onSave={(newItems) => handleSave({ 
                 ...data, 
-                footer: { columns: [{ title: "Links", links: newItems }] } 
+                footer: { columns: [{ title: data.footer.columns[0]?.title || "Links", links: newItems }] } 
             })}
         />
       </div>

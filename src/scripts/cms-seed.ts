@@ -1,9 +1,11 @@
 
+
 import { getFirestore, DocumentReference } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
 import { ALL_DEFAULTS, defaultCases } from '@/lib/defaults/siteDefaults';
 import { SiteSettingsSchema, NavigationSchema, HomepageSchema, CaseSchema } from '@/lib/schemas';
 import { z } from 'zod';
+import { migrateLink } from '@/lib/cms-server';
 
 const hasAdminCreds = !!process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
@@ -14,8 +16,8 @@ if (!hasAdminCreds) {
 
 const SCHEMAS: Record<string, z.ZodSchema<any>> = {
     'site/settings': SiteSettingsSchema,
-    'navigation/main': z.object({ header: z.array(z.object({ label: z.string(), href: z.string() })) }),
-    'navigation/footer': z.object({ footer: z.any() }), // simple footer schema
+    'navigation/main': z.object({ header: z.array(z.any()) }),
+    'navigation/footer': z.object({ footer: z.any() }),
     'pages/home': HomepageSchema,
 };
 
@@ -42,8 +44,21 @@ async function run() {
   for (const [path, defaultData] of Object.entries(ALL_DEFAULTS)) {
     const docRef = db.doc(path) as DocumentReference<any>;
     const snap = await docRef.get();
-    const currentData = snap.exists ? snap.data() : {};
+    let currentData = snap.exists ? snap.data() : {};
     
+    // Legacy migration for navigation
+    if (path.startsWith('navigation/')) {
+        if (currentData.header) {
+            currentData.header = currentData.header.map((item: any, i:number) => ({ id: item.id || String(i), link: migrateLink(item) }));
+        }
+        if (currentData.footer?.columns) {
+            currentData.footer.columns = currentData.footer.columns.map((col: any) => ({
+                ...col,
+                links: (col.links || []).map((item: any, i:number) => ({ id: item.id || String(i), link: migrateLink(item) }))
+            }));
+        }
+    }
+
     // Merge defaults over current data to fill in missing fields
     const mergedData = { ...defaultData, ...currentData };
 

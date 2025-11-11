@@ -1,8 +1,14 @@
-import { NavLink } from '@/lib/types';
+
+import { CmsLink } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { resolveCmsLink } from '@/lib/links';
 
-export default function CtaBanner({ text, button }: { text: string; button: NavLink }) {
+export default function CtaBanner({ text, button }: { text: string; button: CmsLink }) {
+  const { href, label, target, rel } = resolveCmsLink(button);
+
+  if (!href || !label) return null;
+  
   return (
     <section className="container py-16 md:py-24">
         <div className="rounded-2xl bg-primary p-10 md:p-16 shadow-xl">
@@ -12,7 +18,7 @@ export default function CtaBanner({ text, button }: { text: string; button: NavL
             </h2>
             <div className="mt-8">
               <Button asChild variant="secondary" size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
-                <Link href={button.href}>{button.label}</Link>
+                <Link href={href} target={target} rel={rel}>{label}</Link>
               </Button>
             </div>
           </div>

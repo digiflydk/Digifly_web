@@ -10,6 +10,7 @@ import { MediaImage } from "../ui/media-image";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { defaultHomepage } from '@/lib/defaults/siteDefaults';
+import { resolveCmsLink } from '@/lib/links';
 
 type HeroData = HomePage["hero"];
 
@@ -52,6 +53,8 @@ export default function Hero({ data }: { data?: HeroData | null }) {
 
     const currentSlide = visibleSlides[index] as HeroSlide;
     if (!currentSlide) return null;
+
+    const { href, label, target, rel } = resolveCmsLink(currentSlide.cta);
 
     return (
         <section
@@ -101,10 +104,10 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                         </div>
                     )}
                     <div className="mt-8 flex flex-wrap gap-4">
-                        {currentSlide.cta?.label && currentSlide.cta?.href && (
-                            <Link href={currentSlide.cta.href}>
-                                <Button>{currentSlide.cta.label}</Button>
-                            </Link>
+                        {href && label && (
+                            <Button asChild>
+                                <Link href={href} target={target} rel={rel}>{label}</Link>
+                            </Button>
                         )}
                     </div>
                 </div>

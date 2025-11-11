@@ -11,6 +11,7 @@ import {
   CasesIndexSchema,
   ContactPageSchema,
   NavLinkSchema,
+  CmsLinkSchema,
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { HomePage, Navigation, Case, SiteSettings, CmsLink } from '@/lib/schemas';
@@ -51,6 +52,14 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   return parsedData;
 }
 
+const PAGE_ID_TO_PATH_MAP: Record<string, string> = {
+  home: '/',
+  about: '/about',
+  services: '/services',
+  contact: '/contact',
+  'cases-index': '/cases',
+};
+
 // Migration helper to convert old string links to new CmsLink objects
 function migrateLink(item: any): CmsLink {
     // If the item already has a 'link' property, it's in the new format.
@@ -70,14 +79,6 @@ function migrateLink(item: any): CmsLink {
     const pageId = Object.keys(PAGE_ID_TO_PATH_MAP).find(key => PAGE_ID_TO_PATH_MAP[key] === href) || href.replace(/^\//, '');
     return { type: 'internal', label, internalRef: pageId, newTab: false };
 }
-
-const PAGE_ID_TO_PATH_MAP: Record<string, string> = {
-  home: '/',
-  about: '/about',
-  services: '/services',
-  contact: '/contact',
-  'cases-index': '/cases',
-};
 
 
 export async function getNavigation(): Promise<Navigation> {
@@ -137,6 +138,7 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
 }
 
 export async function getPublishedPagesList() {
+    noStore();
     const db = await getDb();
     const snap = await db.collection(CMS_PATHS.pages).where('published', '==', true).get();
     if (snap.empty) {
@@ -373,5 +375,3 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
-
-    

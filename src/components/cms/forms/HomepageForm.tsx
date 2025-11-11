@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { defaultHeroSlide } from "@/lib/defaults/siteDefaults";
 import { toast } from "@/hooks/use-toast";
+import { LinkPicker } from "../inputs/LinkPicker";
 
 
 function SortableSlideItem({ id, index, control, remove }: { id: string; index: number; control: any, remove: (index: number) => void }) {
@@ -66,14 +67,11 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
             )} />
         </div>
         
-        <div className="space-y-2">
-            <FormField control={control} name={`hero.slides.${index}.cta.label`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">CTA Label</FormLabel><FormControl><Input {...field} placeholder="e.g. Learn More" /></FormControl><FormMessage /></FormItem>
-            )} />
-            <FormField control={control} name={`hero.slides.${index}.cta.href`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">CTA Link</FormLabel><FormControl><Input {...field} placeholder="/services" /></FormControl><FormMessage /></FormItem>
-            )} />
+        <div className="md:col-span-2">
+            <FormLabel className="text-xs">Call to Action (CTA)</FormLabel>
+            <LinkPicker namePrefix={`hero.slides.${index}.cta`} />
         </div>
+
         <div className="md:col-span-2 flex items-center justify-between">
             <FormField
               control={control}

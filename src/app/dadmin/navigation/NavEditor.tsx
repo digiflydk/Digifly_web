@@ -15,6 +15,7 @@ import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { LinkPicker } from "@/components/cms/inputs/LinkPicker";
 
 const FormSchema = z.object({
   items: z.array(NavLinkSchema),
@@ -44,15 +45,14 @@ function SortableItem({ id, index, control, remove }: { id: string; index: numbe
             <GripVertical className="h-5 w-5" />
         </button>
       </div>
-      <FormField control={control} name={`items.${index}.label`} render={({ field }) => (
-        <FormItem className="flex-1"><FormControl><Input {...field} placeholder="Link Label" /></FormControl></FormItem>
-      )} />
-      <FormField control={control} name={`items.${index}.href`} render={({ field }) => (
-        <FormItem className="flex-1"><FormControl><Input {...field} placeholder="/path-or-url" /></FormControl></FormItem>
-      )} />
-      <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-destructive hover:text-destructive-foreground hover:bg-destructive h-10 w-10">
-        <Trash className="h-4 w-4" />
-      </Button>
+      <div className="flex-1">
+        <LinkPicker namePrefix={`items.${index}.link`} />
+      </div>
+      <div className="flex items-center h-10">
+        <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-destructive hover:text-destructive-foreground hover:bg-destructive h-10 w-10">
+            <Trash className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -116,7 +116,7 @@ export function NavEditor({ title, description, items, onSave }: NavEditorProps)
             </DndContext>
 
             <div className="flex justify-between items-center pt-4">
-              <Button type="button" variant="outline" size="sm" onClick={() => append({ label: "", href: "/" })}>
+              <Button type="button" variant="outline" size="sm" onClick={() => append({ link: { label: "", type: 'internal', internalRef: 'home' } })}>
                 <Plus className="mr-2 h-4 w-4" /> Add Link
               </Button>
               <div className="flex gap-2">

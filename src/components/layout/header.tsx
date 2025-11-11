@@ -26,7 +26,7 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
   }, []);
   
   const navLinks = nav ?? [];
-  const contactLink = { id: 'contact', link: { label: 'Contact', type: 'internal', internalRef: 'contact' }};
+  const contactLink = { id: 'contact', link: { label: 'Contact', type: 'internal', internalRef: 'contact', newTab: false } as const};
 
   const finalLogoUrl = logo?.src || "";
   const finalSiteTitle = siteTitle || siteConfig.name;
@@ -64,6 +64,8 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
     );
   }
 
+  const contactButtonLink = resolveCmsLink(contactLink.link);
+
   return (
     <header
       className="fixed inset-x-0 top-0 z-[100] border-b bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/60"
@@ -91,9 +93,11 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
           {navLinks.map(link => renderLink(link))}
         </nav>
         <div className="hidden md:flex">
-             <Link href="/contact">
-              <Button>Contact Us</Button>
-             </Link>
+             {contactButtonLink.href && (
+                <Link href={contactButtonLink.href}>
+                  <Button>Contact Us</Button>
+                </Link>
+             )}
         </div>
 
         <div className="md:hidden">
