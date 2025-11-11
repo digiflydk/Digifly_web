@@ -1,22 +1,20 @@
 
-
 import { SiteSettings } from "@/lib/schemas";
-import { merge } from "lodash";
 
-export const emptySiteSeo: SiteSettings = {
-  general: {
-    title: '',
-    logoUrl: '',
-    faviconUrl: '',
+export const emptySiteSettings: SiteSettings = {
+  general: { 
+    brandName: "", 
+    logoUrl: "", 
+    faviconUrl: "" 
   },
-  contact: {
-    email: '',
-    phone: '',
-    company: '',
-    street: '',
-    zip: '',
-    city: '',
-    country: 'Denmark',
+  contact: { 
+    email: "", 
+    phone: "", 
+    company: "", 
+    street: "", 
+    zip: "", 
+    city: "", 
+    country: "" 
   },
   hours: {
     sunday:   { enabled: false, from: '09:00', to: '17:00' },
@@ -29,16 +27,33 @@ export const emptySiteSeo: SiteSettings = {
   },
   seo: {
     allowIndexing: true,
-    defaultTitle: '',
-    defaultDescription: '',
-    ogImage: '',
-  },
+    defaultTitle: "",
+    defaultDescription: "",
+    ogImage: "",
+    canonicalBase: ""
+  }
 };
 
+
 export const coerceToDefaults = (data: any): SiteSettings => {
-  // Use lodash merge for deep merging, which doesn't overwrite objects with undefined
-  const coerced = merge({}, emptySiteSeo, data);
-  // Ensure hours is a full object even if data.hours is null/undefined
-  coerced.hours = { ...emptySiteSeo.hours, ...(data?.hours ?? {}) };
-  return coerced;
+  if (!data) return { ...emptySiteSettings };
+
+  // Create a deep copy of defaults to avoid mutation
+  const defaults = JSON.parse(JSON.stringify(emptySiteSettings));
+  
+  // Recursively merge data into defaults
+  const merge = (target: any, source: any) => {
+    for (const key in target) {
+      if (source && typeof source[key] !== 'undefined') {
+        if (typeof target[key] === 'object' && target[key] !== null && !Array.isArray(target[key])) {
+          merge(target[key], source[key]);
+        } else {
+          target[key] = source[key];
+        }
+      }
+    }
+  };
+
+  merge(defaults, data);
+  return defaults;
 };

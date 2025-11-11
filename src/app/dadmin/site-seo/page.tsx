@@ -1,18 +1,8 @@
 
-
-import type { Metadata } from "next";
-import SiteSeoForm from "@/components/dadmin/site-seo/SiteSeoForm";
-import { readSiteSettings } from "@/lib/dadmin/siteSeoRepo";
-import { coerceToDefaults } from "@/components/dadmin/site-seo/utils/formDefaults";
-
-export const dynamic = 'force-dynamic';
-
-export const metadata: Metadata = {
-  title: "Site & SEO",
-};
+import SiteSeoForm from "@/components/cms/forms/SiteSeoForm";
+import { readSiteSettings } from "@/lib/cms-server";
 
 export default async function Page() {
-  const initialData = await readSiteSettings();
-  const safeData = coerceToDefaults(initialData);
-  return <SiteSeoForm initialData={safeData} />;
+  const settings = await readSiteSettings().catch(() => null);
+  return <SiteSeoForm initialData={settings} />;
 }

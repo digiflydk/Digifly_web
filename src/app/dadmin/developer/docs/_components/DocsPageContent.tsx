@@ -3,9 +3,18 @@
 import { useMemo } from 'react';
 import docs from '@/data/developer-docs';
 import DocCard from './DocCard';
+import type { Doc } from './DocCard';
 
 export default function DocsPageContent() {
-  const items = useMemo(() => docs, []);
+  const items: Doc[] = useMemo(() => docs.map(d => ({
+      title: d.title,
+      slug: d.slug,
+      description: d.description,
+      status: d.status as "ok" | "draft" | "missing", // type assertion
+      lastUpdated: d.lastUpdated,
+      href: d.href
+  })), []);
+  
   return (
     <div className="space-y-6">
       <div>

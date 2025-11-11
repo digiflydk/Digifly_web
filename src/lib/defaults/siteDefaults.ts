@@ -5,20 +5,21 @@ import { z } from 'zod';
 
 
 export const SITE_DEFAULTS: SiteSettings = {
-  siteTitle: 'Digifly',
-  brand: {
-    name: 'Digifly',
-    logo: { src: 'https://i.postimg.cc/yxjNkX5M/digifly-logo.png', alt: 'Digifly Logo', width: 140, height: 28 },
-    favicon: { src: 'https://i.postimg.cc/VvP3vfcP/favicon.png' }
+  general: {
+    brandName: 'Digifly',
+    logoUrl: 'https://i.postimg.cc/yxjNkX5M/digifly-logo.png',
+    faviconUrl: 'https://i.postimg.cc/VvP3vfcP/favicon.png',
   },
-  social: { 
-    tagline: 'Strategy, Software & Automation with AI.'
+  seo: {
+    allowIndexing: true,
+    defaultTitle: 'Digifly',
+    defaultDescription: "Digifly builds intelligent digital solutions.",
+    ogImage: '',
+    canonicalBase: '',
   },
-  defaultSeo: {
-    description: "Digifly builds intelligent digital solutions.",
-    title: ''
-  }
-} as const;
+  contact: {},
+  hours: {},
+};
 
 
 // DGF-109: New normalizer for safely handling image objects
@@ -70,7 +71,7 @@ export const defaultHomepage: HomePage = {
     text: "Let's build something intelligent together.",
     button: { label: 'Book a Call', href: '/contact' }
   },
-  seo: {
+   seo: {
     title: 'Digifly | Strategy, Software & Automation with AI',
     description: 'We partner with you to build intelligent digital solutions that drive real-world results.'
   }
@@ -134,7 +135,6 @@ export const defaultNavigation: Navigation = NavigationSchema.parse({
 });
 
 export const defaultAboutPage: Page<{ body: any[] }> = {
-  slug: "about",
   title: 'About Digifly',
   subtitle: 'We are a digital innovation partner, helping businesses leverage technology and AI to achieve their strategic goals.',
   content: {

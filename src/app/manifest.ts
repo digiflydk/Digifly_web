@@ -4,8 +4,8 @@ import { readSiteSettings } from '@/lib/dadmin/siteSeoRepo';
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const s = await readSiteSettings();
-  const title = s?.general?.title ?? 'Digifly';
-  const faviconUrl = s?.general?.faviconUrl;
+  const title = s?.general.brandName ?? 'Digifly';
+  const faviconUrl = s?.general.faviconUrl;
   
   return {
     name: title,
