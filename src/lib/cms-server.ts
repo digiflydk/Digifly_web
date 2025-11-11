@@ -15,14 +15,11 @@ import { getDb } from '@/lib/firebase-admin';
 import type { HomePage, Navigation, CaseDoc, SiteSettings } from '@/lib/types';
 
 import { revalidatePath } from 'next/cache';
-import { unstable_cache as nextCache, unstable_noStore as noStore } from 'next/cache';
+import { unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
 import { defaultHomepage, normalizeHome } from './defaults/siteDefaults';
 import { CMS_PATHS } from './constants';
-import { merge } from 'lodash';
 import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
-
-const SITE_TAG = "site-settings";
 
 export async function getSiteSettings(): Promise<SiteSettings> {
     noStore(); // Opt out of caching for this function

@@ -2,7 +2,6 @@
 import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc } from '@/lib/types';
 import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema } from '../schemas';
 import { z } from 'zod';
-import { merge } from 'lodash';
 import { emptySiteSettings } from '@/components/dadmin/site-seo/utils/formDefaults';
 
 
@@ -199,7 +198,7 @@ export const defaultCases: z.infer<typeof CaseSchema>[] = [
   })
 ];
 
-const mergedDefaults = merge({}, { 'site/settings': SITE_DEFAULTS }, {
+export const ALL_DEFAULTS = {
   'navigation/main': { header: defaultNavigation.header },
   'navigation/footer': { footer: defaultNavigation.footer },
   'pages/home': defaultHomepage,
@@ -207,6 +206,4 @@ const mergedDefaults = merge({}, { 'site/settings': SITE_DEFAULTS }, {
   'pages/services': defaultServicesPage,
   'pages/contact': defaultContactPage,
   'pages/cases-index': defaultCasesIndexPage,
-});
-delete mergedDefaults['site/settings'];
-export const ALL_DEFAULTS = mergedDefaults;
+};

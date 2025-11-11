@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { useState } from "react";
+import type { CurrentUser } from "@/lib/auth/serverAuth";
 
 const titles: Record<string, { title: string; subtitle?: string }> = {
   "/dadmin": { title: "Dashboard", subtitle: "Overview of your site's content." },
@@ -14,7 +15,8 @@ const titles: Record<string, { title: string; subtitle?: string }> = {
   "/dadmin/cases": { title: "Case Studies", subtitle: "Manage your case studies." },
   "/dadmin/pages": { title: "Pages", subtitle: "Manage your site's pages." },
   "/dadmin/docs": { title: "Developer Docs", subtitle: "Live view of markdown files from the /docs directory." },
-  "/dadmin/tests": { title: "Playwright Tests", subtitle: "View Playwright test artifacts and reports." },
+  "/dadmin/developer/predeploy": { title: "Pre-deploy Checks", subtitle: "Run checks for common release blockers."},
+  "/dadmin/developer/tests": { title: "Playwright Tests", subtitle: "View Playwright test artifacts and reports." },
 };
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
@@ -27,9 +29,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="flex">
-        <Sidebar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
+        <Sidebar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} user={null} />
         <div className="flex-1 flex flex-col">
-          <Topbar onMenuClick={() => setMobileMenuOpen(true)} />
+          <Topbar onMenuClick={() => setMobileMenuOpen(true)} user={null} />
           <main className="max-w-7xl mx-auto p-4 sm:p-6 w-full">
             <header className="mb-6">
               <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{title}</h1>

@@ -1,11 +1,11 @@
 
 import type { MetadataRoute } from 'next';
-import { readSiteSettings } from '@/lib/dadmin/siteSeoRepo';
+import { getSiteSettings } from "@/lib/cms-server";
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  const s = await readSiteSettings();
-  const title = s?.general.brandName ?? 'Digifly';
-  const faviconUrl = s?.general.faviconUrl;
+  const s = await getSiteSettings();
+  const title = s?.general?.brandName ?? 'Digifly';
+  const faviconUrl = s?.general?.faviconUrl;
   
   return {
     name: title,
