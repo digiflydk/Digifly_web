@@ -7,8 +7,8 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { NavLinkSchema } from "@/lib/schemas";
-import { useState } from "react";
+import { NavLinkSchema, NavigationSchema } from "@/lib/schemas";
+import { useState, useEffect } from "react";
 import { GripVertical, Plus, Trash } from "lucide-react";
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -16,6 +16,9 @@ import { CSS } from '@dnd-kit/utilities';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { LinkPicker } from "@/components/cms/inputs/LinkPicker";
 import { useFieldArray } from "react-hook-form";
+import { toast } from "@/hooks/use-toast";
+import { saveNavigationAction } from "./actions";
+import type { Navigation, NavLink } from "@/lib/types";
 
 const FormSchema = z.object({
   items: z.array(NavLinkSchema),
@@ -24,8 +27,9 @@ const FormSchema = z.object({
 type NavEditorProps = {
   title: string;
   description?: string;
-  items: z.infer<typeof NavLinkSchema>[];
-  onSave: (items: z.infer<typeof NavLinkSchema>[]) => Promise<boolean>;
+  items: NavLink[];
+  onSaveKey: 'header' | 'footer';
+  initialData: Navigation;
 };
 
 function SortableItem({ id, index, control, remove }: { id: string; index: number; control: any, remove: (index: number) => void }) {
@@ -57,7 +61,7 @@ function SortableItem({ id, index, control, remove }: { id: string; index: numbe
   );
 }
 
-export function NavEditor({ title, description, items, onSave }: NavEditorProps) {
+export function NavEditor({ title, description, items, onSaveKey, initialData }: NavEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
@@ -65,6 +69,10 @@ export function NavEditor({ title, description, items, onSave }: NavEditorProps)
     resolver: zodResolver(FormSchema),
     defaultValues: { items },
   });
+
+  useEffect(() => {
+    form.reset({ items });
+  }, [items, form]);
 
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
@@ -74,11 +82,31 @@ export function NavEditor({ title, description, items, onSave }: NavEditorProps)
 
   async function onSubmit(values: z.infer<typeof FormSchema>) {
     setIsSaving(true);
-    const success = await onSave(values.items);
-    if (success) {
-      form.reset(values);
+    try {
+      let fullNavPayload: Navigation;
+      if (onSaveKey === 'header') {
+        fullNavPayload = { ...initialData, header: values.items };
+      } else {
+        fullNavPayload = { 
+            ...initialData, 
+            footer: { 
+                ...initialData.footer, 
+                columns: [{ title: initialData.footer.columns[0]?.title || "Links", links: values.items }] 
+            }
+        };
+      }
+      const result = await saveNavigationAction(fullNavPayload);
+      if (result.ok) {
+        toast({ title: "Success", description: "Navigation saved." });
+        form.reset(values);
+      } else {
+        throw new Error(result.error || "An unknown error occurred.");
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   }
 
   function handleDragEnd(event: DragEndEvent) {
