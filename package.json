@@ -29,7 +29,7 @@
     "build:local": "npm run cms-seed && next build",
     "predeploy:guard": "tsx src/scripts/predeploy/guard.ts",
     "predeploy:typecheck": "tsc --noEmit",
-    "predeploy:qa": "playwright test --reporter=line",
+    "predeploy:qa": "playwright test --project=predeploy --reporter=html",
     "predeploy": "npm run cms:seed && npm run typecheck && npx playwright test --project=predeploy --reporter=html && node src/scripts/predeploy/report.ts",
     "predeploy:ci": "npx playwright test --project=predeploy --reporter=html",
     "postdeploy": "npm run qa:install && npm run test:pw:ci",

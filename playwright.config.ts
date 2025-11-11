@@ -24,7 +24,7 @@ export default defineConfig({
       timeout: 30_000,
       retries: 0,
       use: {
-        baseURL,
+        baseURL: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
         headless: true,
         screenshot: 'off',
         video: 'off',
