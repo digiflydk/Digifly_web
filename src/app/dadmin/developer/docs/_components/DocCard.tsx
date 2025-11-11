@@ -1,12 +1,5 @@
 "use client";
-type Doc = {
-  title: string;
-  slug: string;
-  description: string;
-  status: "ok" | "missing" | "draft";
-  lastUpdated?: string;
-  href?: string; // optional deep link
-};
+import type { Doc } from './types';
 
 export default function DocCard({ doc }: { doc: Doc }) {
   const badge =

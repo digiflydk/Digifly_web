@@ -10,7 +10,7 @@ export default function DocsPageContent() {
       title: d.title,
       slug: d.slug,
       description: d.description,
-      status: d.status as "ok" | "draft" | "missing", // type assertion
+      status: d.status as Doc['status'],
       lastUpdated: d.lastUpdated,
       href: d.href
   })), []);
