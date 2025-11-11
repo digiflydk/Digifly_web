@@ -1,6 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
 import type { QARun } from '@/lib/qa/qa.types';
@@ -60,15 +61,11 @@ export default function TestsPanel() {
     try {
       const res = await fetch('/api/developer/tests/run', { method: 'POST' });
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`HTTP ${res.status} — ${txt}`);
+        const data = await safeJson(res);
+        throw new Error(data.error?.message || `Request failed with status ${res.status}`);
       }
       
       const data = await safeJson(res);
-      
-      if (!data.ok) {
-        throw new Error(data.error || 'Failed to start test run.');
-      }
       setLastRunResult(data);
       toast({ title: 'Success', description: 'Playwright run completed.'});
     } catch (e: any) {
@@ -153,9 +150,13 @@ export default function TestsPanel() {
                 <TableCell className="text-green-600">{data.totals?.passed ?? '—'}</TableCell>
                 <TableCell className={data.totals?.failed ?? 0 > 0 ? 'text-red-600' : ''}>{data.totals?.failed ?? '—'}</TableCell>
                 <td>
-                  {data.reportUrl
-                    ? <Button asChild variant="outline" size="sm"><a href={data.reportUrl} target="_blank" rel="noreferrer">Open report <ExternalLink className="ml-2 h-3 w-3" /></a></Button>
-                    : '—'}
+                  {data?.reportUrl ? (
+                    <Link href={data.reportUrl} target="_blank" rel="noreferrer">
+                      <Button variant="outline" size="sm">
+                        Open report <ExternalLink className="ml-2 h-3 w-3" />
+                      </Button>
+                    </Link>
+                  ) : '—'}
                 </td>
               </TableRow>
             ))}
