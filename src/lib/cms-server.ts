@@ -22,6 +22,8 @@ import { zodErrorToIssues } from './zod-helpers';
 import { defaultHomepage, normalizeHome } from './defaults/siteDefaults';
 import { CMS_PATHS } from './constants';
 import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
+import { normalizeLink } from './links';
+
 
 export async function getSiteSettings(): Promise<SiteSettings> {
     noStore(); // Opt out of caching for this function
@@ -62,22 +64,27 @@ const PAGE_ID_TO_PATH_MAP: Record<string, string> = {
 
 // Migration helper to convert old string links to new CmsLink objects
 function migrateLink(item: any): CmsLink {
+    if (!item) {
+        return normalizeLink(null) as CmsLink;
+    }
     // If the item already has a 'link' property, it's in the new format.
     if (typeof item === 'object' && item.link && typeof item.link === 'object' && item.link.type) {
-        return item.link as CmsLink;
+        return normalizeLink(item.link) as CmsLink;
     }
 
     // Otherwise, it's a legacy item ({ label, href }) that needs migration.
     const href = (typeof item === 'object' ? item.href : String(item)).trim();
     const label = (typeof item === 'object' ? item.label : 'Link');
 
+    let linkObject: Partial<CmsLink>;
+
     if (href.startsWith('http')) {
-        return { type: 'external', label, externalUrl: href, newTab: true };
+        linkObject = { type: 'external', label, externalUrl: href, newTab: true };
+    } else {
+        const pageId = Object.keys(PAGE_ID_TO_PATH_MAP).find(key => PAGE_ID_TO_PATH_MAP[key] === href) || href.replace(/^\//, '');
+        linkObject = { type: 'internal', label, internalRef: pageId, newTab: false };
     }
-    
-    // Find the pageId from the path
-    const pageId = Object.keys(PAGE_ID_TO_PATH_MAP).find(key => PAGE_ID_TO_PATH_MAP[key] === href) || href.replace(/^\//, '');
-    return { type: 'internal', label, internalRef: pageId, newTab: false };
+    return normalizeLink(linkObject as CmsLink) as CmsLink;
 }
 
 
@@ -375,3 +382,5 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
+
+    

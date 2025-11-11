@@ -1,11 +1,11 @@
 
-
 import { getFirestore, DocumentReference } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
 import { ALL_DEFAULTS, defaultCases } from '@/lib/defaults/siteDefaults';
 import { SiteSettingsSchema, NavigationSchema, HomepageSchema, CaseSchema } from '@/lib/schemas';
 import { z } from 'zod';
 import { migrateLink } from '@/lib/cms-server';
+import { normalizeHome } from '@/lib/defaults/siteDefaults';
 
 const hasAdminCreds = !!process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
@@ -59,6 +59,10 @@ async function run() {
         }
     }
 
+    if (path === 'pages/home') {
+        currentData = normalizeHome(currentData);
+    }
+
     // Merge defaults over current data to fill in missing fields
     const mergedData = { ...defaultData, ...currentData };
 
@@ -104,3 +108,5 @@ run().catch(err => {
   console.error('[SEED] Script failed:', err);
   process.exit(1);
 });
+
+    
