@@ -20,29 +20,28 @@ import { zodErrorToIssues } from './zod-helpers';
 import { defaultHomepage, normalizeHome } from './defaults/siteDefaults';
 import { CMS_PATHS } from './constants';
 import { merge } from 'lodash';
+import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
 
 const SITE_TAG = "site-settings";
 
-
-async function getSiteSettingsRaw(): Promise<SiteSettings> {
+export async function getSiteSettings(): Promise<SiteSettings> {
+    noStore(); // Opt out of caching for this function
     const db = await getDb();
     const settingsSnap = await db.doc(CMS_PATHS.site).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
-    const defaults = SiteSettingsSchema.parse({});
-    const mergedData = merge(defaults, data);
+    // Coerce to defaults to ensure a valid, complete object is always returned
+    const coercedData = coerceToDefaults(data);
 
-    const parsed = SiteSettingsSchema.safeParse(mergedData);
+    // Final validation pass
+    const parsed = SiteSettingsSchema.safeParse(coercedData);
     if (!parsed.success) {
-      console.error("[getSiteSettingsRaw] Zod validation failed, returning defaults. Errors:", parsed.error.format());
-      return defaults;
+      console.error("[getSiteSettings] Zod validation failed after coercion, returning defaults. Errors:", parsed.error.format());
+      return coerceToDefaults({});
     }
     return parsed.data;
 }
 
-export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key'], {
-  tags: [SITE_TAG],
-});
 
 export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const parsedData = SiteSettingsSchema.parse(data);

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import docs from '@/data/developer-docs';
 import DocCard from './DocCard';
-import type { Doc } from './DocCard';
+import type { Doc } from './types';
 
 export default function DocsPageContent() {
   const items: Doc[] = useMemo(() => docs.map(d => ({

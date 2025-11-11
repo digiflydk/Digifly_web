@@ -2,6 +2,8 @@
 import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc } from '@/lib/types';
 import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema } from '../schemas';
 import { z } from 'zod';
+import { merge } from 'lodash';
+import { emptySiteSettings } from '@/components/dadmin/site-seo/utils/formDefaults';
 
 
 export const SITE_DEFAULTS: SiteSettings = {
@@ -17,7 +19,15 @@ export const SITE_DEFAULTS: SiteSettings = {
     ogImage: '',
     canonicalBase: '',
   },
-  contact: {},
+  contact: {
+    email: '',
+    phone: '',
+    company: '',
+    street: '',
+    zip: '',
+    city: '',
+    country: ''
+  },
   hours: {},
 };
 
@@ -189,13 +199,14 @@ export const defaultCases: z.infer<typeof CaseSchema>[] = [
   })
 ];
 
-export const ALL_DEFAULTS = {
-    'site/settings': SITE_DEFAULTS,
-    'navigation/main': { header: defaultNavigation.header },
-    'navigation/footer': { footer: defaultNavigation.footer },
-    'pages/home': defaultHomepage,
-    'pages/about': defaultAboutPage,
-    'pages/services': defaultServicesPage,
-    'pages/contact': defaultContactPage,
-    'pages/cases-index': defaultCasesIndexPage,
-};
+const mergedDefaults = merge({}, { 'site/settings': SITE_DEFAULTS }, {
+  'navigation/main': { header: defaultNavigation.header },
+  'navigation/footer': { footer: defaultNavigation.footer },
+  'pages/home': defaultHomepage,
+  'pages/about': defaultAboutPage,
+  'pages/services': defaultServicesPage,
+  'pages/contact': defaultContactPage,
+  'pages/cases-index': defaultCasesIndexPage,
+});
+delete mergedDefaults['site/settings'];
+export const ALL_DEFAULTS = mergedDefaults;

@@ -74,3 +74,12 @@ The main command `npm run predeploy` executes all checks in sequence:
 5. `scripts/predeploy/report.ts` (generates `public/dev/reports/predeploy.json`)
 
 If any step fails, the process will exit with a non-zero code, blocking the deployment and generating a report with the failure details.
+
+### Failure Types to Catch
+- "Missing named export from module" (e.g. importing `{ CaseDoc }` when not exported)
+- "Default vs named component import mismatch" (e.g. `Doc` vs default `DocCard`)
+- "Passing props to a component that doesn’t accept them" (e.g. `<AdminShell user={...}>`)
+- "Wrong form field paths vs schema" (e.g. `siteTitle` instead of `general.brandName`)
+- "Ensure contact object is complete" in default data structures.
+- "Require `@types/lodash` to satisfy TS" for modules using it.
+- "Page components must fetch and pass required props (e.g. `initialData`)"

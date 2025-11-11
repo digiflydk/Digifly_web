@@ -13,13 +13,15 @@ const titles: Record<string, { title: string; subtitle?: string }> = {
   "/dadmin/homepage": { title: "Homepage", subtitle: "Edit the content for your site's main landing page." },
   "/dadmin/cases": { title: "Case Studies", subtitle: "Manage your case studies." },
   "/dadmin/pages": { title: "Pages", subtitle: "Manage your site's pages." },
-  "/dadmin/dev/docs": { title: "Developer Docs", subtitle: "Live view of markdown files from the /docs directory." },
-  "/dadmin/dev/tests": { title: "Playwright Tests", subtitle: "View Playwright test artifacts and reports." },
+  "/dadmin/docs": { title: "Developer Docs", subtitle: "Live view of markdown files from the /docs directory." },
+  "/dadmin/tests": { title: "Playwright Tests", subtitle: "View Playwright test artifacts and reports." },
 };
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { title, subtitle } = titles[pathname] || { title: "Admin" };
+  // Find the most specific match for the title
+  const matchedPath = Object.keys(titles).sort((a,b) => b.length - a.length).find(p => pathname.startsWith(p));
+  const { title, subtitle } = titles[matchedPath || '/dadmin'] || { title: "Admin" };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (

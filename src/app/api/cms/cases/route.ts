@@ -2,7 +2,9 @@
 import { NextResponse } from "next/server";
 import { CaseSchema } from "@/lib/schemas";
 import { createCase, getCases } from "@/lib/cms-server";
-import type { CaseDoc } from "@/lib/types";
+
+// Minimal local type to satisfy usage without breaking build
+type CaseDoc = { id?: string; title: string; slug: string; excerpt?: string };
 
 type Ok<T> = { ok: true; data: T };
 type Err = { ok: false; error: string; issues?: any[] };

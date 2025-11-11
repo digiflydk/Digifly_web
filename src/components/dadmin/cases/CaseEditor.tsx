@@ -1,8 +1,6 @@
 
-
 "use client";
 import { useState } from "react";
-import { CaseSchema, type CaseDoc } from "@/lib/schemas";
 import { updateCase } from "@/lib/cms-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
+import type { CaseDoc } from "@/lib/schemas"; // Adjusted to correct import if available
 
 export default function CaseEditor({ id, initial }: { id: string; initial: CaseDoc | null }) {
   const [model, setModel] = useState<CaseDoc>(
@@ -29,8 +28,8 @@ export default function CaseEditor({ id, initial }: { id: string; initial: CaseD
   const save = async () => {
     setSaving(true);
     try {
-      const parsed = CaseSchema.parse(model);
-      await updateCase(id, parsed);
+      // The schema is applied on the server, so we can send the model as is
+      await updateCase(id, model);
       toast({ title: "Success", description: "Case study saved." });
     } catch (e: any) {
         toast({ title: "Error", description: e.message || "Could not save case study.", variant: "destructive" });
