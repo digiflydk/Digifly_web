@@ -9,7 +9,10 @@ import {
     HeroSlideSchema,
     BrandSchema,
     NavLinkSchema,
-    CmsLinkSchema
+    CmsLinkSchema,
+    WhatWeDoSchema,
+    ServiceItemSchema,
+    ServicesSchema,
 } from "./schemas";
 
 export type Media = { src: string; alt?: string; hint?: string };
@@ -40,3 +43,6 @@ export type Page<T> = {
 }
 
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
+export type WhatWeDo = z.infer<typeof WhatWeDoSchema>;
+export type ServiceItem = z.infer<typeof ServiceItemSchema>;
+export type Services = z.infer<typeof ServicesSchema>;

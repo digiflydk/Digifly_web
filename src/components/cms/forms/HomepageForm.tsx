@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,163 @@ import { cn } from "@/lib/utils";
 import { defaultHeroSlide } from "@/lib/defaults/siteDefaults";
 import { toast } from "@/hooks/use-toast";
 import { LinkPicker } from "../inputs/LinkPicker";
+
+
+function WhatWeDoFields() {
+  const { control } = useFormContext();
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>What We Do Section</CardTitle>
+        <CardDescription>Configure the introductory section below the hero.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <FormField
+            control={control}
+            name="whatWeDo.enabled"
+            render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                    <FormLabel className="text-base">Enabled</FormLabel>
+                    <FormDescription>Show this section on the homepage.</FormDescription>
+                </div>
+                <FormControl><Switch checked={field.value ?? true} onCheckedChange={field.onChange} /></FormControl>
+            </FormItem>
+            )}
+        />
+        <FormField
+            name="whatWeDo.eyebrow"
+            control={control}
+            render={({ field }) => (
+                <FormItem><FormLabel>Eyebrow Text</FormLabel><FormControl><Input placeholder="WHY, HOW, WHAT" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+            )}
+        />
+        <FormField
+            name="whatWeDo.title"
+            control={control}
+            render={({ field }) => (
+                <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="What We Do" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+            )}
+        />
+        <FormField
+            name="whatWeDo.subtitle"
+            control={control}
+            render={({ field }) => (
+                <FormItem><FormLabel>Subtitle</FormLabel><FormControl><Input placeholder="Section subtitle" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+            )}
+        />
+        <FormField
+            name="whatWeDo.body"
+            control={control}
+            render={({ field }) => (
+                <FormItem><FormLabel>Body Text</FormLabel><FormControl><Textarea placeholder="Section body text" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+            )}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function ServiceItemFields({ control, index, remove }: { control: any, index: number, remove: (index: number) => void }) {
+    return (
+        <div className="rounded-lg border p-4 space-y-4 relative bg-slate-50/50">
+            <div className="space-y-2">
+                <FormField
+                    name={`services.items.${index}.icon`}
+                    control={control}
+                    render={({ field }) => (
+                        <FormItem><FormLabel className="text-xs">Icon (optional)</FormLabel><FormControl><Input placeholder="e.g. BrainCircuit" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+                    )}
+                />
+                <FormField
+                    name={`services.items.${index}.title`}
+                    control={control}
+                    render={({ field }) => (
+                        <FormItem><FormLabel className="text-xs">Title</FormLabel><FormControl><Input placeholder="Service Title" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+                    )}
+                />
+                <FormField
+                    name={`services.items.${index}.description`}
+                    control={control}
+                    render={({ field }) => (
+                        <FormItem><FormLabel className="text-xs">Description</FormLabel><FormControl><Textarea placeholder="Service description" {...field} rows={2} value={field.value ?? ""} /></FormControl></FormItem>
+                    )}
+                />
+            </div>
+            <div>
+              <FormLabel className="text-xs">Link (optional)</FormLabel>
+              <LinkPicker namePrefix={`services.items.${index}.link`} />
+            </div>
+            <div className="text-right">
+              <Button type="button" variant="destructive" size="sm" onClick={() => remove(index)}>
+                Remove
+              </Button>
+            </div>
+          </div>
+    )
+}
+
+function ServicesFields() {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "services.items",
+    keyName: "fieldId",
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Services Section</CardTitle>
+        <CardDescription>Manage the list of services displayed on the homepage.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <FormField
+            control={control}
+            name="services.enabled"
+            render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                    <FormLabel className="text-base">Enabled</FormLabel>
+                    <FormDescription>Show this section on the homepage.</FormDescription>
+                </div>
+                <FormControl><Switch checked={field.value ?? true} onCheckedChange={field.onChange} /></FormControl>
+            </FormItem>
+            )}
+        />
+        <FormField
+            name="services.title"
+            control={control}
+            render={({ field }) => (
+                <FormItem><FormLabel>Section Title</FormLabel><FormControl><Input placeholder="Our Services" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+            )}
+        />
+        <FormField
+            name="services.subtitle"
+            control={control}
+            render={({ field }) => (
+                <FormItem><FormLabel>Section Subtitle</FormLabel><FormControl><Input placeholder="Section subtitle" {...field} value={field.value ?? ""} /></FormControl></FormItem>
+            )}
+        />
+
+        <div className="space-y-4 pt-4">
+          <FormLabel>Service Items</FormLabel>
+            {fields.map((field, i) => (
+                <ServiceItemFields key={field.fieldId} control={control} index={i} remove={remove} />
+            ))}
+            <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => append({ icon: "", title: "", description: "", link: { type: 'internal', label: '', internalRef: null, externalUrl: '', newTab: false } })}
+            >
+            <Plus className="mr-2 h-4 w-4" /> Add Service
+            </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 
 function SortableSlideItem({ id, index, control, remove }: { id: string; index: number; control: any, remove: (index: number) => void }) {
@@ -191,9 +348,11 @@ export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: 
                     />
                 </div>
             </div>
-
           </CardContent>
         </Card>
+
+        <WhatWeDoFields />
+        <ServicesFields />
         
         <div className="sticky bottom-0 bg-slate-50/90 py-4">
           <Button type="submit" disabled={isSaving || !form.formState.isDirty}>

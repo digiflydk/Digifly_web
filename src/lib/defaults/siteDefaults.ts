@@ -1,6 +1,6 @@
 
 import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc, CmsLink } from '@/lib/types';
-import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema } from '../schemas';
+import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema, HomepageSchema } from '../schemas';
 import { z } from 'zod';
 import { emptySiteSettings } from '@/components/dadmin/site-seo/utils/formDefaults';
 
@@ -54,11 +54,11 @@ export const defaultHeroSlide: HeroSlide = {
   heading: "New Slide",
   subheading: "A compelling subtitle for your new slide.",
   body: "",
-  cta: { type: 'internal', label: 'Learn More', internalRef: 'home', newTab: false },
+  cta: { type: 'internal', label: 'Learn More', internalRef: 'home', newTab: false, externalUrl: '' },
   visible: true,
 };
 
-export const defaultHomepage: HomePage = {
+export const defaultHomepage: HomePage = HomepageSchema.parse({
   hero: { 
     slides: [
       {
@@ -66,11 +66,28 @@ export const defaultHomepage: HomePage = {
         heading: "From Idea to Intelligent Solution",
         subheading: "Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.",
         body: "",
-        cta: { type: 'internal', label: 'Start Your Project', internalRef: 'contact', newTab: false },
+        cta: { type: 'internal', label: 'Start Your Project', internalRef: 'contact', newTab: false, externalUrl: '' },
         visible: true,
       }
     ],
     rotationDelaySec: 5 
+  },
+  whatWeDo: {
+    enabled: true,
+    eyebrow: "WHY, HOW, WHAT",
+    title: "What We Do",
+    subtitle: "Strategy, software development, and AI-driven automation.",
+    body: "We help businesses identify opportunities for growth and efficiency, then build the technology to make it happen.",
+  },
+  services: {
+    enabled: true,
+    title: "Our Core Services",
+    subtitle: "End-to-end capabilities to bring your digital vision to life.",
+    items: [
+      { id: 'strategy', icon: 'BrainCircuit', title: "Strategy & Automation", description: "Process optimization, AI integration, and workflow automation.", link: { type: 'internal', internalRef: 'services' } },
+      { id: 'software', icon: 'Code', title: "Software & SaaS", description: "Custom web & mobile apps, API development, and cloud architecture.", link: { type: 'internal', internalRef: 'services' } },
+      { id: 'design', icon: 'PenTool', title: "Design & UX", description: "User research, prototyping, and creating intuitive design systems.", link: { type: 'internal', internalRef: 'services' } },
+    ],
   },
   intro: { 
     tagline: 'Why, How, What',
@@ -86,13 +103,13 @@ export const defaultHomepage: HomePage = {
   featuredCases: ['autostream-ai', 'connect-app'],
   cta: {
     text: "Let's build something intelligent together.",
-    button: { type: 'internal', label: 'Book a Call', internalRef: 'contact', newTab: false }
+    button: { type: 'internal', label: 'Book a Call', internalRef: 'contact', newTab: false, externalUrl: '' }
   },
    seo: {
     title: 'Digifly | Strategy, Software & Automation with AI',
     description: 'We partner with you to build intelligent digital solutions that drive real-world results.'
   }
-};
+});
 
 
 // DGF-125 Fix: Central normalization function
@@ -103,11 +120,9 @@ export function normalizeHome(data: any): Partial<HomePage> {
 
     const d = { ...defaultHomepage, ...data };
     
-    // Ensure hero object and slides array exist
     d.hero = { ...defaultHomepage.hero, ...(d.hero || {}) };
     d.hero.slides = Array.isArray(d.hero.slides) ? d.hero.slides : [];
 
-    // Normalize rotation delay
     const n = Number(d.hero.rotationDelaySec);
     if (![3, 5, 8, 10, 15].includes(n)) {
         d.hero.rotationDelaySec = 5;
@@ -115,7 +130,10 @@ export function normalizeHome(data: any): Partial<HomePage> {
         d.hero.rotationDelaySec = n;
     }
     
-    // Ensure other top-level fields are at least present
+    d.whatWeDo = { ...defaultHomepage.whatWeDo, ...(d.whatWeDo || {}) };
+    d.services = { ...defaultHomepage.services, ...(d.services || {}) };
+    d.services.items = Array.isArray(d.services.items) ? d.services.items : [];
+
     d.intro = { ...defaultHomepage.intro, ...(d.intro || {}) };
     d.servicesPreview = Array.isArray(d.servicesPreview) ? d.servicesPreview : [];
     d.featuredCases = Array.isArray(d.featuredCases) ? d.featuredCases : [];
@@ -129,30 +147,30 @@ const defaultCmsLink = (label: string, ref: string, external = false): CmsLink =
   label,
   type: external ? 'external' : 'internal',
   internalRef: external ? undefined : ref,
-  externalUrl: external ? ref : undefined,
+  externalUrl: external ? ref : '',
   newTab: external,
 });
 
 export const defaultNavigation: Navigation = NavigationSchema.parse({
   header: [
-    { link: defaultCmsLink("Services", "services") },
-    { link: defaultCmsLink("Cases", "cases-index") },
-    { link: defaultCmsLink("About", "about") },
+    { id: 'h1', link: defaultCmsLink("Services", "services") },
+    { id: 'h2', link: defaultCmsLink("Cases", "cases-index") },
+    { id: 'h3', link: defaultCmsLink("About", "about") },
   ],
   footer: {
     columns: [
       {
         title: "Company",
         links: [
-          { link: defaultCmsLink("About", "about") },
-          { link: defaultCmsLink("Contact", "contact") },
+          { id: 'f1', link: defaultCmsLink("About", "about") },
+          { id: 'f2', link: defaultCmsLink("Contact", "contact") },
         ],
       },
       {
         title: "Legal",
         links: [
-          { link: defaultCmsLink("Privacy", "privacy") },
-          { link: defaultCmsLink("Cookies", "cookies") },
+          { id: 'f3', link: defaultCmsLink("Privacy", "privacy") },
+          { id: 'f4', link: defaultCmsLink("Cookies", "cookies") },
         ],
       },
     ],
@@ -176,9 +194,9 @@ export const defaultServicesPage = ServicesPageSchema.parse({
     subtitle: 'From strategic planning to software delivery, we provide end-to-end solutions.',
     content: {
         services: [
-            { id: 'strategy', title: 'Strategy & Process Automation', description: 'We help you identify opportunities for growth and efficiency, then implement AI-powered automation to get you there.', bullets: [] },
-            { id: 'software', title: 'Software & SaaS Development', description: 'Custom web and mobile applications, built on a modern, scalable cloud architecture.', bullets: [] },
-            { id: 'design', title: 'Design & User Experience', description: 'From user research to final UI, we create intuitive and engaging digital experiences.', bullets: [] },
+            { id: 'strategy', title: 'Strategy & Process Automation', description: 'We help you identify opportunities for growth and efficiency, then implement AI-powered automation to get you there.' },
+            { id: 'software', title: 'Software & SaaS Development', description: 'Custom web and mobile applications, built on a modern, scalable cloud architecture.' },
+            { id: 'design', title: 'Design & User Experience', description: 'From user research to final UI, we create intuitive and engaging digital experiences.' },
         ]
     }
 });

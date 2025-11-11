@@ -13,7 +13,7 @@ export const CmsLinkSchema = z.object({
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['internalRef'], message: 'Internal page selection is required.' });
     }
     if (data.type === 'external' && !data.externalUrl) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['externalUrl'], message: 'A valid external URL is required.' });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['externalUrl'], message: 'External URL is required.' });
     }
 });
 
@@ -61,7 +61,7 @@ export const NavigationSchema = z.object({
 
 export const HeroSlideSchema = z.object({
       heading: z.string().default(''),
-      subheading: z.string().default(''),
+      subheading: z.string().optional().default(''),
       body: z.string().optional().default(''),
       image: z.object({ 
         src: z.string().optional().default(''), 
@@ -71,11 +71,36 @@ export const HeroSlideSchema = z.object({
       visible: z.boolean().default(true)
 });
 
+export const WhatWeDoSchema = z.object({
+  enabled: z.boolean().default(true),
+  eyebrow: z.string().default("WHY, HOW, WHAT"),
+  title: z.string().default("What We Do"),
+  subtitle: z.string().optional().default(""),
+  body: z.string().optional().default(""),
+});
+
+export const ServiceItemSchema = z.object({
+  id: z.string().optional(),
+  icon: z.string().optional().default(""), 
+  title: z.string().min(1, "Title is required"),
+  description: z.string().default(""),
+  link: CmsLinkSchema.optional(),
+});
+
+export const ServicesSchema = z.object({
+  enabled: z.boolean().default(true),
+  title: z.string().default("Our Services"),
+  subtitle: z.string().optional().default(""),
+  items: z.array(ServiceItemSchema).default([]),
+});
+
 export const HomepageSchema = z.object({
   hero: z.object({
     rotationDelaySec: z.number().default(5),
     slides: z.array(HeroSlideSchema).default([])
   }),
+  whatWeDo: WhatWeDoSchema.optional(),
+  services: ServicesSchema.optional(),
   cta: z.object({
     text: z.string(),
     button: CmsLinkSchema
@@ -101,6 +126,7 @@ export const HomepageSchema = z.object({
     description: z.string().optional()
   }).optional()
 });
+
 
 export const RichTextContentSchema = z.union([
   z.object({ type: z.literal('p'), text: z.string() }),
@@ -206,6 +232,9 @@ export type Navigation = z.infer<typeof NavigationSchema>;
 export type HeroSlide = z.infer<typeof HeroSlideSchema>;
 export type Case = z.infer<typeof CaseSchema>;
 export type CmsLink = z.infer<typeof CmsLinkSchema>;
+export type WhatWeDo = z.infer<typeof WhatWeDoSchema>;
+export type ServiceItem = z.infer<typeof ServiceItemSchema>;
+export type Services = z.infer<typeof ServicesSchema>;
 
 
 export const allSchemas = {

@@ -4,7 +4,7 @@ import { getAdminApp } from '@/lib/firebase-admin';
 import { ALL_DEFAULTS, defaultCases } from '@/lib/defaults/siteDefaults';
 import { SiteSettingsSchema, NavigationSchema, HomepageSchema, CaseSchema } from '@/lib/schemas';
 import { z } from 'zod';
-import { migrateLink } from '@/lib/cms-server';
+import { normalizeLink } from '@/lib/links';
 import { normalizeHome } from '@/lib/defaults/siteDefaults';
 
 const hasAdminCreds = !!process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
@@ -49,12 +49,12 @@ async function run() {
     // Legacy migration for navigation
     if (path.startsWith('navigation/')) {
         if (currentData.header) {
-            currentData.header = currentData.header.map((item: any, i:number) => ({ id: item.id || String(i), link: migrateLink(item) }));
+            currentData.header = currentData.header.map((item: any, i:number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) }));
         }
         if (currentData.footer?.columns) {
             currentData.footer.columns = currentData.footer.columns.map((col: any) => ({
                 ...col,
-                links: (col.links || []).map((item: any, i:number) => ({ id: item.id || String(i), link: migrateLink(item) }))
+                links: (col.links || []).map((item: any, i:number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) }))
             }));
         }
     }
@@ -108,5 +108,3 @@ run().catch(err => {
   console.error('[SEED] Script failed:', err);
   process.exit(1);
 });
-
-    

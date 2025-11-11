@@ -1,16 +1,16 @@
 
-
 import { getHomepage, getSiteSettings } from '@/lib/cms-server';
 import Hero from '@/components/sections/hero';
-import ServicesOverview from '@/components/sections/services-overview';
-import CasesGrid from '@/components/sections/cases-grid';
-import CtaBanner from '@/components/sections/cta-banner';
-import IntroWhyHowWhat from '@/components/sections/intro-why-how-what';
 import { buildSeo } from '@/lib/seo';
 import type { Metadata } from 'next';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Container } from '@/components/layout/container';
 import type { HomePage } from '@/lib/schemas';
+import { WhatWeDo } from '@/components/sections/WhatWeDo';
+import { Services } from '@/components/sections/Services';
+import { defaultHomepage } from '@/lib/defaults/siteDefaults';
+import CasesGrid from '@/components/sections/cases-grid';
+import CtaBanner from '@/components/sections/cta-banner';
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -26,9 +26,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const result = await getHomepage();
-  const page = result.data as HomePage;
+  const page = result.data ?? defaultHomepage;
 
-  // Final check to ensure we always have a valid page object to render
   if (!page) {
     return (
         <Container className="py-16 text-center">
@@ -43,8 +42,15 @@ export default async function HomePage() {
   return (
     <>
       <Hero data={page.hero} />
-      {page.intro && <IntroWhyHowWhat data={page.intro} />}
-      {page.servicesPreview && page.servicesPreview.length > 0 && <ServicesOverview items={page.servicesPreview} />}
+      
+      {page.whatWeDo?.enabled !== false && page.whatWeDo && (
+        <WhatWeDo {...page.whatWeDo} />
+      )}
+
+      {page.services?.enabled !== false && page.services && (
+        <Services {...page.services} />
+      )}
+
       {page.featuredCases && page.featuredCases.length > 0 && (
         <CasesGrid 
             ids={page.featuredCases}
@@ -53,7 +59,7 @@ export default async function HomePage() {
             showAllLink
         />
       )}
-      {page.cta?.button?.href && (
+      {page.cta?.button?.link && (
         <CtaBanner text={page.cta.text} button={page.cta.button} />
       )}
     </>
