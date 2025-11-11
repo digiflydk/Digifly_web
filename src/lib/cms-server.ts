@@ -61,12 +61,12 @@ export async function getNavigation(): Promise<Navigation> {
 
     // Run migration/normalization logic
     if (navData) {
-        navData.header = (navData.header || []).map((item: any, i: number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) })).filter(item => item.link);
+        navData.header = (navData.header || []).map((item: any, i: number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) })).filter((item: any) => item.link);
         navData.footer = {
             ...navData.footer,
             columns: (navData.footer?.columns || []).map((col: any) => ({
                 ...col,
-                links: (col.links || []).map((item: any, i:number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) })).filter(item => item.link)
+                links: (col.links || []).map((item: any, i:number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) })).filter((item: any) => item.link)
             }))
         };
     }
