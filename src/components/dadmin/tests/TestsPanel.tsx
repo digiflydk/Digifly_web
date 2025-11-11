@@ -49,14 +49,17 @@ export default function TestsPanel() {
     toast({ title: 'Pre-deploy QA Started', description: 'Running smoke tests and checks...' });
     
     try {
-      // This would be an API route in a real app, but for simplicity
-      // and to avoid permission issues, we'll use a placeholder.
-      // The actual run happens via `npm run predeploy` in CI or locally.
-      // This button just shows the latest report.
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate run
+      // The API route now triggers the actual script
+      const res = await fetch('/api/dev/predeploy', { method: 'POST' });
+      const data = await safeJson(res);
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error?.message || 'Pre-deploy run failed. Check server logs.');
+      }
+      
       await fetchLatestReport(); // Re-fetch the latest report URL
 
-      toast({ title: 'Checks Simulated', description: 'Displaying latest available report.'});
+      toast({ title: 'Checks Completed', description: data.report?.ok ? 'All checks passed.' : 'Some checks failed.'});
     } catch (e: any) {
       setError(e.message);
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
