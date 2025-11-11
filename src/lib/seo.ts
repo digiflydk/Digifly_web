@@ -2,7 +2,7 @@
 
 import type { Metadata } from "next";
 import type { SiteSettings } from "./schemas";
-import { readSiteSettings } from "./dadmin/siteSeoRepo";
+import { getSiteSettings } from "./cms-server";
 
 // Extremely tolerant input shapes to avoid runtime crashes
 type SeoInput = {
@@ -26,7 +26,7 @@ const FALLBACK_DESC = 'Digital strategi, automation & software udvikling.';
 const FALLBACK_IMAGE = '/og-default.png';
 
 export async function buildSeo(input: SeoInput = {}, overrideSettings?: SiteSettings | null): Promise<Metadata> {
-  const s = overrideSettings ?? await readSiteSettings();
+  const s = overrideSettings ?? await getSiteSettings();
 
   // Use nullish coalescing for safe fallbacks
   const title = pickFirst(input.title, s?.seo?.defaultTitle, s?.general?.brandName, FALLBACK_TITLE) ?? FALLBACK_TITLE;

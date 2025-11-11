@@ -1,9 +1,16 @@
 
 import { getFirestore, DocumentReference } from 'firebase-admin/firestore';
 import { getAdminApp } from '@/lib/firebase-admin';
-import { ALL_DEFAULTS, defaultCases, defaultNavigation, SITE_DEFAULTS } from '@/lib/defaults/siteDefaults';
+import { ALL_DEFAULTS, defaultCases } from '@/lib/defaults/siteDefaults';
 import { SiteSettingsSchema, NavigationSchema, HomepageSchema, CaseSchema } from '@/lib/schemas';
 import { z } from 'zod';
+
+const hasAdminCreds = !!process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
+if (!hasAdminCreds) {
+  console.log('[cms:seed] No admin credentials detected — skipping seeding (CI-safe).');
+  process.exit(0);
+}
 
 const SCHEMAS: Record<string, z.ZodSchema<any>> = {
     'site/settings': SiteSettingsSchema,

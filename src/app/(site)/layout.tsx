@@ -2,8 +2,7 @@
 
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
-import { getNavigation } from "@/lib/cms-server";
-import { readSiteSettings } from "@/lib/dadmin/siteSeoRepo";
+import { getNavigation, getSiteSettings } from "@/lib/cms-server";
 import { orgJsonLd, localBusinessJsonLd } from "@/lib/structured-data";
 
 export default async function SiteLayout({
@@ -11,7 +10,7 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [navigation, site] = await Promise.all([getNavigation(), readSiteSettings()]);
+  const [navigation, site] = await Promise.all([getNavigation(), getSiteSettings()]);
   const jsonLdBlocks = site ? [orgJsonLd(site), localBusinessJsonLd(site)].filter(Boolean) : [];
 
   return (
@@ -23,9 +22,9 @@ export default async function SiteLayout({
         nav={navigation?.header} 
         logo={{ 
           src: site?.general?.logoUrl ?? '/logo.svg', 
-          alt: site?.seo?.defaultTitle ?? 'Digifly' 
+          alt: site?.general?.brandName ?? 'Digifly' 
         }} 
-        siteTitle={site?.seo?.defaultTitle} 
+        siteTitle={site?.general?.brandName} 
       />
       <main className="flex-1" style={{ paddingTop: 'calc(var(--header-height, 64px) + env(safe-area-inset-top))' }}>{children}</main>
       <Footer columns={navigation?.footer?.columns} />

@@ -1,6 +1,6 @@
 
 
-import { getHomepage } from '@/lib/cms-server';
+import { getHomepage, getSiteSettings } from '@/lib/cms-server';
 import Hero from '@/components/sections/hero';
 import ServicesOverview from '@/components/sections/services-overview';
 import CasesGrid from '@/components/sections/cases-grid';
@@ -14,13 +14,13 @@ import type { HomePage } from '@/lib/schemas';
 
 
 export async function generateMetadata(): Promise<Metadata> {
-    const result = await getHomepage();
-    const page = result.data as HomePage; 
+    const [pageResult, siteSettings] = await Promise.all([getHomepage(), getSiteSettings()]);
+    const page = pageResult.data as HomePage; 
 
     return buildSeo({
       title: page?.seo?.title,
       description: page?.seo?.description,
-    });
+    }, siteSettings);
 }
 
 
@@ -45,12 +45,14 @@ export default async function HomePage() {
       <Hero data={page.hero} />
       {page.intro && <IntroWhyHowWhat data={page.intro} />}
       {page.servicesPreview && page.servicesPreview.length > 0 && <ServicesOverview items={page.servicesPreview} />}
-      <CasesGrid 
-        ids={page.featuredCases}
-        title="Our Work in Action"
-        subtitle="See how we translate complex problems into elegant, effective solutions."
-        showAllLink
-      />
+      {page.featuredCases && page.featuredCases.length > 0 && (
+        <CasesGrid 
+            ids={page.featuredCases}
+            title="Our Work in Action"
+            subtitle="See how we translate complex problems into elegant, effective solutions."
+            showAllLink
+        />
+      )}
       {page.cta?.button?.href && (
         <CtaBanner text={page.cta.text} button={page.cta.button} />
       )}

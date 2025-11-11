@@ -27,7 +27,15 @@ export const SITE_DEFAULTS: SiteSettings = {
     city: '',
     country: ''
   },
-  hours: {},
+  hours: {
+    sunday:   { enabled: false, from: '09:00', to: '17:00' },
+    monday:   { enabled: true,  from: '09:00', to: '17:00' },
+    tuesday:  { enabled: true,  from: '09:00', to: '17:00' },
+    wednesday:{ enabled: true,  from: '09:00', to: '17:00' },
+    thursday: { enabled: true,  from: '09:00', to: '17:00' },
+    friday:   { enabled: true,  from: '09:00', to: '17:00' },
+    saturday: { enabled: false, from: '09:00', to: '17:00' },
+  },
 };
 
 
@@ -199,6 +207,7 @@ export const defaultCases: z.infer<typeof CaseSchema>[] = [
 ];
 
 export const ALL_DEFAULTS = {
+  'site/settings': SITE_DEFAULTS,
   'navigation/main': { header: defaultNavigation.header },
   'navigation/footer': { footer: defaultNavigation.footer },
   'pages/home': defaultHomepage,

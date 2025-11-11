@@ -10,11 +10,13 @@ import { MediaImage } from "../ui/media-image";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { RichText } from '../ui/rich-text';
+import { defaultHomepage } from '@/lib/defaults/siteDefaults';
 
 type HeroData = HomePage["hero"];
 
-export default function Hero({ data }: { data: HeroData }) {
-    const { slides = [], rotationDelaySec = 5 } = data;
+export default function Hero({ data }: { data?: HeroData | null }) {
+    const safeData = data ?? defaultHomepage.hero;
+    const { slides = [], rotationDelaySec = 5 } = safeData;
     const [index, setIndex] = useState(0);
     
     const visibleSlides = slides.filter(slide => slide.visible);
