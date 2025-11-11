@@ -1,9 +1,6 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase-client';
 import type { QARun } from '@/lib/qa/qa.types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Loader2, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import ButtonLink from '@/components/common/ButtonLink';
 
 function getBadgeVariant(status: string) {
     if (status === 'passed') return 'default';
@@ -37,21 +35,6 @@ export default function TestsPanel() {
   useEffect(() => setIsClient(true), []);
 
   const { toast } = useToast();
-  useEffect(() => {
-    if (!isClient) return;
-    
-    const q = query(collection(db, 'qa_runs'), orderBy('startedAt', 'desc'), limit(50));
-    const unsub = onSnapshot(q, snap => {
-      const items = snap.docs.map(d => ({ id: d.id, data: d.data() as QARun }));
-      setRuns(items);
-      const isAnyRunning = items.some(r => r.data.status === 'queued' || r.data.status === 'running');
-      setIsRunning(isAnyRunning);
-    }, (error) => {
-        console.error("Firestore snapshot error:", error);
-        toast({ title: 'Error', description: 'Could not connect to test results.', variant: 'destructive' });
-    });
-    return () => unsub();
-  }, [toast, isClient]);
 
   const trigger = useCallback(async () => {
     setIsRunning(true);
@@ -80,6 +63,10 @@ export default function TestsPanel() {
   if (!isClient) {
       return <div>Loading...</div>;
   }
+
+  const data = {
+      reportUrl: lastRunResult?.artifacts?.htmlReportUrl
+  };
 
   return (
     <div className="space-y-6">
@@ -112,7 +99,11 @@ export default function TestsPanel() {
             <AlertTitle>Run Completed</AlertTitle>
             <AlertDescription>
                 Passed: {lastRunResult.summary.passed}, Failed: {lastRunResult.summary.failed}
-                <a href={lastRunResult.artifacts.htmlReportUrl} target="_blank" rel="noreferrer" className="underline ml-4">View Report</a>
+                {data?.reportUrl ? (
+                    <ButtonLink href={data.reportUrl} target="_blank" rel="noreferrer" variant="link" className="p-0 h-auto ml-4">
+                        View Report
+                    </ButtonLink>
+                ) : null}
             </AlertDescription>
         </Alert>
       )}
@@ -151,11 +142,9 @@ export default function TestsPanel() {
                 <TableCell className={data.totals?.failed ?? 0 > 0 ? 'text-red-600' : ''}>{data.totals?.failed ?? '—'}</TableCell>
                 <td>
                   {data?.reportUrl ? (
-                    <Link href={data.reportUrl} target="_blank" rel="noreferrer">
-                      <Button variant="outline" size="sm">
+                    <ButtonLink href={data.reportUrl} target="_blank" rel="noreferrer" variant="outline" size="sm">
                         Open report <ExternalLink className="ml-2 h-3 w-3" />
-                      </Button>
-                    </Link>
+                    </ButtonLink>
                   ) : '—'}
                 </td>
               </TableRow>
