@@ -3,33 +3,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Public navigation (header/footer menus)
-    match /navigation/{navId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      // In public mode, we can't check claims. For now, allow writes if signed in.
+      // In a real app, this would be:
+      // return signedIn() && request.auth.token.admin == true;
+      return signedIn();
     }
 
-    // Public site settings (brand + basic SEO only)
-    match /site/{docId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    // CMS pages are public only when published == true
+    // Public reads: navigation, site settings, pages
+    match /navigation/{doc}      { allow read: if true;          allow write: if isAdmin(); }
+    match /site/{doc}            { allow read: if true;          allow write: if isAdmin(); }
+    
+    // Pages are public if published, writable by admins
     match /pages/{pageId} {
-      allow read: if resource.data.published == true;
-      allow write: if request.auth != null;
+      allow get: if resource.data.published == true;
+      allow list, write: if isAdmin();
     }
+    
+    // Allow reads for specific public pages like home, even without a 'published' field
+    match /pages/home { allow read: if true; }
+    match /pages/about { allow read: if true; }
+    match /pages/services { allow read: if true; }
+    match /pages/contact { allow read: if true; }
 
-    // Case studies (public only when published)
+
+    // Case studies can be read if published
     match /cases/{caseId} {
-      allow read: if resource.data.published == true;
-      allow write: if request.auth != null;
+        allow read: if resource.data.published == true;
+        allow list, write: if isAdmin();
     }
 
-    // QA reports remain private (admin-only)
-    match /qaReports/{reportId} {
-      allow read, write: if request.auth != null;
-    }
+    // Generic /cms route (if used)
+    match /cms/{doc=**}          { allow read: if true;          allow write: if isAdmin(); }
+
+    // Admin-only area
+    match /admins/{uid}          { allow read, write: if isAdmin(); }
   }
 }

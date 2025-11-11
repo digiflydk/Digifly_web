@@ -64,17 +64,17 @@ const PAGE_ID_TO_PATH_MAP: Record<string, string> = {
 
 // Migration helper to convert old string links to new CmsLink objects
 function migrateLink(item: any): CmsLink {
-    if (!item) {
-        return normalizeLink(null) as CmsLink;
+    if (!item || typeof item !== 'object') {
+        return normalizeLink({ label: "Missing Link", type: "external", externalUrl: "#error" }) as CmsLink;
     }
     // If the item already has a 'link' property, it's in the new format.
-    if (typeof item === 'object' && item.link && typeof item.link === 'object' && item.link.type) {
+    if (item.link && typeof item.link === 'object' && item.link.type) {
         return normalizeLink(item.link) as CmsLink;
     }
 
     // Otherwise, it's a legacy item ({ label, href }) that needs migration.
-    const href = (typeof item === 'object' ? item.href : String(item)).trim();
-    const label = (typeof item === 'object' ? item.label : 'Link');
+    const href = (item.href || '').trim();
+    const label = item.label || 'Untitled';
 
     let linkObject: Partial<CmsLink>;
 
@@ -98,14 +98,14 @@ export async function getNavigation(): Promise<Navigation> {
     const footerData = footerSnap.exists ? footerSnap.data() : { footer: { columns: [] } };
 
     const navData = {
-        header: (mainData?.header || []).map((item: any, index: number) => ({
+        header: (mainData?.header || []).filter(Boolean).map((item: any, index: number) => ({
             id: item.id || String(index),
             link: migrateLink(item)
         })),
         footer: {
-            columns: (footerData?.footer?.columns || []).map((col: any) => ({
+            columns: (footerData?.footer?.columns || []).filter(Boolean).map((col: any) => ({
                 ...col,
-                links: (col.links || []).map((item: any, index: number) => ({
+                links: (col.links || []).filter(Boolean).map((item: any, index: number) => ({
                     id: item.id || String(index),
                     link: migrateLink(item)
                 }))
@@ -382,5 +382,3 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
-
-    
