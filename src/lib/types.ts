@@ -1,4 +1,5 @@
 
+
 import { z } from "zod";
 import { 
     HomepageSchema, 
@@ -6,14 +7,18 @@ import {
     SiteSettingsSchema, 
     NavigationSchema,
     HeroSlideSchema,
-    BrandSchema
+    BrandSchema,
+    NavLinkSchema,
+    CmsLinkSchema
 } from "./schemas";
 
 export type Media = { src: string; alt?: string; hint?: string };
 
 export type Brand = z.infer<typeof BrandSchema>;
 
-export type NavLink = { label: string; href: string };
+export type NavLink = z.infer<typeof NavLinkSchema>;
+
+export type CmsLink = z.infer<typeof CmsLinkSchema>;
 
 export type Navigation = z.infer<typeof NavigationSchema>;
 

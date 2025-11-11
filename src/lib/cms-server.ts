@@ -10,9 +10,10 @@ import {
   ServicesPageSchema,
   CasesIndexSchema,
   ContactPageSchema,
+  NavLinkSchema,
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { HomePage, Navigation, Case, SiteSettings } from '@/lib/schemas';
+import type { HomePage, Navigation, Case, SiteSettings, CmsLink } from '@/lib/schemas';
 
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -50,7 +51,37 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   return parsedData;
 }
 
+// Migration helper to convert old string links to new CmsLink objects
+function migrateLink(item: any): CmsLink {
+    // If the item already has a 'link' property, it's in the new format.
+    if (typeof item === 'object' && item.link && typeof item.link === 'object' && item.link.type) {
+        return item.link as CmsLink;
+    }
+
+    // Otherwise, it's a legacy item ({ label, href }) that needs migration.
+    const href = (typeof item === 'object' ? item.href : String(item)).trim();
+    const label = (typeof item === 'object' ? item.label : 'Link');
+
+    if (href.startsWith('http')) {
+        return { type: 'external', label, externalUrl: href, newTab: true };
+    }
+    
+    // Find the pageId from the path
+    const pageId = Object.keys(PAGE_ID_TO_PATH_MAP).find(key => PAGE_ID_TO_PATH_MAP[key] === href) || href.replace(/^\//, '');
+    return { type: 'internal', label, internalRef: pageId, newTab: false };
+}
+
+const PAGE_ID_TO_PATH_MAP: Record<string, string> = {
+  home: '/',
+  about: '/about',
+  services: '/services',
+  contact: '/contact',
+  'cases-index': '/cases',
+};
+
+
 export async function getNavigation(): Promise<Navigation> {
+    noStore();
     const db = await getDb();
     const mainSnap = await db.doc(CMS_PATHS.navigation.main).get();
     const footerSnap = await db.doc(CMS_PATHS.navigation.footer).get();
@@ -58,14 +89,23 @@ export async function getNavigation(): Promise<Navigation> {
     const mainData = mainSnap.exists ? mainSnap.data() : { header: [] };
     const footerData = footerSnap.exists ? footerSnap.data() : { footer: { columns: [] } };
 
-    if (!mainSnap.exists && !footerSnap.exists) {
-        return { header: [], footer: { columns: [] }};
-    }
+    const navData = {
+        header: (mainData?.header || []).map((item: any, index: number) => ({
+            id: item.id || String(index),
+            link: migrateLink(item)
+        })),
+        footer: {
+            columns: (footerData?.footer?.columns || []).map((col: any) => ({
+                ...col,
+                links: (col.links || []).map((item: any, index: number) => ({
+                    id: item.id || String(index),
+                    link: migrateLink(item)
+                }))
+            }))
+        }
+    };
     
-    const parsedNav = NavigationSchema.safeParse({
-        header: mainData?.header || [],
-        footer: footerData?.footer || { columns: [] }
-    });
+    const parsedNav = NavigationSchema.safeParse(navData);
 
     if (!parsedNav.success) {
         console.warn("[getNavigation] Zod validation failed, returning empty nav structure.", parsedNav.error.format());
@@ -93,8 +133,18 @@ export async function getPageBySlug(slug: string): Promise<any | null> {
     if (!snap.exists) {
         return null;
     }
-    return snap.data();
+    return { id: snap.id, ...snap.data() };
 }
+
+export async function getPublishedPagesList() {
+    const db = await getDb();
+    const snap = await db.collection(CMS_PATHS.pages).where('published', '==', true).get();
+    if (snap.empty) {
+        return [];
+    }
+    return snap.docs.map(d => ({ id: d.id, title: d.data().title || d.id, path: `/${d.id}` }));
+}
+
 
 type GetHomepageResult = 
   | { ok: true; data: HomePage; issues?: undefined }
@@ -170,6 +220,7 @@ export async function listCaseSlugs(): Promise<string[]> {
 }
 
 export async function getCaseBySlug(slug: string): Promise<Case | null> {
+    noStore();
     const db = await getDb();
     const snap = await db.collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
     if (snap.empty) {
@@ -186,6 +237,7 @@ export async function getCaseBySlug(slug: string): Promise<Case | null> {
 }
 
 export async function getCaseById(id: string): Promise<Case> {
+  noStore();
   const db = await getDb();
   const snap = await db.collection('cases').doc(id).get();
 
@@ -316,5 +368,10 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
     if (path === 'contact') {
     return getContactPage();
   }
+  if (path === 'meta/published-pages') {
+      return getPublishedPagesList();
+  }
   return null;
 }
+
+    

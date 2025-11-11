@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import type { NavLink } from "@/lib/types";
+import { resolveCmsLink } from "@/lib/links";
 
 type FooterColumn = {
   title: string;
@@ -16,7 +17,7 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
         <div className="max-w-6xl mx-auto px-6 py-10 text-center text-muted-foreground">
           Footer navigation not configured.
         </div>
-        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.0 • DGF-264</div>
+        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.20 • DGF-314</div>
       </footer>
     );
   }
@@ -32,14 +33,18 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
           <div key={col.title}>
             <div className="font-semibold mb-2">{col.title}</div>
             <ul className="space-y-1">
-              {col.links.map(l => (
-                <li key={l.href}><Link href={l.href} className="text-muted-foreground hover:text-primary transition-colors">{l.label}</Link></li>
-              ))}
+              {col.links.map(l => {
+                const { href, label, target, rel } = resolveCmsLink(l.link);
+                if (!href) return null;
+                return (
+                  <li key={l.id}><Link href={href} target={target} rel={rel} className="text-muted-foreground hover:text-primary transition-colors">{label}</Link></li>
+                )
+              })}
             </ul>
           </div>
         ))}
       </div>
-      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.0 • DGF-264</div>
+      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.20 • DGF-314</div>
     </footer>
   );
 }

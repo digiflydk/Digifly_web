@@ -1,4 +1,5 @@
 
+
 "use client";
 import Link from "next/link";
 import { Menu } from "lucide-react";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import React, { useEffect, useState } from "react";
 import type { NavLink } from "@/lib/types";
+import { resolveCmsLink } from "@/lib/links";
 import Image from "next/image";
 
 type HeaderProps = {
@@ -23,13 +25,44 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
     setPath(window.location.pathname);
   }, []);
   
-  const navLinks = nav ? [
-    ...nav,
-    { label: 'Contact', href: '/contact' },
-  ] : [{ label: 'Contact', href: '/contact' }];
+  const navLinks = nav ?? [];
+  const contactLink = { id: 'contact', link: { label: 'Contact', type: 'internal', internalRef: 'contact' }};
 
   const finalLogoUrl = logo?.src || "";
   const finalSiteTitle = siteTitle || siteConfig.name;
+
+  const renderLink = (item: NavLink, isMobile = false) => {
+    const { href, target, rel, label, isActive } = resolveCmsLink(item.link, path);
+    if (!href) return null;
+    
+    if (isMobile) {
+      return (
+        <Link
+          key={item.id}
+          href={href}
+          target={target}
+          rel={rel}
+          onClick={() => setMobileMenuOpen(false)}
+          className="text-lg font-medium text-foreground/80 transition-colors hover:text-primary"
+        >
+          {label}
+        </Link>
+      );
+    }
+
+    return (
+      <Link
+        key={item.id}
+        href={href}
+        target={target}
+        rel={rel}
+        aria-current={isActive ? "page" : undefined}
+        className={`text-sm font-medium text-[var(--color-graphite)] hover:text-[var(--color-blue)] ${isActive ? "text-[var(--color-blue)]" : ""}`}
+      >
+        {label}
+      </Link>
+    );
+  }
 
   return (
     <header
@@ -55,19 +88,7 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
           </Link>
         </div>
         <nav className="header-nav hidden md:flex items-center gap-6">
-          {nav?.map(link => {
-            const isActive = path === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={isActive ? "page" : undefined}
-                className={`text-sm font-medium text-[var(--color-graphite)] hover:text-[var(--color-blue)] ${isActive ? "text-[var(--color-blue)]" : ""}`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
+          {navLinks.map(link => renderLink(link))}
         </nav>
         <div className="hidden md:flex">
              <Link href="/contact">
@@ -100,16 +121,7 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
                             )}
                         </Link>
                         <nav className="flex flex-col gap-4">
-                            {navLinks.map(link => (
-                                <Link
-                                  key={link.href}
-                                  href={link.href}
-                                  onClick={() => setMobileMenuOpen(false)}
-                                  className="text-lg font-medium text-foreground/80 transition-colors hover:text-primary"
-                                >
-                                {link.label}
-                                </Link>
-                            ))}
+                            {[...navLinks, contactLink].map(link => renderLink(link, true))}
                         </nav>
                     </div>
                 </SheetContent>

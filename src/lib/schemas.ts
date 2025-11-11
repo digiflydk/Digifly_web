@@ -3,9 +3,24 @@
 import { z } from "zod";
 
 // Base primitives
+export const CmsLinkSchema = z.object({
+  label: z.string().default(''),
+  type: z.enum(['internal', 'external']).default('internal'),
+  internalRef: z.string().optional(),
+  externalUrl: z.string().optional(),
+  newTab: z.boolean().default(false),
+}).superRefine((data, ctx) => {
+    if (data.type === 'internal' && !data.internalRef) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['internalRef'], message: 'Internal page selection is required.' });
+    }
+    if (data.type === 'external' && (!data.externalUrl || !z.string().url().safeParse(data.externalUrl).success)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['externalUrl'], message: 'A valid external URL is required.' });
+    }
+});
+
 export const NavLinkSchema = z.object({
-  label: z.string(),
-  href: z.string(),
+  id: z.string().optional(), // for useFieldArray key
+  link: CmsLinkSchema
 });
 
 export const SiteSettingsSchema = z.object({
@@ -36,12 +51,12 @@ export const SiteSettingsSchema = z.object({
 
 
 export const NavigationSchema = z.object({
-  header: z.array(z.object({ label: z.string(), href: z.string() })),
+  header: z.array(NavLinkSchema).default([]),
   footer: z.object({
     columns: z.array(z.object({
       title: z.string(),
-      links: z.array(z.object({ label: z.string(), href: z.string() }))
-    }))
+      links: z.array(NavLinkSchema)
+    })).default([])
   })
 });
 
@@ -50,7 +65,7 @@ export const HeroSlideSchema = z.object({
       subheading: z.string(),
       body: z.string().optional(),
       image: z.object({ src: z.string().optional(), alt: z.string().optional() }).optional(),
-      cta: z.object({ href: z.string().optional(), label: z.string().optional() }).optional(),
+      cta: CmsLinkSchema.optional(),
       visible: z.boolean().default(true)
 });
 
@@ -61,7 +76,7 @@ export const HomepageSchema = z.object({
   }),
   cta: z.object({
     text: z.string(),
-    button: z.object({ label: z.string(), href: z.string() })
+    button: CmsLinkSchema
   }).optional(),
   intro: z.object({
     tagline: z.string().optional(),
@@ -178,7 +193,7 @@ export interface AuditLog {
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
 export type HomePage   = z.infer<typeof HomepageSchema>;
 export const BasePageSchema = z.object({ slug: z.string(), title: z.string().optional() });
-export const NavItemSchema  = z.object({ label: z.string(), href: z.string() });
+export const NavItemSchema  = NavLinkSchema;
 export const BrandSchema    = z.object({
   name: z.string(),
   logo: z.object({ src: z.string(), alt: z.string(), height: z.number().optional(), width: z.number().optional() }),
@@ -186,8 +201,10 @@ export const BrandSchema    = z.object({
 });
 export const DesignSettingsSchema = SiteSettingsSchema; // alias to satisfy imports
 export type Navigation = z.infer<typeof NavigationSchema>;
-export type HeroSlide = z.infer<typeof HomepageSchema>["hero"]["slides"][number];
+export type HeroSlide = z.infer<typeof HeroSlideSchema>;
 export type Case = z.infer<typeof CaseSchema>;
+export type NavLink = z.infer<typeof NavLinkSchema>;
+export type CmsLink = z.infer<typeof CmsLinkSchema>;
 
 
 export const allSchemas = {
