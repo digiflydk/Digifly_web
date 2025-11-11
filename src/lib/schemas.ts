@@ -149,7 +149,10 @@ export const CaseSchema = z.object({
   excerpt: z.string().optional(),
   summary: z.string().optional(),
   content: z.any().optional(),
-  cover: z.object({ src: z.string(), alt: z.string().optional() }).optional(),
+  cover: z.object({ 
+    src: z.string().default(""), 
+    alt: z.string().optional() 
+  }).optional(),
   coverImage: z.object({ src: z.string(), alt: z.string().optional() }).optional(), // legacy alias
   seo: CaseSeoSchema.optional(),
   metrics: z.array(CaseMetricSchema).optional(),
@@ -183,6 +186,7 @@ export const BrandSchema    = z.object({
 export const DesignSettingsSchema = SiteSettingsSchema; // alias to satisfy imports
 export type Navigation = z.infer<typeof NavigationSchema>;
 export type HeroSlide = z.infer<typeof HomepageSchema>["hero"]["slides"][number];
+export type Case = z.infer<typeof CaseSchema>;
 
 
 export const allSchemas = {

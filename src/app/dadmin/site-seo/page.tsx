@@ -15,6 +15,6 @@ export async function generateMetadata(): Promise<Metadata> {
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const settings = await getSiteSettings().catch(() => null);
-  return <SiteSeoForm initialData={settings} />;
+  const initialData = await getSiteSettings();
+  return <SiteSeoForm initialData={initialData} />;
 }

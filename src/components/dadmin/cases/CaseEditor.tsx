@@ -8,22 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
+import type { Case } from "@/lib/schemas";
 
-// Local type definition to avoid import errors
-type CaseDoc = {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt?: string;
-  content?: any;
-  cover?: { src?: string; alt?: string };
-  published?: boolean;
-  status?: "draft" | "published";
-  meta?: { tags?: string[] };
-};
 
-export default function CaseEditor({ id, initial }: { id: string; initial: CaseDoc | null }) {
-  const [model, setModel] = useState<CaseDoc>(
+export default function CaseEditor({ id, initial }: { id: string; initial: Case | null }) {
+  const [model, setModel] = useState<Case>(
     initial ?? {
       id,
       title: "",

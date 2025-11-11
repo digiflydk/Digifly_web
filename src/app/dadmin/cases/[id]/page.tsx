@@ -3,6 +3,8 @@ import CaseEditor from "@/components/dadmin/cases/CaseEditor";
 import { getCaseById } from "@/lib/cms-api";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
+import type { Case } from "@/lib/schemas";
+
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +12,7 @@ type PageCtx = { params: Promise<{ id: string }> };
 
 export default async function Page({ params }: PageCtx) {
   const { id } = await params;
-  let initial: any = null;
+  let initial: Case | null = null;
   let error: string | null = null;
   try {
     const data = await getCaseById(id);

@@ -12,7 +12,7 @@ import {
   ContactPageSchema,
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { HomePage, Navigation, CaseDoc, SiteSettings } from '@/lib/types';
+import type { HomePage, Navigation, Case, SiteSettings } from '@/lib/schemas';
 
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -155,9 +155,9 @@ export async function getCasesServer(options: { publishedOnly?: boolean } = { pu
   return z.array(CaseSchema.partial()).parse(rows);
 }
 
-export async function getCases(searchParams?: URLSearchParams): Promise<CaseDoc[]> {
+export async function getCases(searchParams?: URLSearchParams): Promise<Case[]> {
     const data = await getCasesServer({ publishedOnly: true });
-    return data as CaseDoc[];
+    return data as Case[];
 }
 
 export async function listCaseSlugs(): Promise<string[]> {
@@ -169,7 +169,7 @@ export async function listCaseSlugs(): Promise<string[]> {
     return snap.docs.map(d => d.data().slug).filter(Boolean);
 }
 
-export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
+export async function getCaseBySlug(slug: string): Promise<Case | null> {
     const db = await getDb();
     const snap = await db.collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
     if (snap.empty) {
@@ -180,12 +180,12 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     const parsed = CaseSchema.safeParse(rawData);
     if (!parsed.success) {
       console.warn(`[getCaseBySlug] Zod validation failed for slug "${slug}"`);
-      return rawData as CaseDoc;
+      return rawData as Case;
     }
-    return parsed.data as CaseDoc;
+    return parsed.data as Case;
 }
 
-export async function getCaseById(id: string): Promise<CaseDoc> {
+export async function getCaseById(id: string): Promise<Case> {
   const db = await getDb();
   const snap = await db.collection('cases').doc(id).get();
 
@@ -198,7 +198,7 @@ export async function getCaseById(id: string): Promise<CaseDoc> {
   return parsed;
 }
 
-export async function createCase(data: Partial<CaseDoc>) {
+export async function createCase(data: Partial<Case>) {
     const { id, ...payload } = data;
     const db = await getDb();
     const ref = await db.collection(CMS_PATHS.cases).add({
@@ -211,7 +211,7 @@ export async function createCase(data: Partial<CaseDoc>) {
 }
 
 
-export async function updateCase(id: string, data: Partial<CaseDoc>) {
+export async function updateCase(id: string, data: Partial<Case>) {
     const db = await getDb();
     await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
     revalidatePath(`/cases/${id}`);
