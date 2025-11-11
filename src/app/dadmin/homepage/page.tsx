@@ -1,44 +1,14 @@
 
+import HomepageEditor from "@/components/cms/forms/HomepageEditor";
+import { getHomepage } from "./actions";
 
-import { HomepageForm } from "@/components/cms/forms/HomepageForm";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
-import { getHomepage, saveHomepage } from "./actions";
-
+export const dynamic = 'force-dynamic';
 
 export default async function HomepageAdminPage() {
     const result = await getHomepage({ debug: true });
 
-    if (!result.ok && !result.data) {
-        return (
-            <Alert variant="destructive">
-                <Terminal className="h-4 w-4" />
-                <AlertTitle>Failed to Load Homepage Data</AlertTitle>
-                <AlertDescription>{result.error}</AlertDescription>
-            </Alert>
-        );
-    }
-    
-    // We can still render the form with the best-effort data even if validation fails
+    // The editor now handles the alert, we just need to pass the data
     const data = result.data;
 
-    return (
-      <>
-        {result.issues && result.issues.length > 0 && (
-            <Alert variant="destructive" className="mb-4">
-                 <Terminal className="h-4 w-4" />
-                <AlertTitle>Data Validation Issues Detected</AlertTitle>
-                <AlertDescription>
-                    Some fields have validation errors but have been loaded with default values. Saving the form will fix them.
-                    <details className="mt-2 text-xs">
-                        <summary>View {result.issues.length} issues</summary>
-                        <pre className="mt-2 p-2 bg-black/10 rounded">{JSON.stringify(result.issues, null, 2)}</pre>
-                    </details>
-                </AlertDescription>
-            </Alert>
-        )}
-        <HomepageForm data={data} onSave={saveHomepage} />
-      </>
-    );
+    return <HomepageEditor initialData={data} />;
 }
