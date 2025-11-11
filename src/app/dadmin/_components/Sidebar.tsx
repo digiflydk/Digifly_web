@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, TerminalSquare } from "lucide-react";
+import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, TerminalSquare, Beaker } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -18,12 +18,16 @@ const menuItems = [
 ];
 
 const devMenuItems = [
+    { href: "/dadmin/docs", label: "Docs", icon: FileText },
+    { href: "/dadmin/developer/tests", label: "Playwright Tests", icon: Beaker },
     { href: "/dadmin/dev/api-map", label: "API Map", icon: Wrench },
-    { href: "/dadmin/api-explorer", label: "API Explorer", icon: TerminalSquare },
+    { href: "/dadmin/api-explorer", label: "API Explorer", icon: Beaker },
 ];
 
 function NavContent() {
   const pathname = usePathname();
+  // Always show dev menu in public mode
+  const showDevMenu = true; 
   
   const renderLink = (item: any) => {
     const isActive = (item.href === '/dadmin' && pathname === item.href) || (item.href !== '/dadmin' && pathname.startsWith(item.href));
@@ -58,12 +62,14 @@ function NavContent() {
         <ul className="space-y-1">
           {menuItems.map(renderLink)}
         </ul>
-        <div className="mt-6">
-            <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Developer</p>
-            <ul className="space-y-1 mt-2">
-                {devMenuItems.map(renderLink)}
-            </ul>
-        </div>
+        {showDevMenu && (
+          <div className="mt-6">
+              <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Developer</p>
+              <ul className="space-y-1 mt-2">
+                  {devMenuItems.map(renderLink)}
+              </ul>
+          </div>
+        )}
       </nav>
     </>
   )
