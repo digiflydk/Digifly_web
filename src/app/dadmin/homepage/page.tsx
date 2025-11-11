@@ -1,6 +1,5 @@
 
 
-
 import { HomepageForm } from "@/components/cms/forms/HomepageForm";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -9,7 +8,7 @@ import { getHomepage, saveHomepage } from "./actions";
 
 
 export default async function HomepageAdminPage() {
-    const result = await getHomepage();
+    const result = await getHomepage({ debug: true });
 
     if (!result.ok && !result.data) {
         return (
@@ -26,13 +25,16 @@ export default async function HomepageAdminPage() {
 
     return (
       <>
-        {result.issues && (
+        {result.issues && result.issues.length > 0 && (
             <Alert variant="destructive" className="mb-4">
                  <Terminal className="h-4 w-4" />
-                <AlertTitle>Data Validation Issues</AlertTitle>
+                <AlertTitle>Data Validation Issues Detected</AlertTitle>
                 <AlertDescription>
-                    Some fields have validation errors but have been loaded with default values. Saving will fix them.
-                    <pre className="mt-2 text-xs">{JSON.stringify(result.issues, null, 2)}</pre>
+                    Some fields have validation errors but have been loaded with default values. Saving the form will fix them.
+                    <details className="mt-2 text-xs">
+                        <summary>View {result.issues.length} issues</summary>
+                        <pre className="mt-2 p-2 bg-black/10 rounded">{JSON.stringify(result.issues, null, 2)}</pre>
+                    </details>
                 </AlertDescription>
             </Alert>
         )}

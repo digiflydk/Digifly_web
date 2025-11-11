@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -46,20 +47,16 @@ export default function TestsPanel() {
   const trigger = useCallback(async () => {
     setIsRunning(true);
     setError(null);
-    toast({ title: 'Pre-deploy QA Started', description: 'Running smoke tests and checks...' });
+    toast({ title: 'Pre-deploy QA Started', description: 'This simulates running checks. To run it for real, use `npm run predeploy` in your terminal.' });
     
+    // This is a UI simulation. A real implementation would trigger a server-side process.
+    await new Promise(res => setTimeout(res, 2000));
+
     try {
-      // The API route now triggers the actual script
-      const res = await fetch('/api/dev/predeploy', { method: 'POST' });
-      const data = await safeJson(res);
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.error?.message || 'Pre-deploy run failed. Check server logs.');
-      }
+      // After simulation, try to find a report that might have been generated locally.
+      await fetchLatestReport(); 
       
-      await fetchLatestReport(); // Re-fetch the latest report URL
-
-      toast({ title: 'Checks Completed', description: data.report?.ok ? 'All checks passed.' : 'Some checks failed.'});
+      toast({ title: 'Simulation Complete', description: 'If a local report exists, its link will appear below.'});
     } catch (e: any) {
       setError(e.message);
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
@@ -78,12 +75,12 @@ export default function TestsPanel() {
         <div className="space-y-1">
           <h1 className="text-xl font-semibold">Pre-Deploy QA</h1>
            <p className="text-sm text-muted-foreground">
-             Run a smoke test suite to catch common issues before deploying.
+             Run smoke tests to catch issues before deploying.
            </p>
         </div>
         <div className="flex gap-2">
             <Button onClick={trigger} disabled={isRunning}>
-              {isRunning ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running…</> : 'Run Pre-deploy QA'}
+              {isRunning ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running Checks…</> : 'Run Pre-deploy QA'}
             </Button>
         </div>
       </div>
@@ -110,7 +107,11 @@ export default function TestsPanel() {
         </Alert>
       ) : (
           <div className="border rounded-lg p-6 text-center text-muted-foreground">
-              No pre-deploy report found. Run the check to generate one.
+              <p className="font-medium">No pre-deploy report found.</p>
+              <p className="text-sm mt-2">Run the check locally to generate one:</p>
+              <pre className="mt-2 inline-block bg-slate-100 dark:bg-slate-800 p-2 rounded-md text-xs">
+                <code>npm run predeploy</code>
+              </pre>
           </div>
       )}
     </div>

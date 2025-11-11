@@ -7,7 +7,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -62,7 +62,7 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
         
         <div className="md:col-span-2 space-y-2">
              <FormField control={control} name={`hero.slides.${index}.body`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Body</FormLabel><FormControl><Textarea {...field} placeholder="Optional longer text." rows={2} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="text-xs">Body (optional)</FormLabel><FormControl><Textarea {...field} placeholder="Optional longer text." rows={2} /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
         
@@ -74,7 +74,7 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
                 <FormItem><FormLabel className="text-xs">CTA Link</FormLabel><FormControl><Input {...field} placeholder="/services" /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 flex items-center justify-between">
             <FormField
               control={control}
               name={`hero.slides.${index}.visible`}
@@ -90,12 +90,10 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
                 </FormItem>
               )}
             />
+             <Button type="button" variant="ghost" size="sm" onClick={() => remove(index)} className="text-destructive hover:text-destructive-foreground hover:bg-destructive">
+                <Trash className="h-4 w-4 mr-2" /> Remove Slide
+            </Button>
         </div>
-      </div>
-      <div className="flex items-center h-10 pt-6">
-        <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-destructive hover:text-destructive-foreground hover:bg-destructive h-10 w-10">
-            <Trash className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   );

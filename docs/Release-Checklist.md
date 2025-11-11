@@ -2,16 +2,16 @@
 
 Follow these steps to ensure a safe and stable deployment.
 
-### 1. Run Pre-deploy QA
+### 1. Run Pre-deploy QA (Locally)
 
-- **Navigate** to the **Developer > Playwright Tests** section in the admin panel (`/dadmin/developer/tests`).
-- **Click** the "Run Pre-deploy QA" button.
-- **Wait** for the run to complete.
+- **Navigate** to your project root in the terminal.
+- **Run** the command: `npm run predeploy`
+- **Wait** for the run to complete. It will print a success or failure message.
 
 ### 2. Review the Report
 
-- **Click** the "View Report" link that appears.
-- **Verify** that all checks are green (passed).
+- The command will generate an HTML report in the `playwright-report/` directory.
+- Open this report and **verify** that all checks are green (passed).
 - If any checks are red (failed):
     - **Do not proceed.**
     - Open the failed test and read the error message.

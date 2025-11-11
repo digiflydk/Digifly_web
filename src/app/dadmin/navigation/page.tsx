@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getNavigation, updateNavigation } from "@/lib/cms";
+import { getNavigation, saveNavigation } from "@/lib/cms";
 import { NavEditor } from "./NavEditor";
 import type { Navigation } from "@/lib/types";
 import { toast } from "@/hooks/use-toast";
@@ -18,8 +18,8 @@ export default function NavigationPage() {
         try {
           await updateNavigation(values);
           toast({ title: "Success", description: "Navigation saved." });
-          // Optionally re-fetch or just trust the state
-          setData(values);
+          // Re-fetch to get the latest state after save, ensuring consistency
+          getNavigation().then(setData);
           return true;
         } catch (e: any) {
           toast({ title: "Error", description: e.message || "Could not save navigation.", variant: "destructive" });

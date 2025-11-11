@@ -9,7 +9,6 @@ import type { HomePage, HeroSlide } from "@/lib/types";
 import { MediaImage } from "../ui/media-image";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { RichText } from '../ui/rich-text';
 import { defaultHomepage } from '@/lib/defaults/siteDefaults';
 
 type HeroData = HomePage["hero"];
@@ -19,7 +18,7 @@ export default function Hero({ data }: { data?: HeroData | null }) {
     const { slides = [], rotationDelaySec = 5 } = safeData;
     const [index, setIndex] = useState(0);
     
-    const visibleSlides = slides.filter(slide => slide.visible);
+    const visibleSlides = slides.filter(slide => slide.visible !== false);
     const hasMultipleImages = visibleSlides.length > 1;
 
     useEffect(() => {
@@ -44,7 +43,7 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                          <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
                            Welcome
                         </h1>
-                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">Hero content is not configured.</p>
+                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">Hero content is not configured. Please add slides in the CMS.</p>
                     </div>
                 </div>
             </section>
