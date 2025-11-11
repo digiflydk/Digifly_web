@@ -9,9 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { getPublishedPagesList } from "@/lib/cms-server";
-import { CmsLink } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Globe, File, Link as LinkIcon } from "lucide-react";
+import { File, Globe } from "lucide-react";
 
 type PageInfo = { id: string; title: string; path: string };
 
@@ -34,7 +33,7 @@ export function LinkPicker({ namePrefix }: LinkPickerProps) {
     if (newType === 'internal') {
         setValue(`${namePrefix}.externalUrl`, '', { shouldDirty: true });
     } else {
-        setValue(`${namePrefix}.internalRef`, '', { shouldDirty: true });
+        setValue(`${namePrefix}.internalRef`, null, { shouldDirty: true });
     }
   };
   
@@ -46,7 +45,7 @@ export function LinkPicker({ namePrefix }: LinkPickerProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Label</FormLabel>
-            <FormControl><Input {...field} placeholder="e.g. Learn More" /></FormControl>
+            <FormControl><Input {...field} placeholder="e.g. Learn More" value={field.value ?? ''} /></FormControl>
             <FormMessage />
           </FormItem>
         )}
@@ -58,7 +57,7 @@ export function LinkPicker({ namePrefix }: LinkPickerProps) {
         render={({ field }) => (
             <FormItem>
                 <FormLabel>Link Type</FormLabel>
-                 <Select onValueChange={handleTypeChange} value={field.value}>
+                 <Select onValueChange={handleTypeChange} value={field.value ?? 'internal'}>
                     <FormControl>
                     <SelectTrigger>
                         <SelectValue placeholder="Select a link type" />
@@ -82,7 +81,7 @@ export function LinkPicker({ namePrefix }: LinkPickerProps) {
             <FormItem>
               <FormLabel>Page</FormLabel>
               {pages === null ? <Skeleton className="h-10 w-full" /> : (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value ?? ''}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Select a page" /></SelectTrigger></FormControl>
                   <SelectContent>
                     {pages.map(p => <SelectItem key={p.id} value={p.id}>{p.title} ({p.path})</SelectItem>)}
@@ -102,7 +101,7 @@ export function LinkPicker({ namePrefix }: LinkPickerProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>URL</FormLabel>
-              <FormControl><Input {...field} placeholder="https://example.com" /></FormControl>
+              <FormControl><Input {...field} placeholder="https://example.com" value={field.value ?? ''} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -114,7 +113,7 @@ export function LinkPicker({ namePrefix }: LinkPickerProps) {
         name={`${namePrefix}.newTab`}
         render={({ field }) => (
           <FormItem className="flex items-center gap-2 pt-2">
-            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} id={`${namePrefix}-new-tab`} /></FormControl>
+            <FormControl><Switch checked={field.value ?? false} onCheckedChange={field.onChange} id={`${namePrefix}-new-tab`} /></FormControl>
             <Label htmlFor={`${namePrefix}-new-tab`} className="!mt-0">Open in new tab</Label>
           </FormItem>
         )}

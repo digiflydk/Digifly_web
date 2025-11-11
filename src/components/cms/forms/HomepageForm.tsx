@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -36,7 +35,7 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
 
   return (
     <div ref={setNodeRef} style={style} className={cn("flex gap-2 items-start p-3 rounded-lg border", isDragging ? 'bg-slate-50 shadow-lg' : 'bg-white')}>
-      <div className="flex items-center h-10 pt-6">
+      <div className="flex items-center h-10 pt-8">
         <button type="button" {...attributes} {...listeners} className="p-2 text-slate-500 cursor-grab focus:cursor-grabbing focus:bg-slate-100 rounded">
             <GripVertical className="h-5 w-5" />
         </button>
@@ -45,25 +44,25 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
         
         <div className="space-y-2">
             <FormField control={control} name={`hero.slides.${index}.image.src`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Image URL</FormLabel><FormControl><Input {...field} placeholder="/media/hero.jpg" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="text-xs">Image URL</FormLabel><FormControl><Input {...field} value={field.value ?? ''} placeholder="/media/hero.jpg" /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={control} name={`hero.slides.${index}.image.alt`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Image Alt Text</FormLabel><FormControl><Input {...field} placeholder="Description of image" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="text-xs">Image Alt Text</FormLabel><FormControl><Input {...field} value={field.value ?? ''} placeholder="Description of image" /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
 
         <div className="space-y-2">
             <FormField control={control} name={`hero.slides.${index}.heading`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Heading</FormLabel><FormControl><Input {...field} placeholder="Slide-specific title" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="text-xs">Heading</FormLabel><FormControl><Input {...field} value={field.value ?? ''} placeholder="Slide-specific title" /></FormControl><FormMessage /></FormItem>
             )} />
              <FormField control={control} name={`hero.slides.${index}.subheading`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Subheading</FormLabel><FormControl><Input {...field} placeholder="Brief text for the slide" /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="text-xs">Subheading</FormLabel><FormControl><Input {...field} value={field.value ?? ''} placeholder="Brief text for the slide" /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
         
         <div className="md:col-span-2 space-y-2">
              <FormField control={control} name={`hero.slides.${index}.body`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Body (optional)</FormLabel><FormControl><Textarea {...field} placeholder="Optional longer text." rows={2} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel className="text-xs">Body (optional)</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} placeholder="Optional longer text." rows={2} /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
         
@@ -80,7 +79,7 @@ function SortableSlideItem({ id, index, control, remove }: { id: string; index: 
                 <FormItem className="flex flex-row items-center justify-start gap-2 pt-2">
                   <FormControl>
                     <Switch
-                      checked={field.value}
+                      checked={field.value ?? false}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
@@ -112,6 +111,7 @@ export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: 
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: "hero.slides",
+    keyName: "fieldId"
   });
 
   async function onSubmit(values: z.infer<typeof HomepageSchema>) {
@@ -129,8 +129,8 @@ export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIndex = fields.findIndex(item => item.id === active.id);
-      const newIndex = fields.findIndex(item => item.id === over.id);
+      const oldIndex = fields.findIndex(item => item.fieldId === active.id);
+      const newIndex = fields.findIndex(item => item.fieldId === over.id);
       move(oldIndex, newIndex);
     }
   }
@@ -147,10 +147,10 @@ export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: 
                 <div className="p-4 border rounded-lg bg-slate-50/50">
                     {fields.length > 0 ? (
                         <DndContext sensors={[]} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
-                            <SortableContext items={fields} strategy={verticalListSortingStrategy}>
+                            <SortableContext items={fields.map(f => f.fieldId)} strategy={verticalListSortingStrategy}>
                                 <div className="space-y-3">
                                 {fields.map((field, index) => (
-                                    <SortableSlideItem key={field.id} id={field.id} index={index} control={form.control} remove={remove} />
+                                    <SortableSlideItem key={field.fieldId} id={field.fieldId} index={index} control={form.control} remove={remove} />
                                 ))}
                                 </div>
                             </SortableContext>
@@ -176,7 +176,7 @@ export function HomepageForm({ data, onSave }: { data: HomePage, onSave: (data: 
                         name="hero.rotationDelaySec"
                         render={({ field }) => (
                             <FormItem>
-                                <Select onValueChange={(value) => field.onChange(Number(value))} value={String(field.value)}>
+                                <Select onValueChange={(value) => field.onChange(Number(value))} value={String(field.value ?? 5)}>
                                     <FormControl>
                                     <SelectTrigger className="w-[120px]">
                                         <SelectValue placeholder="Delay" />

@@ -1,19 +1,18 @@
 
-
 import { z } from "zod";
 
 // Base primitives
 export const CmsLinkSchema = z.object({
   label: z.string().default(''),
   type: z.enum(['internal', 'external']).default('internal'),
-  internalRef: z.string().optional(),
-  externalUrl: z.string().optional(),
+  internalRef: z.string().nullable().default(null),
+  externalUrl: z.string().url().or(z.literal('')).default(''),
   newTab: z.boolean().default(false),
 }).superRefine((data, ctx) => {
     if (data.type === 'internal' && !data.internalRef) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['internalRef'], message: 'Internal page selection is required.' });
     }
-    if (data.type === 'external' && (!data.externalUrl || !z.string().url().safeParse(data.externalUrl).success)) {
+    if (data.type === 'external' && !data.externalUrl) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['externalUrl'], message: 'A valid external URL is required.' });
     }
 });
@@ -61,18 +60,21 @@ export const NavigationSchema = z.object({
 });
 
 export const HeroSlideSchema = z.object({
-      heading: z.string(),
-      subheading: z.string(),
-      body: z.string().optional(),
-      image: z.object({ src: z.string().optional(), alt: z.string().optional() }).optional(),
+      heading: z.string().default(''),
+      subheading: z.string().default(''),
+      body: z.string().optional().default(''),
+      image: z.object({ 
+        src: z.string().optional().default(''), 
+        alt: z.string().optional().default('')
+      }).optional().default({}),
       cta: CmsLinkSchema.optional(),
       visible: z.boolean().default(true)
 });
 
 export const HomepageSchema = z.object({
   hero: z.object({
-    rotationDelaySec: z.number().default(6),
-    slides: z.array(HeroSlideSchema)
+    rotationDelaySec: z.number().default(5),
+    slides: z.array(HeroSlideSchema).default([])
   }),
   cta: z.object({
     text: z.string(),
@@ -203,7 +205,6 @@ export const DesignSettingsSchema = SiteSettingsSchema; // alias to satisfy impo
 export type Navigation = z.infer<typeof NavigationSchema>;
 export type HeroSlide = z.infer<typeof HeroSlideSchema>;
 export type Case = z.infer<typeof CaseSchema>;
-export type NavLink = z.infer<typeof NavLinkSchema>;
 export type CmsLink = z.infer<typeof CmsLinkSchema>;
 
 

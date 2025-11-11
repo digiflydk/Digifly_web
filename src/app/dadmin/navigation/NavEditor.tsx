@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { NavLinkSchema } from "@/lib/schemas";
 import { useState } from "react";
@@ -16,6 +15,7 @@ import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { LinkPicker } from "@/components/cms/inputs/LinkPicker";
+import { useFieldArray } from "react-hook-form";
 
 const FormSchema = z.object({
   items: z.array(NavLinkSchema),
@@ -40,7 +40,7 @@ function SortableItem({ id, index, control, remove }: { id: string; index: numbe
 
   return (
     <div ref={setNodeRef} style={style} className={`flex gap-2 items-start p-2 rounded-md ${isDragging ? 'bg-slate-50 shadow-lg' : ''}`}>
-      <div className="flex items-center h-10">
+      <div className="flex items-center h-10 pt-8">
         <button type="button" {...attributes} {...listeners} className="p-2 text-slate-500 cursor-grab focus:cursor-grabbing focus:bg-slate-100 rounded">
             <GripVertical className="h-5 w-5" />
         </button>
@@ -48,7 +48,7 @@ function SortableItem({ id, index, control, remove }: { id: string; index: numbe
       <div className="flex-1">
         <LinkPicker namePrefix={`items.${index}.link`} />
       </div>
-      <div className="flex items-center h-10">
+      <div className="flex items-center h-10 pt-8">
         <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-destructive hover:text-destructive-foreground hover:bg-destructive h-10 w-10">
             <Trash className="h-4 w-4" />
         </Button>
@@ -69,13 +69,14 @@ export function NavEditor({ title, description, items, onSave }: NavEditorProps)
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: "items",
+    keyName: "fieldId",
   });
 
   async function onSubmit(values: z.infer<typeof FormSchema>) {
     setIsSaving(true);
     const success = await onSave(values.items);
     if (success) {
-      form.reset(values); // Re-sync form state with successfully saved data
+      form.reset(values);
     }
     setIsSaving(false);
   }
@@ -83,8 +84,8 @@ export function NavEditor({ title, description, items, onSave }: NavEditorProps)
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIndex = fields.findIndex(item => item.id === active.id);
-      const newIndex = fields.findIndex(item => item.id === over.id);
+      const oldIndex = fields.findIndex(item => item.fieldId === active.id);
+      const newIndex = fields.findIndex(item => item.fieldId === over.id);
       move(oldIndex, newIndex);
     }
   }
@@ -106,21 +107,21 @@ export function NavEditor({ title, description, items, onSave }: NavEditorProps)
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <DndContext sensors={[]} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
-              <SortableContext items={fields} strategy={verticalListSortingStrategy}>
+              <SortableContext items={fields.map(f => f.fieldId)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-2">
                   {fields.map((field, index) => (
-                    <SortableItem key={field.id} id={field.id} index={index} control={form.control} remove={() => setDeleteIndex(index)} />
+                    <SortableItem key={field.fieldId} id={field.fieldId} index={index} control={form.control} remove={() => setDeleteIndex(index)} />
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
 
             <div className="flex justify-between items-center pt-4">
-              <Button type="button" variant="outline" size="sm" onClick={() => append({ link: { label: "", type: 'internal', internalRef: 'home' } })}>
+              <Button type="button" variant="outline" size="sm" onClick={() => append({ link: { label: "", type: 'internal', internalRef: 'home', externalUrl: '', newTab: false } })}>
                 <Plus className="mr-2 h-4 w-4" /> Add Link
               </Button>
               <div className="flex gap-2">
-                <Button type="button" variant="ghost" disabled={!form.formState.isDirty} onClick={() => form.reset()}>Reset</Button>
+                <Button type="button" variant="ghost" disabled={!form.formState.isDirty} onClick={() => form.reset({ items })}>Reset</Button>
                 <Button type="submit" disabled={isSaving || !form.formState.isDirty}>
                   {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
