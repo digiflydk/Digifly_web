@@ -83,3 +83,4 @@ If any step fails, the process will exit with a non-zero code, blocking the depl
 - "Ensure contact object is complete" in default data structures.
 - "Require `@types/lodash` to satisfy TS" for modules using it.
 - "Page components must fetch and pass required props (e.g. `initialData`)"
+- "Missing npm scripts referenced by predeploy (e.g. predeploy:guard, predeploy:typecheck). Ensure they exist in package.json before deploy."
