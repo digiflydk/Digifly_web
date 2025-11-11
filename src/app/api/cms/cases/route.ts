@@ -1,7 +1,8 @@
 
 import { NextResponse } from "next/server";
-import { CaseSchema, type CaseDoc } from "@/lib/schemas";
+import { CaseSchema } from "@/lib/schemas";
 import { createCase, getCases } from "@/lib/cms-server";
+import type { CaseDoc } from "@/lib/types";
 
 type Ok<T> = { ok: true; data: T };
 type Err = { ok: false; error: string; issues?: any[] };

@@ -1,3 +1,4 @@
+
 # 🔧 Build & Development Guidelines (Digifly Studio)
 
 These rules keep our Firebase + Next.js project stable in App Hosting and prevent common build breaks.
@@ -30,8 +31,8 @@ These rules keep our Firebase + Next.js project stable in App Hosting and preven
 - All inputs use controlled values to avoid React warnings.
 
 ## 6. Developer Tools
-- `/dadmin/developer/docs` shows documentation from `/docs/dev/*.md`.  
-- `/dadmin/developer/playwright` runs tests and prints a JSON report.  
+- `/dadmin/developer/docs` shows documentation from `/docs/*.md`.  
+- `/dadmin/developer/tests` runs tests and prints a JSON report.  
 - Both must work without login and fail gracefully if no data.
 
 ## 7. Build Guards
@@ -47,3 +48,29 @@ If any of these fail, fix the offending file before retrying deploy.
 - Studio must **never edit `.env`** automatically.  
 - Only the owner updates `.env` manually.  
 - Guards and no-op patterns make CI safe even with empty `.env`.
+
+## 9. Pre-deploy Checklist & QA-gate
+This automated check runs before any deployment to ensure stability.
+
+### Guard Checks (npm run predeploy:guard)
+- **No `<Button href>`:** Ensures all buttons intended as links use the proper `asChild` prop with an `<a>` tag.
+- **No `server-only` in scripts:** Prevents build-time scripts from importing server-only code.
+- **Valid `use server` exports:** Ensures files with `"use server"` only export async functions.
+- **No deprecated keys:** Checks for outdated Firestore keys like `siteTitle`, `brand.logo.src`, etc.
+
+### Type Safety (npm run predeploy:typecheck)
+- Runs `tsc --noEmit` to catch any TypeScript errors.
+
+### Schema Validation (npm run predeploy:qa)
+- Runs `scripts/predeploy/validate-schema.ts` to verify that `siteDefaults` and `emptySiteSettings` align with the master `SiteSettingsSchema`.
+- Confirms `manifest.ts` reads the correct keys (`settings.general.brandName`).
+
+### Command Chain
+The main command `npm run predeploy` executes all checks in sequence:
+1. `cms:seed` (safe no-op if no creds)
+2. `predeploy:guard`
+3. `predeploy:typecheck`
+4. `predeploy:qa`
+5. `scripts/predeploy/report.ts` (generates `public/dev/reports/predeploy.json`)
+
+If any step fails, the process will exit with a non-zero code, blocking the deployment and generating a report with the failure details.
