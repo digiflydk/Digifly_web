@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getNavigation, saveNavigation } from "@/lib/cms";
+import { updateNavigation } from "@/lib/cms";
 import { NavEditor } from "./NavEditor";
 import type { Navigation } from "@/lib/types";
 import { toast } from "@/hooks/use-toast";
@@ -12,15 +12,28 @@ export default function NavigationPage() {
     const [data, setData] = useState<Navigation | null>(null);
 
     useEffect(() => {
-        getNavigation().then(setData);
+        // Assuming getNavigation is also in cms and fetches both header and footer
+        async function loadNav() {
+            try {
+                const res = await fetch('/api/cms/navigation');
+                const json = await res.json();
+                if (!json.ok) throw new Error("Failed to load");
+                setData(json.data);
+            } catch {
+                setData({ header: [], footer: { columns: [] } }); // fallback
+            }
+        }
+        loadNav();
     }, []);
 
     const handleSave = async (values: Navigation) => {
         try {
-          await saveNavigation(values);
+          await updateNavigation(values);
           toast({ title: "Success", description: "Navigation saved." });
           // Re-fetch to get the latest state after save, ensuring consistency
-          getNavigation().then(setData);
+          const res = await fetch('/api/cms/navigation');
+          const json = await res.json();
+          setData(json.data);
           return true;
         } catch (e: any) {
           toast({ title: "Error", description: e.message || "Could not save navigation.", variant: "destructive" });

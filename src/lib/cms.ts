@@ -1,3 +1,4 @@
+
 "use server";
 
 import {
@@ -56,6 +57,7 @@ export async function updateNavigation(
 ) {
   return _saveNavigation?.(data);
 }
+export const saveNavigation = updateNavigation; // Alias
 
 /** -------- Cases helpers (+ param normalization) -------- */
 function toSearchParams(
