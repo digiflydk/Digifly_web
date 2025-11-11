@@ -3,46 +3,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+    // Public navigation (header/footer menus)
+    match /navigation/{navId} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // Public site settings: only this doc is publicly readable
-    match /settings/site {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-    
-    // Legacy collections locked to admin
+    // Public site settings (brand + basic SEO only)
     match /site/{docId} {
-      allow read, write: if isAdmin();
+      allow read: if true;
+      allow write: if request.auth != null;
     }
-    match /navigation/{doc=**} {
-      allow read, write: if isAdmin();
+
+    // CMS pages are public only when published == true
+    match /pages/{pageId} {
+      allow read: if resource.data.published == true;
+      allow write: if request.auth != null;
     }
-     match /pages/{doc=**} {
-      allow read: if resource.data.published == true || isAdmin();
-      allow write: if isAdmin();
-    }
+
+    // Case studies (public only when published)
     match /cases/{caseId} {
       allow read: if resource.data.published == true;
-      allow write: if isAdmin();
+      allow write: if request.auth != null;
     }
 
-    // Admin-only namespace
-    match /dadmin/{document=**} {
-      allow read, write: if isAdmin();
-    }
-    
-    // QA runs are readable by anyone, writable only by admins/functions
-    match /qa_runs/{runId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Default: deny all other access
-    match /{document=**} {
-      allow read, write: if false;
+    // QA reports remain private (admin-only)
+    match /qaReports/{reportId} {
+      allow read, write: if request.auth != null;
     }
   }
 }
