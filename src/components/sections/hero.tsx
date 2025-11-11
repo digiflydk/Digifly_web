@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -96,7 +95,7 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                         </h1>
                     )}
                     {currentSlide.subheading && (
-                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">{currentSlide.subheading}</p>
+                        <p className="mt-4 max-w-2xl text-base md:text-lg text-accent font-medium">{currentSlide.subheading}</p>
                     )}
                     {currentSlide.body && (
                         <div className="prose prose-lg mt-4 max-w-none text-muted-foreground">
