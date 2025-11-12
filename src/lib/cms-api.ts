@@ -34,5 +34,3 @@ export const getCaseBySlug = _getCaseBySlug;
 export const createCase = _createCase;
 export const updateCase = _updateCase;
 export const deleteCase = _deleteCase;
-
-    
