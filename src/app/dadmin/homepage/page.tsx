@@ -1,13 +1,12 @@
 
 import HomepageEditor from "@/components/cms/forms/HomepageEditor";
-import { getHomepage } from "./actions";
+import { getHomepage as getHomepageServer } from "@/lib/cms-server";
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomepageAdminPage() {
-    const result = await getHomepage({ debug: true });
-
-    // The editor now handles the alert, we just need to pass the data
+    // Fetch data on the server during the initial render
+    const result = await getHomepageServer({ debug: true });
     const data = result.data;
 
     return <HomepageEditor initialData={data} />;

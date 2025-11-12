@@ -16,20 +16,33 @@ export type CurrentUser = {
   role: Role | null;
 };
 
-export async function createSessionCookie(idToken: string): Promise<void> {
+export async function createSessionCookie(idToken: string, reqUrl: string): Promise<void> {
   const expiresIn = 60 * 60 * 24 * SESSION_DURATION_DAYS * 1000;
   const sessionCookie = await getAuth(getAdminApp()).createSessionCookie(idToken, { expiresIn });
+  
+  const host = new URL(reqUrl).hostname;
+  const isLocal = host.includes('localhost') || host.includes('.local');
+  const apexDomain = isLocal ? undefined : host.split('.').slice(-2).join('.');
+
   cookies().set(SESSION_COOKIE_NAME, sessionCookie, {
     maxAge: expiresIn,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     sameSite: 'lax',
+    domain: apexDomain,
   });
 }
 
-export async function clearSessionCookie(): Promise<void> {
-  cookies().delete(SESSION_COOKIE_NAME);
+export async function clearSessionCookie(reqUrl: string): Promise<void> {
+  const host = new URL(reqUrl).hostname;
+  const isLocal = host.includes('localhost') || host.includes('.local');
+  const apexDomain = isLocal ? undefined : host.split('.').slice(-2).join('.');
+
+  cookies().set(SESSION_COOKIE_NAME, '', { path: '/', maxAge: 0 });
+  if (apexDomain) {
+      cookies().set(SESSION_COOKIE_NAME, '', { path: '/', domain: `.${apexDomain}`, maxAge: 0 });
+  }
 }
 
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
@@ -46,8 +59,6 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
       role: (decodedClaims.role as Role) || null,
     };
   } catch (error) {
-    // Session cookie is invalid or expired.
-    // In a real app, you might want to log this error.
     return null;
   }
 });

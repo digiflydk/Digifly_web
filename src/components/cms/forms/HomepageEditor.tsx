@@ -4,7 +4,6 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { saveHomepageAction } from "@/app/dadmin/homepage/actions";
 import type { HomePage } from "@/lib/types";
 import { HomepageSchema } from "@/lib/schemas";
 import HeroForm from "./sections/HeroForm";
@@ -27,13 +26,20 @@ export default function HomepageEditor({ initialData }: { initialData: HomePage 
   const onSubmit = methods.handleSubmit((data) => {
     startTransition(async () => {
       try {
-        const result = await saveHomepageAction(data);
-        if (result.ok) {
-            toast({ title: "Saved", description: "Homepage updated." });
-            methods.reset(data);
-        } else {
-            throw new Error(result.error || "An unknown error occurred.");
+        const response = await fetch('/api/admin/homepage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `HTTP ${response.status}`);
         }
+        
+        toast({ title: "Saved", description: "Homepage updated." });
+        methods.reset(data);
+
       } catch (e: any) {
         toast({ title: "Error", description: e?.message ?? "Save failed", variant: "destructive" });
       }

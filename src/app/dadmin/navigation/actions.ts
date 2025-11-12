@@ -3,12 +3,12 @@
 
 import { revalidatePath } from "next/cache";
 import type { Navigation } from "@/lib/schemas";
-import { updateNavigation } from "@/lib/server/cms-actions";
+import { updateNavigation as saveNavigationServer } from "@/lib/server/cms-actions";
 import { z } from "zod";
 
 export async function saveNavigationAction(data: Navigation): Promise<{ ok: boolean; error?: string; issues?: z.ZodIssue[] }> {
   try {
-    const result = await updateNavigation(data);
+    const result = await saveNavigationServer(data);
     revalidatePath("/dadmin/navigation");
     revalidatePath("/", "layout");
     return result;

@@ -9,35 +9,32 @@ service cloud.firestore {
     // Public site reads
     match /site/{doc} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
     
     match /pages/{pageId} {
-      allow read: if true;
-      allow write: if isAdmin(); // Allow admins to write
+      allow read: if true; // Public pages are world-readable
+      allow write: if isAdmin(); // But only admins can write
     }
     
     match /cases/{caseId} {
-      // Allow public read only if published
       allow read: if resource.data.published == true;
-      // Allow admins to list/write all cases
       allow list, write: if isAdmin();
     }
     
-    // Admin-managed CMS (navigation)
-    match /cms/{docId} {
-      allow read, write: if isAdmin();
-    }
-    
+    // Admin-managed CMS (navigation, etc)
     match /navigation/{docId} {
-        allow read, write: if isAdmin();
+        allow read: if true; // Nav is public
+        allow write: if isAdmin();
     }
 
     match /admins/{uid} {
       allow read, write: if isAdmin();
     }
+
     match /auditLogs/{logId} {
-        allow read, write: if isAdmin();
+        allow create: if isAuthed(); // Allow authenticated users to create logs
+        allow read, update, delete: if isAdmin(); // Admins can manage all logs
     }
   }
 }

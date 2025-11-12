@@ -1,28 +1,25 @@
 
 "use server";
 import 'server-only';
-import { getDb } from "@/lib/firebase-admin";
+import { getDb as getAdminDb } from "@/lib/firebase-admin";
 import { NavigationSchema, HomepageSchema, type Navigation } from "@/lib/schemas";
 import { revalidatePath } from 'next/cache';
 import { CMS_PATHS } from "../constants";
-import { defaultHomepage, defaultNavigation, normalizeHome } from "../defaults/siteDefaults";
 
 export async function getNavigation(): Promise<Navigation> {
-    const db = await getDb();
+    const db = await getAdminDb();
     const snap = await db.doc(CMS_PATHS.navigation).get();
-    if (!snap.exists) return defaultNavigation;
-
-    const parsed = NavigationSchema.safeParse(snap.data());
-    if (parsed.success) {
-        return parsed.data;
+    if (!snap.exists) {
+        // Return a default structure if the doc doesn't exist
+        return { header: [], footer: { columns: [] } };
     }
-    console.warn("[getNavigation] Zod validation failed. Returning default.", parsed.error);
-    return defaultNavigation;
+    const parsed = NavigationSchema.parse(snap.data());
+    return parsed;
 }
 
 export async function updateNavigation(payload: unknown): Promise<{ ok: true }> {
     const parsed = NavigationSchema.parse(payload);
-    const db = await getDb();
+    const db = await getAdminDb();
     await db.doc(CMS_PATHS.navigation).set(parsed, { merge: true });
     revalidatePath("/", "layout");
     revalidatePath("/dadmin/navigation");
@@ -30,17 +27,17 @@ export async function updateNavigation(payload: unknown): Promise<{ ok: true }> 
 }
 
 export async function getHomepageServer() {
-  const db = await getDb();
+  const db = await getAdminDb();
   const snap = await db.doc(CMS_PATHS.page('home')).get();
   const data = snap.exists ? snap.data() : {};
-  const normalized = normalizeHome(data);
-  return HomepageSchema.parse(normalized);
+  // Assuming normalizeHome is defined elsewhere to handle data migrations/defaults
+  // const normalized = normalizeHome(data); 
+  return HomepageSchema.parse(data);
 }
 
 export async function saveHomepageServer(payload: unknown) {
-  const normalized = normalizeHome(payload);
-  const parsed = HomepageSchema.parse(normalized);
-  const db = await getDb();
+  const parsed = HomepageSchema.parse(payload);
+  const db = await getAdminDb();
   await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
   return { ok: true };
 }
