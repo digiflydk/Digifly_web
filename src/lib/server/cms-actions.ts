@@ -40,5 +40,3 @@ export async function updateHomepage(payload: unknown) {
   await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
   return { ok: true };
 }
-
-    

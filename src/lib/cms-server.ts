@@ -105,7 +105,7 @@ function normalizeHero(data: any) {
   return data;
 }
 
-export function sanitizeHomepage(input: any): HomePage {
+function sanitizeHomepage(input: any): HomePage {
   let hp = deepmerge(defaultHomepage, input ?? {});
   hp = normalizeHero(hp); // Apply hero migration
   
