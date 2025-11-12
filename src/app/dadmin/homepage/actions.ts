@@ -3,72 +3,32 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getDb } from "@/lib/firebase-admin";
 import { HomepageSchema, type HomePage } from "@/lib/schemas";
 import { defaultHomepage, normalizeHome } from "@/lib/defaults/siteDefaults";
 import { zodErrorToIssues } from "@/lib/zod-helpers";
+import { saveHomepageServer as saveHomepageServerAction } from "@/lib/server/cms-actions";
 
 type GetHomepageResult =
   | { ok: true; data: HomePage; issues?: undefined }
   | { ok: false; error: string; data: HomePage; issues: z.ZodIssue[] };
 
-export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomepageResult> {
+// getHomepage remains the same as it uses the server-side cms-server which is fine
+import { getHomepage } from "@/lib/cms-server";
+export { getHomepage };
+
+
+export async function saveHomepageAction(data: HomePage) {
   try {
-    const db = await getDb();
-    const snap = await db.doc("pages/home").get();
-    
-    if (!snap.exists) {
-      return { ok: true, data: defaultHomepage };
+    const result = await saveHomepageServerAction(data);
+    revalidatePath("/", "layout");
+    revalidatePath("/dadmin/homepage");
+    return result;
+  } catch (e: any) {
+    if (e instanceof z.ZodError) {
+      console.error("Zod validation failed:", e.issues);
+      return { ok: false, error: "Validation failed", issues: e.issues };
     }
-
-    const raw = snap.data() || {};
-    const normalized = normalizeHome(raw);
-    const parsed = HomepageSchema.safeParse(normalized);
-
-    if (parsed.success) {
-      return { ok: true, data: parsed.data };
-    }
-
-    const issues = zodErrorToIssues(parsed.error);
-    if (process.env.NODE_ENV !== "production" || options.debug) {
-      console.warn("[getHomepage] Zod validation failed. Returning sanitized fallback.", {
-        issues,
-      });
-    }
-
-    // Return the sanitized data even if validation fails
-    const safeFallback = HomepageSchema.parse(normalized);
-
-    return {
-      ok: false,
-      error: "Validation failed, returning best-effort data.",
-      data: safeFallback,
-      issues,
-    };
-  } catch (err: any) {
-    console.error("[getHomepage] Firestore fetch failed:", err.message);
-    return {
-      ok: false,
-      error: err.message || "Failed to fetch from Firestore.",
-      data: defaultHomepage,
-      issues: [],
-    };
-  }
-}
-
-export async function saveHomepage(data: HomePage) {
-  try {
-    const db = await getDb();
-    const normalized = normalizeHome(data);
-    const parsed = HomepageSchema.parse(normalized);
-    await db.doc("pages/home").set(parsed, { merge: true });
-    revalidatePath("/", "layout"); // Revalidate homepage and potentially layouts using this data
-    return { ok: true, data: parsed };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { ok: false, error: "Validation failed", issues: error.issues };
-    }
-    console.error("[saveHomepage] Error:", error);
-    return { ok: false, error: (error as Error).message || "An unknown error occurred." };
+    console.error("[saveHomepageAction] Error:", e);
+    return { ok: false, error: e?.message ?? "Failed to save homepage" };
   }
 }

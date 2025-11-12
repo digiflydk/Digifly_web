@@ -3,15 +3,19 @@
 
 import { revalidatePath } from "next/cache";
 import type { Navigation } from "@/lib/schemas";
-import { updateNavigation as updateNavigationServer } from "@/lib/server/cms-actions";
+import { updateNavigation } from "@/lib/server/cms-actions";
+import { z } from "zod";
 
-export async function saveNavigationAction(data: Navigation): Promise<{ ok: boolean; error?: string }> {
+export async function saveNavigationAction(data: Navigation): Promise<{ ok: boolean; error?: string; issues?: z.ZodIssue[] }> {
   try {
-    await updateNavigationServer(data);
+    const result = await updateNavigation(data);
     revalidatePath("/dadmin/navigation");
     revalidatePath("/", "layout");
-    return { ok: true };
+    return result;
   } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      return { ok: false, error: "Validation failed", issues: err.issues };
+    }
     console.error("[saveNavigationAction] Error:", err);
     return { ok: false, error: err.message || "An unknown error occurred." };
   }
