@@ -1,7 +1,6 @@
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getCurrentUser } from "@/lib/auth/serverAuth";
 
 const ADMIN_ROUTES = ["/dadmin"];
 const BLOCKED_PATTERNS = [
@@ -39,23 +38,28 @@ export async function middleware(req: NextRequest) {
   }
   
   const isAdminRoute = ADMIN_ROUTES.some(p => pathname.startsWith(p));
+  const isLoginPage = pathname === '/dadmin/login';
 
-  // If it's not an admin route, or it's the login page itself, do nothing special yet.
-  if (!isAdminRoute || pathname === '/dadmin/login') {
+  // If it's not an admin route, do nothing.
+  if (!isAdminRoute) {
     return NextResponse.next();
   }
 
-  // Check for session for all other /dadmin routes
+  // Check for session cookie
   const hasSession = req.cookies.has('__session');
   
-  if (!hasSession) {
+  // If user is trying to access login page with a valid session, redirect to dashboard
+  if (isLoginPage && hasSession) {
+      // We assume the cookie is valid here; detailed validation happens in `getCurrentUser` on the page itself.
+      return NextResponse.redirect(new URL('/dadmin', req.url));
+  }
+  
+  // If user is trying to access a protected admin route without a session, redirect to login
+  if (!isLoginPage && !hasSession) {
     const url = new URL("/dadmin/login", req.url);
     url.searchParams.set("next", req.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
-
-  // If a session exists, you might perform further validation here (e.g., check token validity)
-  // For now, we assume a session cookie means the user is authenticated.
 
   return NextResponse.next();
 }

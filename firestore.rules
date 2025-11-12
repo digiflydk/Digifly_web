@@ -3,23 +3,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() { return request.auth != null; }
-    function isAdmin() {
-      // For this app, we assume writes are server-side via Admin SDK,
-      // which bypasses rules. This rule is a safeguard for any client-side attempts.
-      // A real implementation would check for a custom claim: request.auth.token.admin == true
-      return signedIn();
-    }
+    function isAuthed() { return request.auth != null; }
+    function isAdmin() { return isAuthed() && request.auth.token.role == "admin"; }
 
-    // Site settings and navigation are public-read
-    match /site/{docId} {
+    // Public site reads
+    match /site/{doc} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if false; // Only server can write
     }
     
     match /pages/{pageId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read: if true; // Public pages are world-readable
+      allow write: if isAdmin(); // But only admins can write
     }
     
     match /cases/{caseId} {
@@ -27,12 +22,19 @@ service cloud.firestore {
       allow list, write: if isAdmin();
     }
     
-    // Admin-only area for audit logs etc.
+    // Admin-managed CMS (navigation, etc)
+    match /navigation/{docId} {
+        allow read: if true; // Nav is public
+        allow write: if isAdmin();
+    }
+
     match /admins/{uid} {
       allow read, write: if isAdmin();
     }
+
     match /auditLogs/{logId} {
-        allow read, write: if isAdmin();
+        allow create: if isAuthed(); // Allow authenticated users to create logs
+        allow read, update, delete: if isAdmin(); // Admins can manage all logs
     }
   }
 }

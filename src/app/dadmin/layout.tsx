@@ -2,9 +2,16 @@
 import AdminShell from "./_components/AdminShell";
 import AdminFooter from "@/components/layout/AdminFooter";
 import { getCurrentUser } from "@/lib/auth/serverAuth";
+import { redirect } from "next/navigation";
 
 export default async function DadminLayout({ children }: { children: React.ReactNode; }) {
   const user = await getCurrentUser();
+  
+  // This check is redundant if middleware is working, but it's good practice for server components.
+  if (!user) {
+    redirect('/dadmin/login');
+  }
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-slate-50 text-slate-900 font-sans">

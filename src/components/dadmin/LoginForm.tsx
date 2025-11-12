@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase-client";
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,23 +24,30 @@ export default function LoginForm() {
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/simple', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const idToken = await userCredential.user.getIdToken();
+        
+        const response = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (data.ok) {
-        const nextUrl = searchParams.get('next') || '/dadmin';
-        router.push(nextUrl);
-        router.refresh();
-      } else {
-        setError(data.error || "Invalid credentials.");
-      }
-    } catch {
-      setError("An unexpected error occurred during login.");
+        if (data.ok) {
+            const nextUrl = searchParams.get('next') || '/dadmin';
+            router.push(nextUrl);
+            router.refresh(); // Important to re-fetch server components with new cookie
+        } else {
+            setError(data.error || "Login failed.");
+        }
+    } catch (err: any) {
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+            setError("Invalid email or password.");
+        } else {
+            setError("An unexpected error occurred during login.");
+        }
     } finally {
       setIsLoading(false);
     }
@@ -52,14 +61,14 @@ export default function LoginForm() {
         </Alert>
       )}
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="email">Email</Label>
         <Input
-          id="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
-          autoComplete="username"
+          autoComplete="email"
         />
       </div>
       <div className="space-y-2">

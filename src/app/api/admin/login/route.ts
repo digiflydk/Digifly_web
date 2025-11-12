@@ -1,8 +1,8 @@
 
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { createSessionCookie } from "@/lib/auth/serverAuth";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const { idToken } = await req.json();
     if (!idToken) {
