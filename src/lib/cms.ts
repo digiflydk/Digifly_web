@@ -18,11 +18,11 @@ import {
   getCaseBySlug as _getCaseBySlug,
   updateCase as _updateCase,
   createCase as _createCase,
-  deleteCaseServer as _deleteCase,
+  deleteCase as _deleteCase,
   updateHomepage as _updateHomepage,
   getSiteSettings as _getSiteSettings,
   saveSiteSettings as _saveSiteSettings,
-} from "@/lib/cms-server";
+} from "@/lib/cms-api"; // Correct: Import from the facade
 import { Navigation } from "./types";
 
 /** -------- Static pages (keep fallbacks to generic) -------- */
