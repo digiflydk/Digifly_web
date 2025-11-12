@@ -1,5 +1,6 @@
+
 import "server-only";
-import { db } from "./firebase/client";
+import { db } from "@/lib/firebase-client";
 import { doc, getDoc } from "firebase/firestore";
 import { HomepageSchema, NavigationSchema, SiteSettingsSchema } from "./schemas";
 import { sanitizeHomepage } from "./cms-sanitize";
