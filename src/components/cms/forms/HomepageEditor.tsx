@@ -28,11 +28,7 @@ export default function HomepageEditor({ initialData }: { initialData: HomePage 
   const onSubmit = methods.handleSubmit((data) => {
     startTransition(async () => {
       try {
-        const result = await saveHomepageAction(data);
-
-        if (!result.ok) {
-            throw new Error("Save failed");
-        }
+        await saveHomepageAction(data);
         
         toast({ title: "Saved", description: "Homepage updated." });
         methods.reset(data);

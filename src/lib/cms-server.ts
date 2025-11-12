@@ -125,6 +125,15 @@ export async function updateHomepage(data: HomePage) {
     return parsed;
 }
 
+export async function saveHomepage(data: unknown) {
+  const db = await getDb();
+  const sanitized = sanitizeHomepage(data);
+  const parsed = HomepageSchema.parse(sanitized);
+  await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 
 export async function getCasesServer(options: { publishedOnly?: boolean } = { publishedOnly: true }) {
   noStore();

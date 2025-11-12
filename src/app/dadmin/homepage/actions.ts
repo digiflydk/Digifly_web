@@ -1,7 +1,7 @@
 
 "use server";
-import { saveHomepageAction as saveAction } from "@/lib/server/cms-actions";
+import { saveHomepage as saveAction } from "@/lib/cms-server";
 
 export async function saveHomepageAction(payload: unknown) {
-    return await saveAction('default', payload);
+    return await saveAction(payload);
 }
