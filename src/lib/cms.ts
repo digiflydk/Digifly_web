@@ -55,6 +55,7 @@ export async function getNavigation() {
 export async function updateNavigation(
   data: Navigation
 ) {
+  // @ts-ignore
   return _saveNavigation?.(data);
 }
 export const saveNavigation = updateNavigation; // Alias

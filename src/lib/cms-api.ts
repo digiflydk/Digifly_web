@@ -24,7 +24,8 @@ import {
   getPageBySlug
 } from "./cms-server";
 
-import { saveNavigationAction as _saveNavigation } from '@/lib/server/cms-actions';
+import { saveNavigationAction as _saveNavigation } from '@/app/dadmin/navigation/actions';
+
 
 // Re-exporting functions to maintain a stable API surface for components.
 export const getHomepage = _getHomepage;
