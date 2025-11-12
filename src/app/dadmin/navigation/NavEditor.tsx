@@ -10,16 +10,17 @@ import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { saveNavigationAction } from "./actions";
 import NavItemsList from "./NavItemsList";
+import { defaultNavigation } from "@/lib/defaults/siteDefaults";
 
 type PageInfo = { id: string; title: string; path: string };
 
 export default function NavEditor({ initialData, pages }: {
-  initialData: Navigation;
+  initialData: Navigation | null;
   pages: PageInfo[];
 }) {
   const methods = useForm<Navigation>({
     resolver: zodResolver(NavigationSchema),
-    defaultValues: initialData,
+    defaultValues: initialData ?? defaultNavigation,
     mode: "onChange",
   });
   const [isPending, startTransition] = useTransition();
