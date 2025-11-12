@@ -1,7 +1,7 @@
 
 export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/firebase-admin';
+import { getDb } from '@/lib/firebase/admin';
 import { SiteSettingsSchema } from '@/lib/schemas';
 
 const COL = 'site';

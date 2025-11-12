@@ -1,8 +1,9 @@
 
-// src/app/api/cms/pages/home/route.ts
+// src/app/api/admin/homepage/route.ts
 import { getHomepage } from "@/lib/cms-server";
 import { NextResponse, NextRequest } from "next/server";
 import { ZodError } from "zod";
+import { saveHomepageAction } from "@/app/dadmin/homepage/actions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +24,6 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { saveHomepageAction } = await import('@/app/dadmin/homepage/actions');
     const updated = await saveHomepageAction(body);
     return json({ ok: true, data: updated }, 200);
   } catch (error: any) {

@@ -1,4 +1,5 @@
 
+export const runtime = 'nodejs';
 import { NextResponse } from "next/server";
 import { getNavigation, saveNavigation } from "@/lib/cms-api";
 import { ZodError } from "zod";

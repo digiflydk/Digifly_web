@@ -1,5 +1,6 @@
 
 export const runtime = "nodejs";
+
 import AdminShell from "./_components/AdminShell";
 import AdminFooter from "@/components/layout/AdminFooter";
 import { getCurrentUser } from "@/lib/auth/serverAuth";
@@ -9,7 +10,7 @@ export default async function DadminLayout({ children }: { children: React.React
   const user = await getCurrentUser();
   
   if (!user) {
-    // This is a server-side check. Middleware should also be active.
+    // This is a server-side check. Middleware provides the first layer of defense.
     redirect("/dadmin/login");
   }
   

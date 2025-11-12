@@ -1,10 +1,8 @@
-// src/app/api/cms/pages/home/route.ts
+
+export const runtime = 'nodejs';
 import { getHomepage, updateHomepage } from "@/lib/cms-api";
 import { NextResponse, NextRequest } from "next/server";
 import { ZodError } from "zod";
-
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 const json = (data: any, status = 200) => NextResponse.json(data, { status });
 

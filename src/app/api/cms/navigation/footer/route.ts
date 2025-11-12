@@ -1,11 +1,9 @@
 
 
+export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from "next/server";
 import { getNavigation, saveNavigation } from "@/lib/cms-server";
 import type { Navigation } from "@/lib/types";
-
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 
 const json = (data: any, status = 200) => NextResponse.json(data, { status, headers: { 'Cache-Control': 'no-store' }});
 

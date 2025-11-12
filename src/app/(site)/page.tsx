@@ -1,5 +1,5 @@
-
-import { getHomepage, getSiteSettings } from '@/lib/cms-server';
+import { getHomepagePublic } from '@/lib/cms-public';
+import { getSiteSettingsPublic } from '@/lib/cms-public';
 import Hero from '@/components/sections/hero';
 import { buildSeo } from '@/lib/seo';
 import type { Metadata } from 'next';
@@ -14,9 +14,8 @@ import CtaBanner from '@/components/sections/cta-banner';
 
 
 export async function generateMetadata(): Promise<Metadata> {
-    const [pageResult, siteSettings] = await Promise.all([getHomepage(), getSiteSettings()]);
-    const page = pageResult.data as HomePage; 
-
+    const [page, siteSettings] = await Promise.all([getHomepagePublic(), getSiteSettingsPublic()]);
+    
     return buildSeo({
       title: page?.seo?.title,
       description: page?.seo?.description,
@@ -25,8 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 
 export default async function HomePage() {
-  const result = await getHomepage();
-  const page = result.data ?? defaultHomepage;
+  const page: HomePage = await getHomepagePublic().catch(() => defaultHomepage);
 
   if (!page) {
     return (

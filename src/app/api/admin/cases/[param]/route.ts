@@ -1,4 +1,4 @@
-export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
@@ -6,6 +6,8 @@ import {
   updateCase,
   deleteCase as deleteCaseServer,
 } from "@/lib/cms-api";
+
+export const runtime = 'nodejs';
 
 type RouteCtx = { params: { param: string } };
 

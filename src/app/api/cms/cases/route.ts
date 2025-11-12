@@ -1,4 +1,5 @@
 
+export const runtime = 'nodejs';
 import { NextResponse } from "next/server";
 import { CaseSchema } from "@/lib/schemas";
 import { createCase, getCases } from "@/lib/cms-server";
