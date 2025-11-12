@@ -1,20 +1,21 @@
 
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { NavigationSchema, NavLinkSchema as NavItemSchema } from "@/lib/schemas";
-import { updateNavigation } from "@/lib/cms";
+import { NavigationSchema } from "@/lib/schemas";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Navigation } from "@/lib/types";
+import { saveNavigationAction } from "@/app/dadmin/navigation/actions";
 
 function NavItems({ control, name }: { control: any, name: "header" | "footer.columns.0.links" }) {
   const { fields, append, remove } = useFieldArray({
@@ -28,7 +29,7 @@ function NavItems({ control, name }: { control: any, name: "header" | "footer.co
         <div key={field.id} className="flex gap-2 items-end">
           <FormField
             control={control}
-            name={`${name}.${index}.label`}
+            name={`${name}.${index}.link.label`}
             render={({ field }) => (
               <FormItem className="flex-1">
                 <FormLabel className={cn(index !== 0 && "sr-only")}>Label</FormLabel>
@@ -39,7 +40,7 @@ function NavItems({ control, name }: { control: any, name: "header" | "footer.co
           />
           <FormField
             control={control}
-            name={`${name}.${index}.href`}
+            name={`${name}.${index}.link.externalUrl`} // Simplified for this example
             render={({ field }) => (
               <FormItem className="flex-1">
                 <FormLabel className={cn(index !== 0 && "sr-only")}>URL</FormLabel>
@@ -57,7 +58,7 @@ function NavItems({ control, name }: { control: any, name: "header" | "footer.co
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => append({ label: "", href: "" })}
+        onClick={() => append({ link: { type: 'external', label: '', externalUrl: '' } })} // provide default shape
       >
         Add Link
       </Button>
@@ -66,17 +67,17 @@ function NavItems({ control, name }: { control: any, name: "header" | "footer.co
 }
 
 
-export function NavigationForm({ data }: { data: any }) {
+export function NavigationForm({ data }: { data: Navigation }) {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<z.infer<typeof NavigationSchema>>({
     resolver: zodResolver(NavigationSchema),
-    defaultValues: data || { primary: [], footer: [] },
+    defaultValues: data,
   });
 
   async function onSubmit(values: z.infer<typeof NavigationSchema>) {
     setIsSaving(true);
     try {
-      await updateNavigation(values);
+      await saveNavigationAction(values);
       toast({ title: "Success", description: "Navigation saved." });
     } catch (e: any) {
       toast({ title: "Error", description: "Could not save navigation.", variant: "destructive" });
@@ -86,37 +87,40 @@ export function NavigationForm({ data }: { data: any }) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Tabs defaultValue="primary">
-            <TabsList>
-                <TabsTrigger value="primary">Primary</TabsTrigger>
-                <TabsTrigger value="footer">Footer</TabsTrigger>
-            </TabsList>
-            <TabsContent value="primary">
-                <Card className="mt-4">
-                  <CardHeader><CardTitle>Primary Navigation</CardTitle></CardHeader>
-                  <CardContent>
-                    <NavItems control={form.control} name="header" />
-                  </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="footer">
-                <Card className="mt-4">
-                  <CardHeader><CardTitle>Footer Navigation</CardTitle></CardHeader>
-                  <CardContent>
-                    <NavItems control={form.control} name="footer.columns.0.links" />
-                  </CardContent>
-                </Card>
-            </TabsContent>
-        </Tabs>
+    <FormProvider {...form}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <Tabs defaultValue="header">
+              <TabsList>
+                  <TabsTrigger value="header">Header</TabsTrigger>
+                  <TabsTrigger value="footer">Footer</TabsTrigger>
+              </TabsList>
+              <TabsContent value="header">
+                  <Card className="mt-4">
+                    <CardHeader><CardTitle>Header Navigation</CardTitle></CardHeader>
+                    <CardContent>
+                      <NavItems control={form.control} name="header" />
+                    </CardContent>
+                  </Card>
+              </TabsContent>
+              <TabsContent value="footer">
+                  <Card className="mt-4">
+                    <CardHeader><CardTitle>Footer Navigation</CardTitle></CardHeader>
+                    <CardContent>
+                      <NavItems control={form.control} name="footer.columns.0.links" />
+                    </CardContent>
+                  </Card>
+              </TabsContent>
+          </Tabs>
 
-        <div className="sticky bottom-0 bg-slate-50/90 py-4">
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save Navigation"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+          <div className="sticky bottom-0 bg-slate-50/90 py-4">
+            <Button type="submit" disabled={isSaving || !form.formState.isDirty}>
+              {isSaving ? "Saving..." : "Save Navigation"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }
+
