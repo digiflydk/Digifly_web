@@ -7,10 +7,13 @@ import { getCurrentUser } from "@/lib/auth/serverAuth";
 import { redirect } from "next/navigation";
 
 export default async function DadminLayout({ children }: { children: React.ReactNode; }) {
-  const user = await getCurrentUser();
-  
-  if (!user) {
-    redirect("/dadmin/login");
+  let user = null;
+  // Bypass auth check if disabled for development
+  if (process.env.ADMIN_AUTH_DISABLED !== 'true') {
+    user = await getCurrentUser();
+    if (!user) {
+      redirect("/dadmin/login");
+    }
   }
   
   return (
