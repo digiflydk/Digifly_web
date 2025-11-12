@@ -16,7 +16,7 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
         <div className="max-w-6xl mx-auto px-6 py-10 text-center text-muted-foreground">
           Footer navigation not configured.
         </div>
-        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.25 • DGF-342</div>
+        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.26 • DGF-343</div>
       </footer>
     );
   }
@@ -29,7 +29,7 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
             <p className="text-sm mt-2 text-muted-foreground">{siteConfig.description}</p>
         </div>
         {columns.map((col, i) => (
-          <div key={col.title ?? `footer-col-${i}`}>
+          <div key={`${col.title}-${i}`}>
             <div className="font-semibold mb-2">{col.title}</div>
             <ul className="space-y-1">
               {col.links.map((l, j) => {
@@ -46,7 +46,7 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
           </div>
         ))}
       </div>
-      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.25 • DGF-342</div>
+      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.26 • DGF-343</div>
     </footer>
   );
 }

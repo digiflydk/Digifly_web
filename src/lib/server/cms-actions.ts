@@ -1,6 +1,7 @@
 
 "use server";
 import 'server-only';
+
 import { getDb } from "@/lib/firebase/admin";
 import { NavigationSchema, HomepageSchema, type Navigation, type HomePage } from "@/lib/schemas";
 import { revalidatePath } from 'next/cache';
@@ -22,7 +23,7 @@ export async function saveHomepageAction(payload: unknown) {
 export async function saveNavigationAction(payload: unknown) {
     const db = await getDb();
     const parsed = NavigationSchema.parse(payload);
-    await db.doc(CMS_PATHS.navigation).set(parsed, { merge: true });
+    await db.doc('site/navigation').set(parsed, { merge: true });
     revalidatePath("/", "layout");
     return { ok: true, error: null };
 }
@@ -36,8 +37,6 @@ export async function getHomepage() {
 
 export async function getNavigation(): Promise<Navigation | null> {
     const db = await getDb();
-    const snap = await db.doc(CMS_PATHS.navigation).get();
+    const snap = await db.doc('site/navigation').get();
     return snap.exists ? snap.data() as Navigation : null;
 }
-
-    
