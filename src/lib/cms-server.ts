@@ -21,6 +21,7 @@ import { defaultHomepage, defaultNavigation, normalizeHome } from './defaults/si
 import { CMS_PATHS } from './constants';
 import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
 import { normalizeLink } from './links';
+import { getNavigation as getNavigationAction, updateNavigation as updateNavigationAction } from './server/cms-actions';
 
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -54,38 +55,12 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
 
 export async function getNavigation(): Promise<Navigation> {
     noStore();
-    const db = await getDb();
-    const navSnap = await db.doc(CMS_PATHS.navigation).get();
-    
-    let navData = navSnap.exists ? navSnap.data() : defaultNavigation;
-
-    // Run migration/normalization logic
-    if (navData) {
-        navData.header = (navData.header || []).map((item: any, i: number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) })).filter((item: any) => item.link);
-        navData.footer = {
-            ...navData.footer,
-            columns: (navData.footer?.columns || []).map((col: any) => ({
-                ...col,
-                links: (col.links || []).map((item: any, i:number) => ({ id: item.id || String(i), link: normalizeLink(item.link || item) })).filter((item: any) => item.link)
-            }))
-        };
-    }
-    
-    const parsedNav = NavigationSchema.safeParse(navData);
-
-    if (!parsedNav.success) {
-        console.warn("[getNavigation] Zod validation failed, returning default nav structure.", parsedNav.error.format());
-        return defaultNavigation;
-    }
-    
-    return parsedNav.data;
+    const navData = await getNavigationAction();
+    return navData ?? defaultNavigation;
 }
 
 export async function saveNavigation(data: Navigation): Promise<void> {
-    const parsedData = NavigationSchema.parse(data);
-    const db = await getDb();
-    await db.doc(CMS_PATHS.navigation).set(parsedData, { merge: true });
-    revalidatePath('/', 'layout');
+    await updateNavigationAction(data);
 }
 
 
