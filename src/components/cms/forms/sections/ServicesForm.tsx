@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { LinkPicker } from "../../inputs/LinkPicker";
+import { defaultServiceItem } from "@/lib/defaults/siteDefaults";
 
 function ServiceItemFields({ index, remove }: { index: number, remove: (index: number) => void }) {
     const { control } = useFormContext<HomePage>();
@@ -103,7 +104,7 @@ export default function ServicesForm() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => append({ icon: "", title: "", body: "", link: { type: 'internal', label: '', internalRef: null, externalUrl: '', newTab: false } })}
+              onClick={() => append(defaultServiceItem)}
             >
               <Plus className="mr-2 h-4 w-4" /> Add Service
             </Button>

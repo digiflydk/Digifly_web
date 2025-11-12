@@ -20,8 +20,8 @@ import { zodErrorToIssues } from './zod-helpers';
 import { defaultHomepage, defaultNavigation, normalizeHome } from './defaults/siteDefaults';
 import { CMS_PATHS } from './constants';
 import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
-import { normalizeLink } from './links';
 import { getNavigation as getNavigationAction, updateNavigation as updateNavigationAction } from './server/cms-actions';
+import deepmerge from "deepmerge";
 
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -92,14 +92,13 @@ type GetHomepageResult =
 export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomepageResult> {
   noStore();
   try {
-    const raw = await getPageBySlug('home');
+    const db = await getDb();
+    const snap = await db.doc("pages/home").get();
+    const data = snap.exists ? snap.data() : {};
     
-    if (!raw) {
-        return { ok: true, data: defaultHomepage };
-    }
-
-    const normalized = normalizeHome(raw);
-    const parsed = HomepageSchema.safeParse(normalized);
+    // Merge defaults first to ensure structure is valid before parsing
+    const merged = deepmerge(defaultHomepage, data ?? {});
+    const parsed = HomepageSchema.safeParse(merged);
     
     if (parsed.success) {
       return { ok: true, data: parsed.data };
@@ -112,7 +111,7 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
       });
     }
 
-    const safeFallback = HomepageSchema.parse(normalized);
+    const safeFallback = HomepageSchema.parse(merged);
     
     return { ok: false, error: "Validation failed, returning best-effort data.", data: safeFallback, issues };
   } catch (err: any) {
@@ -123,8 +122,8 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
 
 export async function updateHomepage(data: HomePage) {
     const db = await getDb();
-    const normalized = normalizeHome(data);
-    const parsed = HomepageSchema.parse(normalized);
+    const merged = deepmerge(defaultHomepage, (data as object) ?? {});
+    const parsed = HomepageSchema.parse(merged);
     await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
     revalidatePath('/');
     return parsed;

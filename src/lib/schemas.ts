@@ -1,27 +1,31 @@
 
 import { z } from "zod";
 
-// Base primitives
+// Base primitives for links
 export const CmsLinkSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("internal"),
-    internalRef: z.string().min(1, "Internal page is required"),
+    internalRef: z.string().nullable().default(null),
     label: z.string().min(1, "Label is required"),
     newTab: z.boolean().default(false),
   }),
   z.object({
     type: z.literal("external"),
-    externalUrl: z.string().url("Enter a valid URL"),
+    externalUrl: z.string().url("Enter a valid URL").or(z.literal("")),
     label: z.string().min(1, "Label is required"),
     newTab: z.boolean().default(false),
   }),
-]);
+]).refine(
+  v => (v.type === "internal" && v.internalRef) || (v.type === "external" && v.externalUrl),
+  { message: "Internal page or external URL is required.", path: ["internalRef"] }
+);
 
 export const NavLinkSchema = z.object({
   id: z.string().optional(), // for useFieldArray key
   link: CmsLinkSchema
 });
 
+// Site-wide settings
 export const SiteSettingsSchema = z.object({
   general: z.object({
     brandName: z.string().min(1, "Brand name is required").default("Digifly"),
@@ -49,6 +53,7 @@ export const SiteSettingsSchema = z.object({
 });
 
 
+// Navigation specific schemas
 export const NavigationSchema = z.object({
   header: z.array(NavLinkSchema).default([]),
   footer: z.object({
@@ -59,6 +64,7 @@ export const NavigationSchema = z.object({
   })
 });
 
+// Homepage section schemas
 export const HeroSlideSchema = z.object({
       heading: z.string().default(''),
       subheading: z.string().optional().default(''),
@@ -93,12 +99,12 @@ export const ServiceItemSchema = z.object({
 
 export const ServicesSchema = z.object({
   enabled: z.boolean().default(true),
-  subtitle: z.string(),
+  subtitle: z.string().optional(),
   title: z.string(),
   items: z.array(ServiceItemSchema),
 });
 
-
+// Main Homepage schema
 export const HomepageSchema = z.object({
   hero: z.object({
     rotationDelaySec: z.number().default(5),
@@ -117,7 +123,7 @@ export const HomepageSchema = z.object({
   }).optional()
 });
 
-
+// Rich Text & Page schemas
 export const RichTextContentSchema = z.union([
   z.object({ type: z.literal('p'), text: z.string() }),
   z.object({ type: z.literal('list'), items: z.array(z.string()) }),
@@ -167,6 +173,7 @@ export const ContactPageSchema = z.object({
   }).optional(),
 });
 
+// Case Study schema
 export const CaseSeoSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
@@ -175,7 +182,7 @@ export const CaseSeoSchema = z.object({
 export const CaseMetricSchema = z.object({ label: z.string(), value: z.string() });
 
 export const CaseSchema = z.object({
-  id: z.string().optional(),                  // used in tables & sitemap
+  id: z.string().optional(),
   slug: z.string(),
   title: z.string(),
   published: z.boolean().default(false),
@@ -194,6 +201,7 @@ export const CaseSchema = z.object({
   updatedAt: z.string().or(z.date()).or(z.number()).optional(),
 });
 
+// Audit Log schema
 export type AdminAction = "site-seo.save" | "site-seo.preview" | "site-seo.deploy" | "homepage.save" | "cases.save" | "playwright.run";
 export interface AuditLog {
   action: AdminAction;
@@ -207,9 +215,7 @@ export interface AuditLog {
   version?: string;
 }
 
-// ---- Shim the names used across the app (from error logs) ----
-export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
-export type HomePage   = z.infer<typeof HomepageSchema>;
+// ---- Shim old names to satisfy imports and avoid breaking changes ----
 export const BasePageSchema = z.object({ slug: z.string(), title: z.string().optional() });
 export const NavItemSchema  = NavLinkSchema;
 export const BrandSchema    = z.object({
@@ -218,14 +224,8 @@ export const BrandSchema    = z.object({
   favicon: z.object({ src: z.string() })
 });
 export const DesignSettingsSchema = SiteSettingsSchema; // alias to satisfy imports
-export type Navigation = z.infer<typeof NavigationSchema>;
-export type HeroSlide = z.infer<typeof HeroSlideSchema>;
-export type Case = z.infer<typeof CaseSchema>;
-export type WhatWeDo = z.infer<typeof WhatWeDoSchema>;
-export type ServiceItem = z.infer<typeof ServiceItemSchema>;
-export type Services = z.infer<typeof ServicesSchema>;
 
-
+// ---- Export all schemas for central access ----
 export const allSchemas = {
   SiteSettingsSchema,
   NavigationSchema,

@@ -1,9 +1,9 @@
 
-import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc, CmsLink, NavLink } from '@/lib/types';
+import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc, CmsLink, NavLink, Services, ServiceItem } from '@/lib/types';
 import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema, HomepageSchema } from '../schemas';
 import { z } from 'zod';
 import { emptySiteSettings } from '@/components/dadmin/site-seo/utils/formDefaults';
-
+import deepmerge from "deepmerge";
 
 export const SITE_DEFAULTS: SiteSettings = {
   general: {
@@ -58,6 +58,24 @@ export const defaultHeroSlide: HeroSlide = {
   visible: true,
 };
 
+export const defaultServiceItem: ServiceItem = {
+    icon: "Workflow", 
+    title: "", 
+    body: "", 
+    link: { type: 'internal', label: '', internalRef: null }
+};
+
+export const defaultServices: Services = {
+    enabled: true,
+    title: "Our Core Services",
+    subtitle: "What we do best",
+    items: [
+        { ...defaultServiceItem, icon: "Workflow", title: "Automation", body: "Save time with flows" },
+        { ...defaultServiceItem, icon: "Sparkles", title: "AI Assist", body: "Ship smarter products" },
+        { ...defaultServiceItem, icon: "Bolt", title: "MVP Builds", body: "Go from idea to live, fast" },
+    ],
+};
+
 export const defaultHomepage: HomePage = HomepageSchema.parse({
   hero: { 
     slides: [
@@ -86,16 +104,7 @@ export const defaultHomepage: HomePage = HomepageSchema.parse({
       type: "internal", internalRef: "contact", newTab: false
     }
   },
-  services: {
-    enabled: true,
-    title: "Our Core Services",
-    subtitle: "End-to-end capabilities to bring your digital vision to life.",
-    items: [
-      { id: 'strategy', icon: 'BrainCircuit', title: "Strategy & Automation", body: "Process optimization, AI integration, and workflow automation.", link: { type: 'internal', internalRef: 'services' } },
-      { id: 'software', icon: 'Code', title: "Software & SaaS", body: "Custom web & mobile apps, API development, and cloud architecture.", link: { type: 'internal', internalRef: 'services' } },
-      { id: 'design', icon: 'PenTool', title: "Design & UX", body: "User research, prototyping, and creating intuitive design systems.", link: { type: 'internal', internalRef: 'services' } },
-    ],
-  },
+  services: defaultServices,
   featuredCases: ['autostream-ai', 'connect-app'],
   cta: {
     text: "Let's build something intelligent together.",
@@ -107,34 +116,12 @@ export const defaultHomepage: HomePage = HomepageSchema.parse({
   }
 });
 
-
-// DGF-125 Fix: Central normalization function
+// Central normalization function
 export function normalizeHome(data: any): Partial<HomePage> {
     if (!data || typeof data !== 'object') {
         return defaultHomepage;
     }
-
-    const d = { ...defaultHomepage, ...data };
-    
-    d.hero = { ...defaultHomepage.hero, ...(d.hero || {}) };
-    d.hero.slides = Array.isArray(d.hero.slides) ? d.hero.slides : [];
-
-    const n = Number(d.hero.rotationDelaySec);
-    if (![3, 5, 8, 10, 15].includes(n)) {
-        d.hero.rotationDelaySec = 5;
-    } else {
-        d.hero.rotationDelaySec = n;
-    }
-    
-    d.whatWeDo = { ...defaultHomepage.whatWeDo, ...(d.whatWeDo || {}) };
-    d.services = { ...defaultHomepage.services, ...(d.services || {}) };
-    d.services.items = Array.isArray(d.services.items) ? d.services.items : [];
-
-    d.featuredCases = Array.isArray(d.featuredCases) ? d.featuredCases : [];
-    d.cta = { ...defaultHomepage.cta, ...(d.cta || {}) };
-    d.seo = { ...defaultHomepage.seo, ...(d.seo || {}) };
-
-    return d;
+    return deepmerge(defaultHomepage, data);
 }
 
 const defaultNavLink = (label: string, ref: string, external = false): NavLink => ({
