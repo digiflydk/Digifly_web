@@ -6,19 +6,38 @@ export const CmsLinkSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("internal"),
     internalRef: z.string().nullable().default(null),
-    label: z.string().min(1, "Label is required"),
+    label: z.string().default(""),
     newTab: z.boolean().default(false),
   }),
   z.object({
     type: z.literal("external"),
     externalUrl: z.string().url("Enter a valid URL").or(z.literal("")),
-    label: z.string().min(1, "Label is required"),
+    label: z.string().default(""),
     newTab: z.boolean().default(false),
   }),
-]).refine(
-  v => (v.type === "internal" && v.internalRef) || (v.type === "external" && v.externalUrl),
-  { message: "Internal page or external URL is required.", path: ["internalRef"] }
-);
+]).superRefine((val, ctx) => {
+  // Only require a target if a label exists.
+  if (val.label && val.label.trim().length > 0) {
+    if (val.type === "internal") {
+      if (!val.internalRef) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Internal page selection is required.",
+          path: ["internalRef"],
+        });
+      }
+    }
+    if (val.type === "external") {
+      if (!val.externalUrl || val.externalUrl.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "External URL is required.",
+          path: ["externalUrl"],
+        });
+      }
+    }
+  }
+});
 
 export const NavLinkSchema = z.object({
   id: z.string().optional(), // for useFieldArray key

@@ -6,35 +6,36 @@ service cloud.firestore {
     function isAuthed() { return request.auth != null; }
     function isAdmin() { return isAuthed() && request.auth.token.role == "admin"; }
 
-    // Public site reads
-    match /site/{doc} {
+    // Site settings, navigation, and pages are public reads
+    match /site/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
     
     match /pages/{pageId} {
-      allow read: if true; // Public pages are world-readable
-      allow write: if isAdmin(); // But only admins can write
+      allow read: if true;
+      allow write: if isAdmin();
     }
     
+    // Cases are public if published
     match /cases/{caseId} {
       allow read: if resource.data.published == true;
       allow list, write: if isAdmin();
     }
     
-    // Admin-managed CMS (navigation, etc)
-    match /navigation/{docId} {
-        allow read: if true; // Nav is public
-        allow write: if isAdmin();
-    }
-
+    // Admin-only collections
     match /admins/{uid} {
       allow read, write: if isAdmin();
     }
 
     match /auditLogs/{logId} {
-        allow create: if isAuthed(); // Allow authenticated users to create logs
-        allow read, update, delete: if isAdmin(); // Admins can manage all logs
+        allow create: if isAuthed();
+        allow read, update, delete: if isAdmin();
+    }
+
+    // Fallback security rule - denies all other access
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

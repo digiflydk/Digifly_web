@@ -33,13 +33,15 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
 
   const renderLink = (item: NavLink, isMobile = false) => {
     const { href, target, rel, label, isActive } = resolveCmsLink(item.link, path);
+    const key = item.id || `${label}-${href}`;
+
     const commonClasses = isMobile 
       ? "text-lg font-medium text-foreground/80 transition-colors hover:text-primary"
       : `text-sm font-medium text-[var(--color-graphite)] hover:text-[var(--color-blue)] ${isActive ? "text-[var(--color-blue)]" : ""}`;
     
     if (!href) {
       return (
-        <span key={item.id} className={`${commonClasses} opacity-50 cursor-not-allowed`} aria-disabled="true">
+        <span key={key} className={`${commonClasses} opacity-50 cursor-not-allowed`} aria-disabled="true">
           {label}
         </span>
       );
@@ -47,7 +49,7 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
     
     return (
       <Link
-        key={item.id}
+        key={key}
         href={href}
         target={target}
         rel={rel}
