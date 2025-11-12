@@ -3,10 +3,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, TerminalSquare, Beaker } from "lucide-react";
+import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, Beaker } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import type { CurrentUser } from "@/lib/auth/serverAuth";
 
 const menuItems = [
   { href: "/dadmin", label: "Dashboard", icon: Home },
@@ -24,10 +25,10 @@ const devMenuItems = [
     { href: "/dadmin/api-explorer", label: "API Explorer", icon: Beaker },
 ];
 
-function NavContent() {
+function NavContent({ user }: { user: CurrentUser | null }) {
   const pathname = usePathname();
-  // Always show dev menu in public mode
-  const showDevMenu = true; 
+  // Show dev menu if user has 'superadmin' role, or always in public mode
+  const showDevMenu = user?.role === 'superadmin' || process.env.NEXT_PUBLIC_AUTH_MODE === 'public';
   
   const renderLink = (item: any) => {
     const isActive = (item.href === '/dadmin' && pathname === item.href) || (item.href !== '/dadmin' && pathname.startsWith(item.href));
@@ -75,7 +76,7 @@ function NavContent() {
   )
 }
 
-export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boolean, setMobileMenuOpen: (open: boolean) => void }) {
+export function Sidebar({ mobileMenuOpen, setMobileMenuOpen, user }: { mobileMenuOpen: boolean, setMobileMenuOpen: (open: boolean) => void, user: CurrentUser | null }) {
   return (
     <>
         {/* Mobile */}
@@ -84,13 +85,13 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen:
                 <SheetHeader>
                   <SheetTitle className="sr-only">Admin Menu</SheetTitle>
                 </SheetHeader>
-                <NavContent />
+                <NavContent user={user} />
             </SheetContent>
         </Sheet>
         
         {/* Desktop */}
         <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 min-h-screen flex-col hidden md:flex">
-            <NavContent />
+            <NavContent user={user} />
         </aside>
     </>
   );
