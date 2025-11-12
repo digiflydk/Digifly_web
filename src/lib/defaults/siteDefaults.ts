@@ -62,7 +62,7 @@ export const defaultServiceItem: ServiceItem = {
     icon: "Workflow", 
     title: "", 
     body: "", 
-    link: { type: 'internal', label: '', internalRef: null }
+    link: { type: 'internal', label: '', internalRef: null, newTab: false }
 };
 
 export const defaultServices: Services = {
@@ -70,9 +70,9 @@ export const defaultServices: Services = {
     title: "Our Core Services",
     subtitle: "What we do best",
     items: [
-        { ...defaultServiceItem, icon: "Workflow", title: "Automation", body: "Save time with flows" },
-        { ...defaultServiceItem, icon: "Sparkles", title: "AI Assist", body: "Ship smarter products" },
-        { ...defaultServiceItem, icon: "Bolt", title: "MVP Builds", body: "Go from idea to live, fast" },
+        { icon: "Workflow", title: "Automation", body: "Save time with flows", link: { type: "internal", label: "Learn More", internalRef: "services", newTab: false } },
+        { icon: "Sparkles", title: "AI Assist", body: "Ship smarter products", link: { type: "internal", label: "Learn More", internalRef: "services", newTab: false } },
+        { icon: "Bolt", title: "MVP Builds", body: "Go live fast", link: { type: "internal", label: "Learn More", internalRef: "cases-index", newTab: false } },
     ],
 };
 
