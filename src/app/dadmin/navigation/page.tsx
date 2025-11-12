@@ -3,11 +3,11 @@
 
 import { useEffect, useState } from "react";
 import type { Navigation } from "@/lib/schemas";
-import NavEditor from "./NavEditor";
 import { toast } from "@/hooks/use-toast";
-import { getPublishedPagesList } from "@/lib/cms-server";
-import { Skeleton } from "@/components/ui/skeleton";
+import NavEditor from "./NavEditor";
 import { defaultNavigation } from "@/lib/defaults/siteDefaults";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getPublishedPagesList } from "@/lib/cms-server";
 
 type PageInfo = { id: string; title: string, path: string };
 
@@ -55,9 +55,11 @@ export default function NavigationPage() {
       }
       
       toast({ title: "Saved", description: "Navigation updated" });
+      
       // Re-fetch to confirm persistence and re-sync form state
       const fresh = await fetch("/api/navigation", { cache: "no-store" }).then(r => r.json());
       setData(fresh);
+
     } catch (e: any) {
        toast({ title: "Save failed", description: e.message, variant: "destructive" });
     } finally {
@@ -69,6 +71,7 @@ export default function NavigationPage() {
      return (
         <div className="space-y-4">
             <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-64 w-full" />
             <Skeleton className="h-64 w-full" />
         </div>
     );
