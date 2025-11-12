@@ -1,6 +1,7 @@
-
 import { promises as fs } from 'fs';
 import path from 'path';
+
+export const runtime = 'nodejs';
 
 const reportDir = path.join(process.cwd(), 'public', 'predeploy', 'reports');
 

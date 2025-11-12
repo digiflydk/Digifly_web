@@ -1,7 +1,8 @@
-
 import { globby } from "globby";
 import fs from "fs/promises";
 import path from "path";
+
+export const runtime = 'nodejs';
 
 type GuardResult = {
   ok: boolean;
@@ -49,7 +50,6 @@ async function checkDeprecatedKeys(): Promise<GuardResult> {
     const files = await globby(["src/**/*.{ts,tsx}"]);
     const deprecated = ["siteTitle", "brand.logo.src", "brand.favicon.src", "social.tagline", "defaultSeo.description"];
     for (const file of files) {
-        // Skip schema definition files themselves
         if (file.includes("schemas.ts") || file.includes("defaults.ts")) continue;
 
         const content = await fs.readFile(file, "utf8");

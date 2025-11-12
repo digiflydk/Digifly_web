@@ -12,8 +12,15 @@ import { defaultHomepage, defaultNavigation } from '../defaults/siteDefaults';
 import { sanitizeHomepage } from "../cms-sanitize";
 
 
-export async function saveNavigationAction(payload: Navigation) {
-    const db = getDb();
+export async function getNavigation(): Promise<Navigation> {
+    const db = await getDb();
+    const snap = await db.doc(CMS_PATHS.navigation).get();
+    const data = snap.exists() ? snap.data() : {};
+    return NavigationSchema.parse(data);
+}
+
+export async function updateNavigation(payload: Navigation) {
+    const db = await getDb();
     const parsed = NavigationSchema.parse(payload);
     await db.doc(CMS_PATHS.navigation).set(parsed, { merge: true });
     revalidatePath("/", "layout");
@@ -23,7 +30,7 @@ export async function saveNavigationAction(payload: Navigation) {
 
 
 export async function saveHomepageAction(payload: HomePage) {
-    const db = getDb();
+    const db = await getDb();
     const path = CMS_PATHS.page('home');
     
     // Get existing doc to merge with defaults, then with payload
@@ -42,16 +49,6 @@ export async function saveHomepageAction(payload: HomePage) {
     return { ok: true, data: parsed };
 }
 
-export async function getNavigation(): Promise<Navigation> {
-    const db = getDb();
-    const snap = await db.doc(CMS_PATHS.navigation).get();
-    const data = snap.exists() ? snap.data() : {};
-    return NavigationSchema.parse(data);
-}
-
-export async function updateNavigation(payload: Navigation) {
-    const db = getDb();
-    const parsed = NavigationSchema.parse(payload);
-    await db.doc(CMS_PATHS.navigation).set(parsed, { merge: true });
-    return { ok: true };
+export async function saveNavigationAction(payload: Navigation) {
+    return updateNavigation(payload);
 }

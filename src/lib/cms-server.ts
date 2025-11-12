@@ -1,5 +1,4 @@
 
-
 'use server';
 import { z } from 'zod';
 import {
@@ -33,10 +32,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     const settingsSnap = await db.doc(CMS_PATHS.site).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
-    // Coerce to defaults to ensure a valid, complete object is always returned
     const coercedData = coerceToDefaults(data);
 
-    // Final validation pass
     const parsed = SiteSettingsSchema.safeParse(coercedData);
     if (!parsed.success) {
       console.error("[getSiteSettings] Zod validation failed after coercion, returning defaults. Errors:", parsed.error.format());
@@ -310,5 +307,3 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
-
-    

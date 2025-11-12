@@ -1,4 +1,3 @@
-
 import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
@@ -9,13 +8,11 @@ export const dynamic = 'force-dynamic';
 
 const DOCS_DIR = path.join(process.cwd(), "docs");
 
-// Security: Create an allow-list of known safe filenames from the docs directory.
 function getSafeFileList(): string[] {
     if (!fs.existsSync(DOCS_DIR)) {
         return [];
     }
     const files = fs.readdirSync(DOCS_DIR);
-    // Allow markdown and potentially other text-based formats if needed in the future
     return files.filter(f => /\.(md|json|txt|yaml|yml)$/i.test(f));
 }
 
@@ -54,7 +51,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "File parameter is required" }, { status: 400 });
   }
 
-  // --- Special Handlers ---
   if (fileParam === 'bundle.md') {
       const bundleContent = createMarkdownBundle();
       return new NextResponse(bundleContent, {
@@ -96,9 +92,7 @@ export async function GET(req: Request) {
       });
   }
 
-  // --- Single File Download ---
   const safeFiles = getSafeFileList();
-  // Allow download with or without extension
   const requestedFile = safeFiles.find(sf => sf === fileParam || sf.replace(/\.md$/i, '') === fileParam);
   
   if (!requestedFile) {

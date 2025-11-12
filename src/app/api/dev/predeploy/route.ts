@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promises as fs } from 'fs';
@@ -21,23 +20,18 @@ function runScript(command: string): Promise<{ stdout: string, stderr: string, c
 
 export async function POST() {
   try {
-    // Run the main predeploy script
     const { code, stderr } = await runScript('npm run predeploy');
 
-    // Regardless of outcome, try to read the report file
     const reportPath = path.join(process.cwd(), 'public', 'dev', 'reports', 'predeploy.json');
     let report = null;
     try {
       const reportContent = await fs.readFile(reportPath, 'utf-8');
       report = JSON.parse(reportContent);
     } catch (readError) {
-      // If report doesn't exist, it's fine, the error from the script is the main thing
       console.warn(`[predeploy API] Could not read report file: ${readError}`);
     }
 
     if (code !== 0) {
-      // The script failed, which is an expected outcome for the check
-      // Return 200 OK but with the report indicating failure
       return NextResponse.json({ 
         ok: true, 
         message: 'Pre-deploy checks completed with errors.',
@@ -45,7 +39,6 @@ export async function POST() {
       });
     }
 
-    // Success case
     return NextResponse.json({ 
       ok: true, 
       message: 'All pre-deploy checks passed.',
