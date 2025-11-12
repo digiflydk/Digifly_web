@@ -6,8 +6,8 @@ import { getAuth } from 'firebase-admin/auth';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
 import type { Role } from './roles';
+import { SESSION_COOKIE_NAME } from '../constants';
 
-export const SESSION_COOKIE_NAME = 'session';
 const SESSION_DURATION_DAYS = 5;
 
 export type CurrentUser = {

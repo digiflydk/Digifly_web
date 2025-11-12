@@ -6,3 +6,5 @@ export const CMS_PATHS = {
   navigation: "site/navigation", 
   cases: "cases",
 } as const;
+
+export const SESSION_COOKIE_NAME = 'digifly_session';
