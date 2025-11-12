@@ -1,5 +1,6 @@
 
 
+
 "use client";
 import Link from "next/link";
 import { Menu } from "lucide-react";
@@ -88,7 +89,7 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
           </Link>
         </div>
         <nav className="header-nav hidden md:flex items-center gap-6">
-          {navLinks.map(link => renderLink(link))}
+          {navLinks.map((link, i) => renderLink({id: link.id ?? `header-link-${i}`, ...link}))}
         </nav>
         <div className="hidden md:flex">
              {contactButtonLink.href && (
@@ -123,7 +124,7 @@ export default function Header({ nav, logo, siteTitle }: HeaderProps) {
                             )}
                         </Link>
                         <nav className="flex flex-col gap-4">
-                            {[...navLinks, contactLink].map(link => renderLink(link, true))}
+                            {[...navLinks, contactLink].map((link, i) => renderLink({id: link.id ?? `header-link-mobile-${i}`, ...link}, true))}
                         </nav>
                     </div>
                 </SheetContent>

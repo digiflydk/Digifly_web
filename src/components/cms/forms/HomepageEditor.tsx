@@ -15,11 +15,12 @@ import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { defaultHomepage } from "@/lib/defaults/siteDefaults";
 import { saveHomepageAction } from "@/app/dadmin/homepage/actions";
+import deepmerge from 'deepmerge';
 
 export default function HomepageEditor({ initialData }: { initialData: HomePage }) {
   const methods = useForm<HomePage>({
     resolver: zodResolver(HomepageSchema),
-    defaultValues: initialData || defaultHomepage,
+    defaultValues: deepmerge(defaultHomepage, initialData || {}),
     mode: "onChange",
   });
   const [isPending, startTransition] = useTransition();

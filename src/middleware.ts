@@ -8,10 +8,9 @@ export function middleware(req: NextRequest) {
 
   const isAdminArea = pathname.startsWith("/dadmin");
   const isLoginPage = pathname === "/dadmin/login";
-  const isApiOrStatic = pathname.startsWith('/api/') || pathname.startsWith('/_next/') || pathname.includes('.');
-
-  // Ignore API, static files, and the login page itself from the main guard
-  if (!isAdminArea || isLoginPage || isApiOrStatic) {
+  
+  // Let Next.js handle its own assets, API routes, and the login page
+  if (!isAdminArea || isLoginPage || pathname.startsWith('/api/') || pathname.startsWith('/_next/') || pathname.includes('.')) {
     return NextResponse.next();
   }
 
@@ -22,8 +21,7 @@ export function middleware(req: NextRequest) {
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
-
-  // DGF-340: Redirect from base /dadmin to a default page
+  
   if (pathname === '/dadmin') {
       const url = req.nextUrl.clone();
       url.pathname = '/dadmin/site-seo';
@@ -33,7 +31,9 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Match all dadmin routes except for the specific assets that Next.js needs.
+// Match all routes except for static assets and public files.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)",
+  ],
 };

@@ -1,3 +1,4 @@
+
 // src/lib/cms-sanitize.ts
 import { CmsLinkSchema } from "./schemas";
 import type { CmsLink, HomePage } from "./types";
@@ -16,10 +17,9 @@ export function normalizeLink(raw: any): CmsLink {
 }
 
 export function normalizeCta(raw: any): { label: string; link: CmsLink } {
-    return {
-        label: raw?.label ?? "",
-        link: normalizeLink(raw?.link ?? {}),
-    };
+    const label = raw?.label ?? "";
+    const link = normalizeLink(raw?.link ?? {});
+    return { label, link };
 }
 
 
@@ -48,6 +48,10 @@ export function sanitizeHomepage(input: Partial<HomePage> | undefined): HomePage
     ...it,
     link: normalizeLink(it?.link),
   }));
+
+  // Final CTA
+  merged.cta = merged.cta ?? { text: '', button: { type: 'internal', label: '', internalRef: null }};
+  merged.cta.button = normalizeLink(merged.cta.button);
 
   return merged;
 }
