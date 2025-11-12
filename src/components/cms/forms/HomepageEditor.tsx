@@ -4,7 +4,7 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { saveHomepage as saveHomepageAction } from "@/app/dadmin/homepage/actions";
+import { saveHomepageAction } from "@/app/dadmin/homepage/actions";
 import type { HomePage } from "@/lib/types";
 import { HomepageSchema } from "@/lib/schemas";
 import HeroForm from "./sections/HeroForm";
