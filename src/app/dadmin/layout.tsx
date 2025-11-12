@@ -9,7 +9,6 @@ import { redirect } from "next/navigation";
 export default async function DadminLayout({ children }: { children: React.ReactNode; }) {
   const user = await getCurrentUser();
   
-  // The middleware is disabled, so this server-side check is now the primary guard.
   if (!user) {
     redirect("/dadmin/login");
   }
