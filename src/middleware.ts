@@ -22,6 +22,13 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // DGF-340: Redirect from base /dadmin to a default page
+  if (pathname === '/dadmin') {
+      const url = req.nextUrl.clone();
+      url.pathname = '/dadmin/site-seo';
+      return NextResponse.redirect(url);
+  }
+
   return NextResponse.next();
 }
 

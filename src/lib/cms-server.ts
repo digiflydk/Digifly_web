@@ -1,5 +1,4 @@
 
-
 'use server';
 import { z } from 'zod';
 import {
@@ -106,7 +105,7 @@ function normalizeHero(data: any) {
   return data;
 }
 
-function sanitizeHomepage(input: any): HomePage {
+export function sanitizeHomepage(input: any): HomePage {
   let hp = deepmerge(defaultHomepage, input ?? {});
   hp = normalizeHero(hp); // Apply hero migration
   
@@ -273,7 +272,8 @@ export async function getPageCount(): Promise<{ count: number }> {
     return { count: snap.data().count };
 }
 export async function getNavigationMenuCount(): Promise<{ count: number }> {
-    return { count: 2 };
+    const nav = await getNavigation();
+    return { count: (nav.header.length || 0) + (nav.footer.columns[0]?.links.length || 0) };
 }
 
 export async function getAboutPage(): Promise<any> {
@@ -347,3 +347,5 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
+
+    
