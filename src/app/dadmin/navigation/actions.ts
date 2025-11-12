@@ -11,7 +11,7 @@ import { CMS_PATHS } from "@/lib/constants";
 
 export async function saveNavigationAction(data: Navigation): Promise<{ ok: boolean; error?: string }> {
   try {
-    const db = getFirestore(getAdminApp());
+    const db = await getFirestore(getAdminApp());
     const parsedData = NavigationSchema.parse(data);
     await db.doc(CMS_PATHS.navigation).set(parsedData, { merge: true });
     revalidatePath("/dadmin/navigation");

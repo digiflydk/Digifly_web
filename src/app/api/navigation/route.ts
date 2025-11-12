@@ -1,46 +1,37 @@
-
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
+import { getAdminApp } from "@/lib/firebase-admin";
 import { NavigationSchema } from "@/lib/schemas";
+import { z } from "zod";
 import { defaultNavigation } from "@/lib/defaults/siteDefaults";
-import { revalidatePath } from "next/cache";
+import { CMS_PATHS } from "@/lib/constants";
 
-const DOC_PATH = "site/navigation";
-
-export const dynamic = 'force-dynamic';
-
-async function getDocRef() {
-    const db = await getDb();
-    return db.doc(DOC_PATH);
-}
+const DOC_REF = () => getFirestore(getAdminApp()).doc(CMS_PATHS.navigation);
 
 export async function GET() {
   try {
-    const doc = await getDocRef();
-    const snap = await doc.get();
+    const snap = await DOC_REF().get();
     const data = snap.exists ? snap.data() : defaultNavigation;
     const parsed = NavigationSchema.parse(data);
     return NextResponse.json(parsed);
-  } catch (e: any) {
-    console.error(`[GET /api/navigation]`, e);
-    return NextResponse.json({ error: "Failed to load navigation" }, { status: 500 });
+  } catch (err: any) {
+    console.error("[GET /api/navigation]", err);
+    // On parse error, return the default to ensure client doesn't crash
+    return NextResponse.json(defaultNavigation);
   }
 }
 
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const nav = NavigationSchema.parse(body);
-    const doc = await getDocRef();
-    await doc.set(nav, { merge: false });
-
-    // Revalidate paths that use this data
-    revalidatePath("/", "layout");
-    revalidatePath("/dadmin/navigation");
-
+    const parsed = NavigationSchema.parse(body);
+    await DOC_REF().set(parsed, { merge: false });
     return NextResponse.json({ ok: true });
-  } catch(e: any) {
-    console.error(`[PUT /api/navigation]`, e);
-    return NextResponse.json({ error: "Save failed. Check data format." }, { status: 400 });
+  } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ ok: false, issues: err.issues }, { status: 400 });
+    }
+    console.error("[PUT /api/navigation]", err);
+    return NextResponse.json({ ok: false, error: err?.message || "Invalid payload" }, { status: 500 });
   }
 }

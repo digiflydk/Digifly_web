@@ -1,5 +1,5 @@
 
-import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc, CmsLink } from '@/lib/types';
+import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc, CmsLink, NavLink } from '@/lib/types';
 import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema, HomepageSchema } from '../schemas';
 import { z } from 'zod';
 import { emptySiteSettings } from '@/components/dadmin/site-seo/utils/formDefaults';
@@ -54,7 +54,7 @@ export const defaultHeroSlide: HeroSlide = {
   heading: "New Slide",
   subheading: "A compelling subtitle for your new slide.",
   body: "",
-  cta: { type: 'internal', label: 'Learn More', internalRef: 'home', newTab: false, externalUrl: '' },
+  cta: { type: 'internal', label: 'Learn More', internalRef: 'home', newTab: false },
   visible: true,
 };
 
@@ -66,7 +66,7 @@ export const defaultHomepage: HomePage = HomepageSchema.parse({
         heading: "From Idea to Intelligent Solution",
         subheading: "Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.",
         body: "",
-        cta: { type: 'internal', label: 'Start Your Project', internalRef: 'contact', newTab: false, externalUrl: '' },
+        cta: { type: 'internal', label: 'Start Your Project', internalRef: 'contact', newTab: false },
         visible: true,
       }
     ],
@@ -137,34 +137,37 @@ export function normalizeHome(data: any): Partial<HomePage> {
     return d;
 }
 
-const defaultCmsLink = (label: string, ref: string, external = false): CmsLink => ({
-  label,
-  type: external ? 'external' : 'internal',
-  internalRef: external ? null : ref,
-  externalUrl: external ? ref : '',
-  newTab: external,
+const defaultNavLink = (label: string, ref: string, external = false): NavLink => ({
+  id: crypto.randomUUID(),
+  link: {
+    label,
+    type: external ? 'external' : 'internal',
+    internalRef: external ? null : ref,
+    externalUrl: external ? ref : '',
+    newTab: external,
+  },
 });
 
 export const defaultNavigation: Navigation = NavigationSchema.parse({
   header: [
-    { id: 'h1', link: defaultCmsLink("Services", "services") },
-    { id: 'h2', link: defaultCmsLink("Cases", "cases-index") },
-    { id: 'h3', link: defaultCmsLink("About", "about") },
+    defaultNavLink("Services", "services"),
+    defaultNavLink("Cases", "cases-index"),
+    defaultNavLink("About", "about"),
   ],
   footer: {
     columns: [
       {
         title: "Company",
         links: [
-          { id: 'f1', link: defaultCmsLink("About", "about") },
-          { id: 'f2', link: defaultCmsLink("Contact", "contact") },
+          defaultNavLink("About", "about"),
+          defaultNavLink("Contact", "contact"),
         ],
       },
       {
         title: "Legal",
         links: [
-          { id: 'f3', link: defaultCmsLink("Privacy", "privacy") },
-          { id: 'f4', link: defaultCmsLink("Cookies", "cookies") },
+          defaultNavLink("Privacy", "privacy"),
+          defaultNavLink("Cookies", "cookies"),
         ],
       },
     ],
@@ -228,7 +231,7 @@ export const defaultCases: z.infer<typeof CaseSchema>[] = [
 
 export const ALL_DEFAULTS = {
   'site/settings': SITE_DEFAULTS,
-  'cms/navigation': defaultNavigation,
+  'site/navigation': defaultNavigation, // Use the new single doc path
   'pages/home': defaultHomepage,
   'pages/about': defaultAboutPage,
   'pages/services': defaultServicesPage,

@@ -1,22 +1,23 @@
 
+"use server";
 
 import { z } from "zod";
 
 // Base primitives
-export const CmsLinkSchema = z.object({
-  label: z.string().default(''),
-  type: z.enum(['internal', 'external']).default('internal'),
-  internalRef: z.string().nullable().default(null),
-  externalUrl: z.string().url().or(z.literal('')).optional().default(''),
-  newTab: z.boolean().default(false),
-}).refine(data => {
-    if (data.type === 'internal') return !!data.internalRef;
-    if (data.type === 'external') return !!data.externalUrl;
-    return true;
-}, {
-    message: "Required field is missing for the selected link type.",
-    path: ['internalRef'], // or externalUrl, but refine needs one path
-});
+export const CmsLinkSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("internal"),
+    internalRef: z.string().min(1, "Internal page is required"),
+    label: z.string().min(1, "Label is required"),
+    newTab: z.boolean().default(false),
+  }),
+  z.object({
+    type: z.literal("external"),
+    externalUrl: z.string().url("Enter a valid URL"),
+    label: z.string().min(1, "Label is required"),
+    newTab: z.boolean().default(false),
+  }),
+]);
 
 export const NavLinkSchema = z.object({
   id: z.string().optional(), // for useFieldArray key
@@ -54,7 +55,7 @@ export const NavigationSchema = z.object({
   header: z.array(NavLinkSchema).default([]),
   footer: z.object({
     columns: z.array(z.object({
-      title: z.string(),
+      title: z.string().min(1),
       links: z.array(NavLinkSchema)
     })).default([])
   })
@@ -85,10 +86,11 @@ export const WhatWeDoSchema = z.object({
 });
 
 export const ServiceItemSchema = z.object({
+  id: z.string().optional(),
   icon: z.string().optional(),
   title: z.string().min(1, "Title is required"),
   body: z.string().default(""),
-  link: CmsLinkSchema.optional(),
+  link: CmsLinkSchema.optional().nullable(),
 });
 
 export const ServicesSchema = z.object({
