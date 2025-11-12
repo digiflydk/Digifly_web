@@ -1,5 +1,4 @@
 
-// src/lib/cms-sanitize.ts
 import { CmsLinkSchema } from "./schemas";
 import type { CmsLink, HomePage } from "./types";
 import deepmerge from "deepmerge";
@@ -25,22 +24,24 @@ export function normalizeCta(raw: any): { label: string; link: CmsLink } {
 
 /**
  * Ensure homepage payload is complete and Zod-safe.
- * This is a synchronous function and should not be in a "use server" file.
  */
 export function sanitizeHomepage(input: Partial<HomePage> | undefined): HomePage {
   const merged = deepmerge(defaultHomepage, (input ?? {}) as object) as HomePage;
 
   // Hero slides → ensure CTA + link shape
   merged.hero = merged.hero ?? { slides: [], rotationDelaySec: 5 };
-  merged.hero.slides = (merged.hero.slides ?? []).map((s: any) => ({
-    ...s,
-    cta: normalizeCta(s?.cta),
-  }));
+  merged.hero.slides = (merged.hero.slides ?? []).map((s: any) => {
+    // If there's no label for a CTA, treat the whole CTA as null/undefined
+    if (!s.cta || !s.cta.label) {
+        return { ...s, cta: null };
+    }
+    return { ...s, cta: normalizeLink(s?.cta) };
+  });
 
   // WhatWeDo → ensure image + CTA exists
   merged.whatWeDo = merged.whatWeDo ?? ({} as any);
   merged.whatWeDo.image = merged.whatWeDo.image ?? { src: '', alt: ''};
-  merged.whatWeDo.cta = normalizeCta(merged.whatWeDo?.cta);
+  merged.whatWeDo.cta = normalizeLink(merged.whatWeDo?.cta);
 
   // Services → ensure each item has link shape
   merged.services = merged.services ?? ({} as any);

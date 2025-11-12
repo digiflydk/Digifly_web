@@ -1,6 +1,4 @@
 
-
-
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import type { NavLink } from "@/lib/types";
@@ -18,7 +16,7 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
         <div className="max-w-6xl mx-auto px-6 py-10 text-center text-muted-foreground">
           Footer navigation not configured.
         </div>
-        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.24 • DGF-341</div>
+        <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.23 • DGF-340</div>
       </footer>
     );
   }
@@ -36,18 +34,19 @@ export default function Footer({ columns }: { columns?: { title: string; links: 
             <ul className="space-y-1">
               {col.links.map((l, j) => {
                 const { href, label, target, rel } = resolveCmsLink(l.link);
+                const key = l.id ?? `${label}-${i}-${j}`;
                 if (!href) return (
-                  <li key={l.id ?? `footer-link-${i}-${j}`}><span className="text-muted-foreground/50 cursor-not-allowed">{label || 'Empty Link'}</span></li>
+                  <li key={key}><span className="text-muted-foreground/50 cursor-not-allowed">{label || 'Empty Link'}</span></li>
                 );
                 return (
-                  <li key={l.id ?? `footer-link-${i}-${j}`}><Link href={href} target={target} rel={rel} className="text-muted-foreground hover:text-primary transition-colors">{label}</Link></li>
+                  <li key={key}><Link href={href} target={target} rel={rel} className="text-muted-foreground hover:text-primary transition-colors">{label}</Link></li>
                 )
               })}
             </ul>
           </div>
         ))}
       </div>
-      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.24 • DGF-341</div>
+      <div className="text-center text-xs text-[var(--color-graphite)]/70 py-4">© {new Date().getFullYear()} {siteConfig.name} • 1.3.23 • DGF-340</div>
     </footer>
   );
 }

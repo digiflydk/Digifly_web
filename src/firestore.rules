@@ -3,10 +3,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isAuthed() { return request.auth != null; }
-    function isAdmin() { return isAuthed() && request.auth.token.role == "admin"; }
+    function isAdmin() { return request.auth != null && request.auth.token.admin == true; }
 
-    // Site settings, navigation, and pages are public reads
+    // Public read for site rendering
     match /site/{docId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -17,25 +16,24 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    // Cases are public if published
     match /cases/{caseId} {
       allow read: if resource.data.published == true;
-      allow list, write: if isAdmin();
+      allow write: if isAdmin();
     }
     
+    match /navigation/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Admin-only collections
     match /admins/{uid} {
       allow read, write: if isAdmin();
     }
 
     match /auditLogs/{logId} {
-        allow create: if isAuthed();
+        allow create: if request.auth != null;
         allow read, update, delete: if isAdmin();
-    }
-
-    // Fallback security rule - denies all other access
-    match /{document=**} {
-      allow read, write: if false;
     }
   }
 }

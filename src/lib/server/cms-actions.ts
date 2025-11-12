@@ -1,8 +1,6 @@
 
 "use server";
-export const runtime = "nodejs";
 import 'server-only';
-
 import { getDb } from "@/lib/firebase-admin";
 import { NavigationSchema, HomepageSchema, type Navigation, type HomePage } from "@/lib/schemas";
 import { revalidatePath } from 'next/cache';
@@ -10,7 +8,6 @@ import { CMS_PATHS } from "../constants";
 import deepmerge from 'deepmerge';
 import { defaultHomepage, defaultNavigation } from '../defaults/siteDefaults';
 import { sanitizeHomepage } from "../cms-sanitize";
-
 
 export async function getNavigation(): Promise<Navigation> {
     const db = await getDb();
@@ -27,7 +24,6 @@ export async function updateNavigation(payload: Navigation) {
     revalidatePath("/dadmin/navigation");
     return { ok: true };
 }
-
 
 export async function saveHomepageAction(payload: HomePage) {
     const db = await getDb();

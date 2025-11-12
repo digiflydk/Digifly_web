@@ -1,5 +1,6 @@
 
-'use server';
+"use server";
+import 'server-only';
 import { z } from 'zod';
 import {
   SiteSettingsSchema,

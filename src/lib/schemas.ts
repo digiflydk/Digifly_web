@@ -92,7 +92,7 @@ export const HeroSlideSchema = z.object({
         src: z.string().optional().default(''), 
         alt: z.string().optional().default('')
       }).optional().default({}),
-      cta: CmsLinkSchema.optional(),
+      cta: CmsLinkSchema.nullish(),
       visible: z.boolean().default(true)
 });
 
