@@ -14,6 +14,7 @@ import { useTransition } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { defaultHomepage } from "@/lib/defaults/siteDefaults";
+import { saveHomepageAction } from "@/app/dadmin/homepage/actions";
 
 export default function HomepageEditor({ initialData }: { initialData: HomePage }) {
   const methods = useForm<HomePage>({
@@ -26,15 +27,10 @@ export default function HomepageEditor({ initialData }: { initialData: HomePage 
   const onSubmit = methods.handleSubmit((data) => {
     startTransition(async () => {
       try {
-        const response = await fetch('/api/admin/homepage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
+        const result = await saveHomepageAction(data);
 
-        if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error || `HTTP ${response.status}`);
+        if (!result.ok) {
+            throw new Error(result.error || "An unknown error occurred.");
         }
         
         toast({ title: "Saved", description: "Homepage updated." });

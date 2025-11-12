@@ -12,10 +12,8 @@ function loadServiceAccount(): admin.ServiceAccount | null {
 
   const jsonStr = (() => {
     try {
-      // Try decoding from base64 first
       return Buffer.from(raw, "base64").toString("utf8");
     } catch {
-      // Fallback to assuming it's a raw JSON string
       return raw;
     }
   })();

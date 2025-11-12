@@ -7,6 +7,7 @@ import { NavigationSchema, type Navigation } from "@/lib/schemas";
 import { toast } from "@/hooks/use-toast";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { saveNavigationAction } from "@/app/dadmin/navigation/actions";
 import NavItemsList from "./NavItemsList";
 import { defaultNavigation } from "@/lib/defaults/siteDefaults";
 
@@ -26,20 +27,13 @@ export default function NavEditor({ initialData, pages }: {
   const onSubmit = methods.handleSubmit((data) => {
     startTransition(async () => {
       try {
-        const response = await fetch('/api/admin/navigation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-        
-        if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error || `HTTP ${response.status}`);
+        const result = await saveNavigationAction(data);
+        if (result.ok) {
+          toast({ title: "Saved", description: "Navigation updated." });
+          methods.reset(data);
+        } else {
+          throw new Error(result.error || "An unknown error occurred.");
         }
-        
-        toast({ title: "Saved", description: "Navigation updated." });
-        methods.reset(data);
-
       } catch (e: any) {
         toast({ title: "Error", description: e?.message ?? "Save failed", variant: "destructive" });
       }

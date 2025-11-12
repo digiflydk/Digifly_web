@@ -3,16 +3,13 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { type HomePage } from "@/lib/schemas";
-import { saveHomepageServer as saveHomepageServerAction } from "@/lib/server/cms-actions";
+import type { HomePage } from "@/lib/schemas";
+import { updateHomepage as saveHomepageServer } from "@/lib/server/cms-actions";
 
-// This file is kept for separation of concerns, but the main logic is now
-// in the API route, and this action calls the underlying server function.
-// The form could also call the API route directly via fetch.
 
 export async function saveHomepageAction(data: HomePage) {
   try {
-    const result = await saveHomepageServerAction(data);
+    const result = await saveHomepageServer(data);
     revalidatePath("/", "layout");
     revalidatePath("/dadmin/homepage");
     return result;
