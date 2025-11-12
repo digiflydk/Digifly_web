@@ -1,6 +1,4 @@
-
 "use server";
-export const runtime = "nodejs";
 import { saveNavigationAction as saveAction } from "@/lib/server/cms-actions";
 import type { Navigation } from "@/lib/schemas";
 
