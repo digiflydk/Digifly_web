@@ -3,9 +3,6 @@ import type {NextConfig} from 'next';
 import path from "path";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    runtime: "nodejs",
-  },
   typescript: {
     ignoreBuildErrors: true,
   },

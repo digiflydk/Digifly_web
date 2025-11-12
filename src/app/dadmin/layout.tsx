@@ -9,8 +9,8 @@ import { redirect } from "next/navigation";
 export default async function DadminLayout({ children }: { children: React.ReactNode; }) {
   const user = await getCurrentUser();
   
+  // The middleware is disabled, so this server-side check is now the primary guard.
   if (!user) {
-    // This is a server-side check. Middleware provides the first layer of defense.
     redirect("/dadmin/login");
   }
   
