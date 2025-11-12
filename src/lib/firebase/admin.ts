@@ -4,45 +4,24 @@ import { getFirestore } from 'firebase-admin/firestore';
 
 let app: App | null = null;
 
-function loadServiceAccount(): admin.ServiceAccount | null {
+function loadServiceAccount() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (!raw) {
     console.warn("FIREBASE_SERVICE_ACCOUNT_JSON is not set. Firestore connections will fail.");
     return null;
   }
 
-  const jsonStr = (() => {
-    try {
-      return Buffer.from(raw, "base64").toString("utf8");
-    } catch {
-      return raw;
-    }
-  })();
-
-  let parsed: any;
   try {
-    parsed = JSON.parse(jsonStr);
-  } catch {
-    console.error("FIREBASE_SERVICE_ACCOUNT_JSON is invalid JSON.");
+    const parsed = JSON.parse(raw);
+    // The replace logic is often needed if the key is stored as a single-line string.
+    if (parsed.private_key) {
+      parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+    }
+    return parsed;
+  } catch (e) {
+    console.error("Could not parse FIREBASE_SERVICE_ACCOUNT_JSON", e);
     return null;
   }
-
-  if (parsed.private_key && typeof parsed.private_key === "string") {
-    parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
-  }
-
-  for (const key of ["project_id", "client_email", "private_key"]) {
-    if (!parsed[key]) {
-      console.error(`Service account in FIREBASE_SERVICE_ACCOUNT_JSON is missing field: ${key}.`);
-      return null;
-    }
-  }
-
-  return {
-    projectId: parsed.project_id,
-    clientEmail: parsed.client_email,
-    privateKey: parsed.private_key,
-  };
 }
 
 export function getAdminApp() {
@@ -60,6 +39,6 @@ export function getAdminApp() {
   return app!;
 }
 
-export function getDb() {
+export async function getDb() {
   return getFirestore(getAdminApp());
 }
