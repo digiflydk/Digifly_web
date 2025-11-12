@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -23,23 +22,23 @@ export default function LoginForm() {
     setError(null);
 
     try {
-      // In a real app, this would be an actual login call, e.g., with Firebase Auth.
-      // For this public-mode app, we'll simulate a simple check.
-      // This is a placeholder and should be replaced with real auth logic.
-      if (username === "admin" && password === "password") {
-        // This is a placeholder for session creation.
-        // In a real app, you would POST to an API route to set a session cookie.
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network latency
+      const response = await fetch('/api/auth/simple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
+      const data = await response.json();
+
+      if (data.ok) {
         const nextUrl = searchParams.get('next') || '/dadmin';
         router.push(nextUrl);
         router.refresh();
       } else {
-        // Simplified login logic for public mode
-        setError("Invalid credentials for this demo.");
+        setError(data.error || "Invalid credentials.");
       }
     } catch {
-      setError("An unexpected error occurred.");
+      setError("An unexpected error occurred during login.");
     } finally {
       setIsLoading(false);
     }
