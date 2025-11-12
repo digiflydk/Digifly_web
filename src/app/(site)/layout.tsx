@@ -1,6 +1,6 @@
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
-import { getNavigationPublic, getSiteSettingsPublic } from "@/lib/cms-public";
+import { getNavigation, getSiteSettings } from "@/lib/cms-server";
 import { orgJsonLd, localBusinessJsonLd } from "@/lib/structured-data";
 
 export default async function SiteLayout({
@@ -8,7 +8,7 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [navigation, site] = await Promise.all([getNavigationPublic(), getSiteSettingsPublic()]);
+  const [navigation, site] = await Promise.all([getNavigation(), getSiteSettings()]);
   const jsonLdBlocks = site ? [orgJsonLd(site), localBusinessJsonLd(site)].filter(Boolean) : [];
 
   return (
