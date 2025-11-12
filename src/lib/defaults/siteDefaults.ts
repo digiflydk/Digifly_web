@@ -51,8 +51,8 @@ export const safeImage = (img?: Partial<Img> | null): Img => ({
 
 export const defaultHeroSlide: HeroSlide = {
   image: { src: "/media/hero-1.jpg", alt: "Abstract hero image" },
+  eyebrow: "",
   heading: "New Slide",
-  subheading: "A compelling subtitle for your new slide.",
   body: "",
   cta: { type: 'internal', label: 'Learn More', internalRef: 'home', newTab: false },
   visible: true,
@@ -81,9 +81,9 @@ export const defaultHomepage: HomePage = HomepageSchema.parse({
     slides: [
       {
         image: { src: "/media/hero-1.jpg", alt: "Abstract hero image" },
+        eyebrow: "Why • How • What",
         heading: "From Idea to Intelligent Solution",
-        subheading: "Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.",
-        body: "",
+        body: "Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.",
         cta: { type: 'internal', label: 'Start Your Project', internalRef: 'contact', newTab: false },
         visible: true,
       }

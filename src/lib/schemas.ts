@@ -66,8 +66,8 @@ export const NavigationSchema = z.object({
 
 // Homepage section schemas
 export const HeroSlideSchema = z.object({
+      eyebrow: z.string().optional().transform(v => (v ?? "").trim()),
       heading: z.string().default(''),
-      subheading: z.string().optional().default(''),
       body: z.string().optional().default(''),
       image: z.object({ 
         src: z.string().optional().default(''), 

@@ -1,4 +1,5 @@
 
+
 'use server';
 import { z } from 'zod';
 import {
@@ -91,8 +92,24 @@ type GetHomepageResult =
   | { ok: false; error: string; data: HomePage; issues: z.ZodIssue[] };
 
 
+function normalizeHero(data: any) {
+  if (data?.hero?.slides?.length) {
+    data.hero.slides = data.hero.slides.map((s: any) => {
+      if (!s) return s;
+      if (!s.eyebrow && typeof s.subheading === "string") {
+        s.eyebrow = s.subheading;
+      }
+      if ("subheading" in s) delete s.subheading;
+      return s;
+    });
+  }
+  return data;
+}
+
 function sanitizeHomepage(input: any): HomePage {
-  const hp = deepmerge(defaultHomepage, input ?? {});
+  let hp = deepmerge(defaultHomepage, input ?? {});
+  hp = normalizeHero(hp); // Apply hero migration
+  
   if (hp?.services?.items?.length) {
     hp.services.items = hp.services.items.map((it: any) => {
       const link = { ...(it?.link ?? {}) };
@@ -330,5 +347,3 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
-
-    

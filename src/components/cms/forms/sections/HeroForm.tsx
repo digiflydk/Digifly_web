@@ -1,4 +1,5 @@
 
+
 "use client";
 import { useFieldArray, useFormContext, Controller } from "react-hook-form";
 import type { HomePage } from "@/lib/types";
@@ -47,11 +48,11 @@ function SortableSlideItem({ id, index, remove }: { id: string; index: number; r
         </div>
 
         <div className="space-y-2">
+            <FormField control={control} name={`hero.slides.${index}.eyebrow`} render={({ field }) => (
+                <FormItem><FormLabel className="text-xs">Eyebrow</FormLabel><FormControl><Input {...field} value={field.value ?? ''} placeholder="Optional eyebrow text" /></FormControl><FormMessage /></FormItem>
+            )} />
             <FormField control={control} name={`hero.slides.${index}.heading`} render={({ field }) => (
                 <FormItem><FormLabel className="text-xs">Heading</FormLabel><FormControl><Input {...field} value={field.value ?? ''} placeholder="Slide-specific title" /></FormControl><FormMessage /></FormItem>
-            )} />
-             <FormField control={control} name={`hero.slides.${index}.subheading`} render={({ field }) => (
-                <FormItem><FormLabel className="text-xs">Subheading</FormLabel><FormControl><Input {...field} value={field.value ?? ''} placeholder="Brief text for the slide" /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
         
