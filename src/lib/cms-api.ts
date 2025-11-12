@@ -7,18 +7,19 @@
 
 import {
   getHomepage as _getHomepage,
-  updateHomepage as _updateHomepage,
   getSiteSettings as _getSiteSettings,
   saveSiteSettings as _saveSiteSettings,
   getNavigation as _getNavigation,
-  saveNavigation as _saveNavigation,
   getCases as _getCases,
   getCaseById as _getCaseById,
   getCaseBySlug as _getCaseBySlug,
   createCase as _createCase,
   updateCase as _updateCase,
   deleteCaseServer as _deleteCase,
+  updateHomepage as _updateHomepage
 } from "./cms-server";
+
+import { saveNavigationAction as _saveNavigation } from './server/cms-actions';
 
 // Re-exporting functions to maintain a stable API surface for components.
 export const getHomepage = _getHomepage;
@@ -33,3 +34,5 @@ export const getCaseBySlug = _getCaseBySlug;
 export const createCase = _createCase;
 export const updateCase = _updateCase;
 export const deleteCase = _deleteCase;
+
+    

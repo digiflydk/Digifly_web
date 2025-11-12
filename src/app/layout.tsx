@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import '@/styles/bluebook.css';
@@ -7,6 +6,7 @@ import DesignTokensClient from '@/components/providers/design-tokens-client';
 import { readSiteSettings } from "@/lib/dadmin/siteSeoRepo";
 import { buildSeo } from '@/lib/seo';
 
+export const runtime = 'nodejs';
 export const revalidate = 60; // refresh settings every 60s
 
 export async function generateMetadata(): Promise<Metadata> {

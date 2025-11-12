@@ -13,7 +13,7 @@ import {
   ContactPageSchema,
   type HomePage,
 } from './schemas';
-import { getDb } from '@/lib/firebase-admin';
+import { getDb } from '@/lib/firebase/admin';
 import type { Navigation, Case, SiteSettings } from '@/lib/schemas';
 import { sanitizeHomepage } from './cms-sanitize';
 
@@ -23,7 +23,7 @@ import { zodErrorToIssues } from './zod-helpers';
 import { defaultHomepage, defaultNavigation } from './defaults/siteDefaults';
 import { CMS_PATHS } from './constants';
 import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
-import { getNavigation as getNavigationAction, updateNavigation as updateNavigationAction } from './server/cms-actions';
+import { getNavigation as getNavigationAction } from './server/cms-actions';
 import deepmerge from "deepmerge";
 
 
@@ -58,10 +58,6 @@ export async function getNavigation(): Promise<Navigation> {
     noStore();
     const navData = await getNavigationAction();
     return navData ?? defaultNavigation;
-}
-
-export async function saveNavigation(data: Navigation): Promise<void> {
-    await updateNavigationAction(data);
 }
 
 
@@ -308,3 +304,5 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
+
+    

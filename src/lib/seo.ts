@@ -1,5 +1,6 @@
 
 
+import 'server-only';
 import type { Metadata } from "next";
 import type { SiteSettings } from "./schemas";
 import { getSiteSettings } from "./cms-server";
