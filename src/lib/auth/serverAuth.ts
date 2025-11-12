@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
 import { cache } from 'react';
 import type { Role } from './roles';
 
-const SESSION_COOKIE_NAME = 'session';
+export const SESSION_COOKIE_NAME = 'session';
 const SESSION_DURATION_DAYS = 5;
 
 export type CurrentUser = {
@@ -16,33 +16,21 @@ export type CurrentUser = {
   role: Role | null;
 };
 
-export async function createSessionCookie(idToken: string, reqUrl: string): Promise<void> {
+export async function createSessionCookie(idToken: string): Promise<void> {
   const expiresIn = 60 * 60 * 24 * SESSION_DURATION_DAYS * 1000;
   const sessionCookie = await getAuth(getAdminApp()).createSessionCookie(idToken, { expiresIn });
   
-  const host = new URL(reqUrl).hostname;
-  const isLocal = host.includes('localhost') || host.includes('.local');
-  const apexDomain = isLocal ? undefined : host.split('.').slice(-2).join('.');
-
   cookies().set(SESSION_COOKIE_NAME, sessionCookie, {
     maxAge: expiresIn,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     sameSite: 'lax',
-    domain: apexDomain,
   });
 }
 
-export async function clearSessionCookie(reqUrl: string): Promise<void> {
-  const host = new URL(reqUrl).hostname;
-  const isLocal = host.includes('localhost') || host.includes('.local');
-  const apexDomain = isLocal ? undefined : host.split('.').slice(-2).join('.');
-
+export async function clearSessionCookie(): Promise<void> {
   cookies().set(SESSION_COOKIE_NAME, '', { path: '/', maxAge: 0 });
-  if (apexDomain) {
-      cookies().set(SESSION_COOKIE_NAME, '', { path: '/', domain: `.${apexDomain}`, maxAge: 0 });
-  }
 }
 
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {

@@ -30,7 +30,7 @@ export default function HomepageEditor({ initialData }: { initialData: HomePage 
         const result = await saveHomepageAction(data);
 
         if (!result.ok) {
-            throw new Error(result.error || "An unknown error occurred.");
+            throw new Error("Save failed");
         }
         
         toast({ title: "Saved", description: "Homepage updated." });

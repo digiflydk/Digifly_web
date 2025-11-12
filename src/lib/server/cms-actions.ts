@@ -7,7 +7,8 @@ import { revalidatePath } from 'next/cache';
 import { CMS_PATHS } from "../constants";
 import deepmerge from 'deepmerge';
 import { defaultHomepage, defaultNavigation } from '../defaults/siteDefaults';
-import { sanitizeHomepage } from '../cms-server';
+import { sanitizeHomepage } from "../cms-sanitize";
+
 
 export async function getNavigation(): Promise<Navigation> {
     const db = await getDb();
@@ -29,12 +30,12 @@ export async function getHomepageServer() {
   const db = await getDb();
   const snap = await db.doc(CMS_PATHS.page('home')).get();
   const data = snap.exists ? snap.data() : {};
-  const sanitized = await sanitizeHomepage(data);
+  const sanitized = sanitizeHomepage(data);
   return HomepageSchema.parse(sanitized);
 }
 
 export async function updateHomepage(payload: unknown) {
-  const sanitized = await sanitizeHomepage(payload);
+  const sanitized = sanitizeHomepage(payload);
   const parsed = HomepageSchema.parse(sanitized);
   const db = await getDb();
   await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });

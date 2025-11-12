@@ -9,7 +9,7 @@ service cloud.firestore {
     // Public site reads
     match /site/{doc} {
       allow read: if true;
-      allow write: if false; // Only server can write
+      allow write: if isAdmin();
     }
     
     match /pages/{pageId} {
@@ -22,7 +22,6 @@ service cloud.firestore {
       allow list, write: if isAdmin();
     }
     
-    // Admin-managed CMS (navigation, etc)
     match /navigation/{docId} {
         allow read: if true; // Nav is public
         allow write: if isAdmin();

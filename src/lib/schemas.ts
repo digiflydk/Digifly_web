@@ -2,42 +2,42 @@
 import { z } from "zod";
 
 // Base primitives for links
-export const CmsLinkSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("internal"),
-    internalRef: z.string().nullable().default(null),
-    label: z.string().default(""),
-    newTab: z.boolean().default(false),
-  }),
-  z.object({
-    type: z.literal("external"),
-    externalUrl: z.string().url("Enter a valid URL").or(z.literal("")),
-    label: z.string().default(""),
-    newTab: z.boolean().default(false),
-  }),
-]).superRefine((val, ctx) => {
-  // Only require a target if a label exists.
-  if (val.label && val.label.trim().length > 0) {
-    if (val.type === "internal") {
-      if (!val.internalRef) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Internal page selection is required.",
-          path: ["internalRef"],
-        });
-      }
+export const CmsLinkSchema = z.object({
+  type: z.enum(["internal", "external"]).default("internal"),
+  label: z.string().default(""),
+  internalRef: z.string().nullable().default(null),
+  externalUrl: z.string().default(""),
+  newTab: z.boolean().default(false),
+}).superRefine((val, ctx) => {
+  // Only enforce a target when CTA is actually used (has a label)
+  if (val.label.trim().length === 0) return;
+
+  if (val.type === "internal") {
+    if (!val.internalRef) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Internal page selection is required.",
+        path: ["internalRef"],
+      });
     }
-    if (val.type === "external") {
-      if (!val.externalUrl || val.externalUrl.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "External URL is required.",
-          path: ["externalUrl"],
-        });
-      }
+  }
+  if (val.type === "external") {
+    if (!val.externalUrl || val.externalUrl.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "External URL is required.",
+        path: ["externalUrl"],
+      });
+    } else if (!val.externalUrl.startsWith('http') && !val.externalUrl.startsWith('/')) {
+       ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "URL must be external (https://) or root-relative (/).",
+        path: ["externalUrl"],
+      });
     }
   }
 });
+
 
 export const NavLinkSchema = z.object({
   id: z.string().optional(), // for useFieldArray key

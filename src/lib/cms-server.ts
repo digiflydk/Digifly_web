@@ -14,6 +14,7 @@ import {
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
 import type { Navigation, Case, SiteSettings } from '@/lib/schemas';
+import { sanitizeHomepage } from './cms-sanitize';
 
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -104,53 +105,6 @@ function normalizeHero(data: any) {
   return data;
 }
 
-function normalizeLink(raw: any) {
-  const type = raw?.type === "external" ? "external" : "internal";
-  return {
-    type,
-    label: raw?.label ?? "",
-    internalRef: type === "internal" ? (raw?.internalRef ?? null) : null,
-    externalUrl: type === "external" ? (raw?.externalUrl ?? "") : "",
-    newTab: raw?.newTab ?? false,
-  };
-}
-
-function normalizeCta(raw: any) {
-  return {
-    label: raw?.label ?? "",
-    link: normalizeLink(raw?.link),
-  };
-}
-
-/**
- * Ensure homepage payload is complete and Zod-safe.
- * Must be async because this file is marked "use server".
- */
-export async function sanitizeHomepage(input: Partial<HomePage> | undefined): Promise<HomePage> {
-  const merged = deepmerge(defaultHomepage, (input ?? {}) as object) as HomePage;
-
-  // Hero slides → ensure CTA + link shape
-  merged.hero = merged.hero ?? { slides: [], rotationDelaySec: 5 };
-  merged.hero.slides = (merged.hero.slides ?? []).map((s: any) => ({
-    ...s,
-    cta: normalizeLink(s?.cta),
-  }));
-
-  // WhatWeDo → ensure image + CTA exists
-  merged.whatWeDo = merged.whatWeDo ?? ({} as any);
-  merged.whatWeDo.image = merged.whatWeDo.image ?? { src: '', alt: ''};
-  merged.whatWeDo.cta = normalizeLink(merged.whatWeDo?.cta);
-
-  // Services → ensure each item has link shape
-  merged.services = merged.services ?? ({} as any);
-  merged.services.items = (merged.services.items ?? []).map((it: any) => ({
-    ...it,
-    link: normalizeLink(it?.link),
-  }));
-
-  return merged;
-}
-
 export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomepageResult> {
   noStore();
   try {
@@ -158,7 +112,7 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
     const snap = await db.doc("pages/home").get();
     const data = snap.exists ? snap.data() : {};
     
-    const sanitized = await sanitizeHomepage(data);
+    const sanitized = sanitizeHomepage(data);
     const parsed = HomepageSchema.safeParse(sanitized);
     
     if (parsed.success) {
@@ -182,7 +136,7 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
 }
 
 export async function updateHomepage(data: HomePage) {
-    const sanitized = await sanitizeHomepage(data);
+    const sanitized = sanitizeHomepage(data);
     const parsed = HomepageSchema.parse(sanitized);
     const db = await getDb();
     await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
