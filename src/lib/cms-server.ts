@@ -10,14 +10,16 @@ import {
   ServicesPageSchema,
   CasesIndexSchema,
   ContactPageSchema,
+  type HomePage,
+  type ServiceItem,
 } from './schemas';
 import { getDb } from '@/lib/firebase-admin';
-import type { HomePage, Navigation, Case, SiteSettings } from '@/lib/schemas';
+import type { Navigation, Case, SiteSettings } from '@/lib/schemas';
 
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-import { defaultHomepage, defaultNavigation, normalizeHome } from './defaults/siteDefaults';
+import { defaultHomepage, defaultNavigation } from './defaults/siteDefaults';
 import { CMS_PATHS } from './constants';
 import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
 import { getNavigation as getNavigationAction, updateNavigation as updateNavigationAction } from './server/cms-actions';
@@ -89,6 +91,28 @@ type GetHomepageResult =
   | { ok: false; error: string; data: HomePage; issues: z.ZodIssue[] };
 
 
+function sanitizeHomepage(input: any): HomePage {
+  const hp = deepmerge(defaultHomepage, input ?? {});
+  if (hp?.services?.items?.length) {
+    hp.services.items = hp.services.items.map((it: any) => {
+      const link = { ...(it?.link ?? {}) };
+      // Fallback label to title if empty
+      if (!link.label || !link.label.trim()) {
+        link.label = String(it?.title ?? "").trim();
+      }
+      // Ensure mutual exclusivity
+      if (link.type === "internal") {
+        link.externalUrl = "";
+      } else if (link.type === "external") {
+        link.internalRef = "";
+      }
+      return { ...it, link };
+    });
+  }
+  return hp as HomePage;
+}
+
+
 export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomepageResult> {
   noStore();
   try {
@@ -96,9 +120,8 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
     const snap = await db.doc("pages/home").get();
     const data = snap.exists ? snap.data() : {};
     
-    // Merge defaults first to ensure structure is valid before parsing
-    const merged = deepmerge(defaultHomepage, data ?? {});
-    const parsed = HomepageSchema.safeParse(merged);
+    const sanitized = sanitizeHomepage(data);
+    const parsed = HomepageSchema.safeParse(sanitized);
     
     if (parsed.success) {
       return { ok: true, data: parsed.data };
@@ -111,7 +134,7 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
       });
     }
 
-    const safeFallback = HomepageSchema.parse(merged);
+    const safeFallback = HomepageSchema.parse(sanitized);
     
     return { ok: false, error: "Validation failed, returning best-effort data.", data: safeFallback, issues };
   } catch (err: any) {
@@ -121,9 +144,9 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
 }
 
 export async function updateHomepage(data: HomePage) {
+    const sanitized = sanitizeHomepage(data);
+    const parsed = HomepageSchema.parse(sanitized);
     const db = await getDb();
-    const merged = deepmerge(defaultHomepage, (data as object) ?? {});
-    const parsed = HomepageSchema.parse(merged);
     await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
     revalidatePath('/');
     return parsed;
@@ -307,3 +330,5 @@ export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   }
   return null;
 }
+
+    
