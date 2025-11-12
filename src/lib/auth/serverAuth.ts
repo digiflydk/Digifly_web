@@ -1,3 +1,4 @@
+
 "use server";
 import 'server-only';
 import { getAdminApp } from '@/lib/firebase-admin';
@@ -6,7 +7,7 @@ import { cookies } from 'next/headers';
 import { cache } from 'react';
 import type { Role } from './roles';
 
-const SESSION_COOKIE_NAME = '__session';
+const SESSION_COOKIE_NAME = 'session';
 const SESSION_DURATION_DAYS = 5;
 
 export type CurrentUser = {

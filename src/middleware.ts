@@ -1,30 +1,43 @@
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getCurrentUser } from "@/lib/auth/serverAuth";
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isAdminArea = pathname.startsWith("/dadmin");
-  const isLoginPage = pathname === '/dadmin/login';
+  const isLoginPage = pathname === "/dadmin/login";
+  const isApiOrStatic = pathname.startsWith('/api/') || pathname.startsWith('/_next/') || pathname.includes('.');
 
-  // If it's an admin route but NOT the login page, check for a session.
-  if (isAdminArea && !isLoginPage) {
-    const hasSession = req.cookies.get("session")?.value;
-    if (!hasSession) {
-      const url = new URL("/dadmin/login", req.url);
-      url.searchParams.set("next", pathname);
-      return NextResponse.redirect(url);
-    }
+  if (!isAdminArea || isApiOrStatic) {
+    return NextResponse.next();
   }
 
-  // If on the login page with a session, redirect to dashboard.
-  if (isLoginPage && req.cookies.has("session")?.value) {
-      return NextResponse.redirect(new URL('/dadmin', req.url));
+  // We cannot use the cached getCurrentUser here as middleware runs in edge.
+  // A simple cookie check is sufficient for the middleware guard.
+  const hasSession = req.cookies.has("session");
+
+  if (isLoginPage) {
+    if (hasSession) {
+      // If user is logged in and tries to access login page, redirect to dashboard
+      return NextResponse.redirect(new URL("/dadmin", req.url));
+    }
+    // Allow access to login page if not logged in
+    return NextResponse.next();
+  }
+
+  // For all other admin pages, require a session
+  if (!hasSession) {
+    const loginUrl = new URL("/dadmin/login", req.url);
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
 // Ensure the matcher covers all necessary paths.
-export const config = { matcher: ["/dadmin/:path*"] };
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};
