@@ -1,50 +1,39 @@
 
-import { NextResponse } from "next/server";
-import { getDb as getAdminDb } from "@/lib/firebase-admin";
-import { getCurrentUser } from "@/lib/auth/serverAuth";
-import { HomepageSchema } from "@/lib/schemas";
-import { defaultHomepage, normalizeHome } from "@/lib/defaults/siteDefaults";
-import { CMS_PATHS } from "@/lib/constants";
-import deepmerge from "deepmerge";
+// src/app/api/cms/pages/home/route.ts
+import { getHomepage } from "@/lib/cms-server";
+import { NextResponse, NextRequest } from "next/server";
+import { ZodError } from "zod";
 
-async function assertAuth() {
-  const user = await getCurrentUser();
-  if (!user) {
-    throw new Error("unauthorized");
-  }
-  return user;
-}
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+// Small helper: return JSON with numeric status (not an options object)
+const json = (data: any, status = 200) => NextResponse.json(data, { status });
 
 export async function GET() {
   try {
-    await assertAuth();
-    const db = await getAdminDb();
-    const snap = await db.doc(CMS_PATHS.page('home')).get();
-    const data = snap.exists ? snap.data() : {};
-    // Ensure defaults are applied for any missing fields on read
-    const merged = deepmerge(defaultHomepage, data ?? {});
-    const normalized = normalizeHome(merged);
-    const parsed = HomepageSchema.parse(normalized);
-    return NextResponse.json(parsed);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: e.message === 'unauthorized' ? 401 : 500 });
+    const result = await getHomepage();
+    return json({ ok: true, data: result.data }, 200);
+  } catch (error: any) {
+    console.error(`[GET /api/cms/pages/home]`, error);
+    return json({ ok: false, error: "Failed to load homepage" }, 500);
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const user = await assertAuth();
-    const data = await req.json();
-    
-    // Always normalize before validating and saving
-    const normalized = normalizeHome(data);
-    const parsed = HomepageSchema.parse(normalized);
-    
-    const db = await getAdminDb();
-    await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
-    
-    return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: e.message === 'unauthorized' ? 401 : 500 });
+    const body = await req.json();
+    const { saveHomepageAction } = await import('@/app/dadmin/homepage/actions');
+    const updated = await saveHomepageAction(body);
+    return json({ ok: true, data: updated }, 200);
+  } catch (error: any) {
+    if (error instanceof ZodError) {
+      return json(
+        { ok: false, error: "Validation failed", issues: error.issues },
+        400
+      );
+    }
+    console.error(`[POST /api/cms/pages/home]`, error);
+    return json({ ok: false, error: "Failed to update homepage" }, 500);
   }
 }

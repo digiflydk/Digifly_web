@@ -4,6 +4,7 @@ import path from "path";
 import { NextResponse } from "next/server";
 import JSZip from 'jszip';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const DOCS_DIR = path.join(process.cwd(), "docs");
