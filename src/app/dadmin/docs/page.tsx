@@ -18,6 +18,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const DUMPS = [
   {
+    title: "Full CMS Dump",
+    description: "A JSON file containing all key CMS documents (homepage, navigation, site settings).",
+    href: "/dadmin/developer/cms-dump",
+    filename: "digifly-cms-dump.json",
+  },
+  {
     title: "CMS API Dump",
     description: "A JSON list of all registered CMS and admin-facing API endpoints.",
     href: "/api/developer/cms-api-dump",
