@@ -19,7 +19,21 @@ The data flow is now stable and consistent. The next logical step is to perform 
 
 ---
 
-## 2. Firestore Collections & Documents
+## 2. CMS Snapshots (for analysis)
+
+To download the current CMS JSON snapshots used for debugging and analysis:
+
+- Go to: **/dadmin → Developer → CMS Snapshots**
+- Click “Download JSON” for the document you want:
+  - Site Settings: `site-settings.json`
+  - Navigation: `site-navigation.json`
+  - Homepage: `pages-home.json`
+
+These files are served directly from `DOCS/snapshots` and reflect the data used by the homepage, navigation, and layout.
+
+---
+
+## 3. Firestore Collections & Documents
 
 ### A. Collections Overview
 
@@ -67,7 +81,7 @@ The data flow is now stable and consistent. The next logical step is to perform 
 
 ---
 
-## 3. Route → Helper → Firestore Mapping
+## 4. Route → Helper → Firestore Mapping
 
 ### A. Frontend (Public Site)
 
@@ -91,7 +105,7 @@ The data flow is now stable and consistent. The next logical step is to perform 
 
 ---
 
-## 4. Issues & Inconsistencies
+## 5. Issues & Inconsistencies
 
 *No major inconsistencies were found in the current data flow.* The previous issues related to read/write mismatches have been resolved. The admin panel and public site now consistently use the same Firestore documents and server-side helpers.
 
@@ -100,7 +114,7 @@ The data flow is now stable and consistent. The next logical step is to perform 
 
 ---
 
-## 5. Proposed Cleanup Candidates
+## 6. Proposed Cleanup Candidates
 
 The following collections and files are candidates for deprecation or deletion in a future refactoring task. **No action should be taken yet.**
 
