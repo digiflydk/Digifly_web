@@ -7,15 +7,13 @@ import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { LinkPicker } from "../../inputs/LinkPicker";
-import { defaultServiceItem } from "@/data/defaults";
 
-function ServiceItemFields({ index, remove }: { index: number, remove: (index: number) => void }) {
+function ServiceItemFields({ index }: { index: number }) {
     const { control } = useFormContext<HomePage>();
     return (
         <div className="rounded-lg border p-4 space-y-4 relative bg-slate-50/50">
+            <h3 className="font-semibold text-sm">Service Item #{index + 1}</h3>
             <div className="space-y-2">
                 <FormField
                     name={`services.items.${index}.icon`}
@@ -43,21 +41,15 @@ function ServiceItemFields({ index, remove }: { index: number, remove: (index: n
               <FormLabel className="text-xs">Link (optional)</FormLabel>
               <LinkPicker namePrefix={`services.items.${index}.link`} />
             </div>
-            <div className="text-right">
-              <Button type="button" variant="destructive" size="sm" onClick={() => remove(index)}>
-                Remove
-              </Button>
-            </div>
           </div>
     )
 }
 
 export default function ServicesForm() {
   const { control } = useFormContext<HomePage>();
-  const { fields, append, remove } = useFieldArray({
+  const { fields } = useFieldArray({
     control,
     name: "services.items",
-    keyName: "fieldId",
   });
 
   return (
@@ -97,17 +89,12 @@ export default function ServicesForm() {
 
         <div className="space-y-4 pt-4">
           <FormLabel>Service Items</FormLabel>
-            {fields.map((field, i) => (
-                <ServiceItemFields key={field.fieldId} index={i} remove={remove} />
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => append(defaultServiceItem)}
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add Service
-            </Button>
+            {/* DGF-362: Statically render 3 items, not a dynamic array */}
+            <div className="grid gap-4">
+              <ServiceItemFields index={0} />
+              <ServiceItemFields index={1} />
+              <ServiceItemFields index={2} />
+            </div>
         </div>
       </CardContent>
     </Card>

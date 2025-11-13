@@ -90,25 +90,25 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
   try {
     const db = await getDb();
     const snap = await db.doc("pages/home").get();
-    const data = snap.exists ? snap.data() : {};
+    const rawData = snap.exists ? snap.data() : {};
     
-    const sanitized = sanitizeHomepage(data);
+    // Sanitize and normalize the data first
+    const sanitized = sanitizeHomepage(rawData);
+    
+    // Then attempt to parse
     const parsed = HomepageSchema.safeParse(sanitized);
     
     if (parsed.success) {
       return { ok: true, data: parsed.data };
     }
     
+    // If parsing fails, we log the issues but still return the best-effort sanitized data
     const issues = zodErrorToIssues(parsed.error);
     if (process.env.NODE_ENV !== 'production' || options.debug) {
-      console.warn("[cms-server] Homepage validation failed. Returning sanitized fallback.", {
-        issues,
-      });
+      console.warn("[cms-server] Homepage validation failed, returning best-effort data.", { issues });
     }
-
-    const safeFallback = HomepageSchema.parse(sanitized);
     
-    return { ok: false, error: "Validation failed, returning best-effort data.", data: safeFallback, issues };
+    return { ok: false, error: "Validation failed, returning best-effort data.", data: sanitized, issues };
   } catch (err: any) {
     console.error("[getHomepage] Firestore fetch failed:", err.message);
     return { ok: false, error: err.message || 'Failed to fetch from Firestore.', data: defaultHomepage, issues: [] };

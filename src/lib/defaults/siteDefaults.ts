@@ -104,8 +104,17 @@ export const defaultHomepage: HomePage = HomepageSchema.parse({
       type: "internal", internalRef: "contact", newTab: false
     }
   },
-  services: defaultServices,
-  featuredCases: ['autostream-ai', 'connect-app'],
+  services: {
+    enabled: true,
+    title: "Our Core Services",
+    subtitle: "What we do best",
+    items: [
+        { icon: "Workflow", title: "Automation", body: "Save time with flows", link: { type: "internal", label: "Learn More", internalRef: "services", newTab: false } },
+        { icon: "Sparkles", title: "AI Assist", body: "Ship smarter products", link: { type: "internal", label: "Learn More", internalRef: "services", newTab: false } },
+        { icon: "Bolt", title: "MVP Builds", body: "Go live fast", link: { type: "internal", label: "Learn More", internalRef: "cases-index", newTab: false } },
+    ],
+  },
+  featuredCases: ['autostream-ai', 'connect-app', 'another-case'],
   cta: {
     text: "Let's build something intelligent together.",
     button: { type: 'internal', label: 'Book a Call', internalRef: 'contact', newTab: false }
@@ -121,7 +130,24 @@ export function normalizeHome(data: any): Partial<HomePage> {
     if (!data || typeof data !== 'object') {
         return defaultHomepage;
     }
-    return deepmerge(defaultHomepage, data);
+    
+    const merged = deepmerge(defaultHomepage, data);
+
+    // DGF-362: Enforce baseline lengths for arrays
+    if (merged.hero?.slides) {
+        merged.hero.slides = merged.hero.slides.slice(0, 1);
+        if (merged.hero.slides.length === 0) {
+            merged.hero.slides.push(defaultHeroSlide);
+        }
+    }
+    if (merged.services?.items) {
+        merged.services.items = merged.services.items.slice(0, 3);
+    }
+    if (merged.featuredCases) {
+        merged.featuredCases = merged.featuredCases.slice(0, 3);
+    }
+
+    return merged;
 }
 
 const defaultNavLink = (label: string, ref: string, external = false): NavLink => ({
@@ -211,6 +237,15 @@ export const defaultCases: z.infer<typeof CaseSchema>[] = [
     excerpt: 'A cross-platform mobile application designed to connect local communities, reaching 50k active users in 6 months.',
     cover: { src: '/media/case-003.jpg', alt: 'Mobile app interface' },
     client: 'ConnectApp Inc.',
+    featured: true,
+    published: true,
+  }),
+  CaseSchema.parse({
+    slug: 'another-case',
+    title: 'Another Case: E-commerce Platform',
+    excerpt: 'A custom e-commerce solution with a focus on performance and user experience.',
+    cover: { src: '/media/case-002.jpg', alt: 'E-commerce storefront' },
+    client: 'Retail Inc.',
     featured: true,
     published: true,
   })
