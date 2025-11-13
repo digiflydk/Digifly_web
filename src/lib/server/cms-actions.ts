@@ -3,7 +3,7 @@
 import 'server-only';
 
 import { getDb } from "@/lib/firebase/admin";
-import { NavigationSchema, HomepageSchema, type Navigation, type HomePage } from "@/lib/schemas";
+import { NavigationSchema, HomepageSchema, type Navigation, type HomePage } from "@/data/schemas";
 import { revalidatePath } from 'next/cache';
 import { CMS_PATHS } from "../constants";
 import { sanitizeHomepage } from "../cms-sanitize";
