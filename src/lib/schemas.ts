@@ -1,5 +1,3 @@
-
-"use server";
 // This file is now intended for re-exporting Zod types, not schemas.
 // The Zod schema objects have been moved to src/data/schemas.ts to
 // resolve Next.js "use server" build errors.
@@ -62,4 +60,3 @@ export interface AuditLog {
 // Shim old names to satisfy imports and avoid breaking changes
 export const BasePageSchema = z.object({ slug: z.string(), title: z.string().optional() });
 export const NavItemSchema  = NavLinkSchema;
-export const DesignSettingsSchema = SiteSettingsSchema; // alias to satisfy imports
