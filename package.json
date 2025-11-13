@@ -24,6 +24,7 @@
     "test:e2e:headed": "playwright test --headed",
     "ci": "npm run typecheck && npm run build:dry",
     "cms:seed": "tsx scripts/cms-seed.ts",
+    "export:cms-snapshots": "tsx scripts/exportCmsSnapshots.ts",
     "cms:migrate:site": "tsx scripts/migrate-site-config-to-settings.ts",
     "pretest:qa": "node qa/ensure-qa-config.js",
     "build:local": "npm run cms-seed && next build",

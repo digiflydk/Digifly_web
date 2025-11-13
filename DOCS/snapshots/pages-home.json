@@ -1,0 +1,100 @@
+{
+  "collection": "pages",
+  "id": "home",
+  "data": {
+    "hero": {
+      "slides": [
+        {
+          "heading": "From Idea to Intelligent Solution",
+          "visible": true,
+          "eyebrow": "Why • How • What",
+          "body": "Digifly bridges strategy, technology and AI to build digital solutions that deliver measurable results.",
+          "image": {
+            "src": "/media/hero-1.jpg",
+            "alt": "Abstract hero image"
+          },
+          "cta": {
+            "newTab": false,
+            "label": "Start Your Project",
+            "type": "internal",
+            "internalRef": "contact"
+          }
+        }
+      ],
+      "rotationDelaySec": 5
+    },
+    "whatWeDo": {
+      "enabled": true,
+      "image": {
+        "src": "/media/intro-1.jpg",
+        "alt": "Team collaborating on product strategy"
+      },
+      "cta": {
+        "newTab": false,
+        "label": "Start Your Project",
+        "type": "internal",
+        "internalRef": "contact"
+      },
+      "subtitle": "WHY, HOW, WHAT",
+      "body": "Strategy, software development, and AI-driven automation. We help businesses identify opportunities for growth and efficiency, then build the technology to make it happen.",
+      "title": "What We Do"
+    },
+    "services": {
+      "items": [
+        {
+          "icon": "Workflow",
+          "body": "Save time with flows",
+          "link": {
+            "newTab": false,
+            "label": "Learn More",
+            "type": "internal",
+            "internalRef": "services"
+          },
+          "title": "Automation"
+        },
+        {
+          "icon": "Sparkles",
+          "body": "Ship smarter products",
+          "link": {
+            "newTab": false,
+            "label": "Learn More",
+            "type": "internal",
+            "internalRef": "services"
+          },
+          "title": "AI Assist"
+        },
+        {
+          "body": "Go live fast",
+          "icon": "Bolt",
+          "link": {
+            "newTab": false,
+            "label": "Learn More",
+            "type": "internal",
+            "internalRef": "cases-index"
+          },
+          "title": "MVP Builds"
+        }
+      ],
+      "enabled": true,
+      "subtitle": "What we do best",
+      "title": "Our Core Services"
+    },
+    "featuredCases": [
+      "autostream-ai",
+      "connect-app"
+    ],
+    "seo": {
+      "description": "We partner with you to build intelligent digital solutions that drive real-world results.",
+      "title": "Digifly | Strategy, Software & Automation with AI"
+    },
+    "cta": {
+      "text": "Let's build something intelligent together.",
+      "button": {
+        "newTab": false,
+        "label": "Book a Call",
+        "type": "internal",
+        "internalRef": "contact"
+      }
+    }
+  }
+}

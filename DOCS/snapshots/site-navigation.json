@@ -1,0 +1,85 @@
+{
+  "collection": "site",
+  "id": "navigation",
+  "data": {
+    "header": [
+      {
+        "id": "clxkch0f9000108l41g234p57",
+        "link": {
+          "newTab": false,
+          "label": "Services",
+          "type": "internal",
+          "internalRef": "services"
+        }
+      },
+      {
+        "id": "clxkch0f9000208l49pld0f45",
+        "link": {
+          "newTab": false,
+          "label": "Cases",
+          "type": "internal",
+          "internalRef": "cases-index"
+        }
+      },
+      {
+        "id": "clxkch0f9000308l41b0y3e4y",
+        "link": {
+          "newTab": false,
+          "label": "About",
+          "type": "internal",
+          "internalRef": "about"
+        }
+      }
+    ],
+    "footer": {
+      "columns": [
+        {
+          "links": [
+            {
+              "id": "clxkhg18a000108l9d79a2g6q",
+              "link": {
+                "newTab": false,
+                "label": "About",
+                "type": "internal",
+                "internalRef": "about"
+              }
+            },
+            {
+              "id": "clxkhg18a000208l93v1a0o48",
+              "link": {
+                "newTab": false,
+                "label": "Contact",
+                "type": "internal",
+                "internalRef": "contact"
+              }
+            }
+          ],
+          "title": "Company"
+        },
+        {
+          "links": [
+            {
+              "id": "clxkhg18a000308l9hjz29h3w",
+              "link": {
+                "newTab": false,
+                "label": "Privacy",
+                "type": "internal",
+                "internalRef": "privacy"
+              }
+            },
+            {
+              "id": "clxkhg18a000408l96c0qfqn0",
+              "link": {
+                "newTab": false,
+                "label": "Cookies",
+                "type": "internal",
+                "internalRef": "cookies"
+              }
+            }
+          ],
+          "title": "Legal"
+        }
+      ]
+    }
+  }
+}
