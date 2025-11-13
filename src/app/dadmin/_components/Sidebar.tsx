@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, Beaker, DownloadCloud, FileJson } from "lucide-react";
+import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, Beaker, DownloadCloud, FileJson, Database } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -25,6 +25,7 @@ const devMenuItems = [
     { href: "/dadmin/api-explorer", label: "API Explorer", icon: Beaker },
     { href: "/dadmin/dev/cms-snapshots", label: "CMS Snapshots", icon: DownloadCloud },
     { href: "/dadmin/developer/cms-dump", label: "Download CMS JSON", icon: FileJson },
+    { href: "/dadmin/developer/dumps", label: "Developer Dumps", icon: Database },
 ];
 
 function NavContent({ user }: { user: CurrentUser | null }) {
@@ -49,7 +50,7 @@ function NavContent({ user }: { user: CurrentUser | null }) {
           onClick={(e) => item.disabled && e.preventDefault()}
           aria-current={isActive ? "page" : undefined}
           // For download links, we don't want Next.js pre-fetching
-          prefetch={item.href.startsWith('/api') || item.href.startsWith('/dadmin/developer/cms-dump') ? false : undefined}
+          prefetch={item.href.startsWith('/api') || item.href.startsWith('/dadmin/developer/') ? false : undefined}
         >
           <item.icon className="h-5 w-5" />
           {item.label}
