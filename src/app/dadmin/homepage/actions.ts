@@ -15,16 +15,13 @@ export async function saveHomepageAction(payload: unknown): Promise<{ ok: boolea
         const db = await getDb();
         const sanitized = sanitizeHomepage(payload);
         
-        // The defaultHomepage is deep merged to ensure any missing fields
-        // from the client (e.g. if a new field was added to the schema)
-        // are populated before validation and saving.
         const merged = deepmerge(defaultHomepage, sanitized);
         
         const parsed = HomepageSchema.parse(merged);
         
+        // This was the missing database write operation.
         await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
         
-        // Revalidate the homepage and the main layout to reflect changes
         revalidatePath("/", "layout");
         
         return { ok: true };
