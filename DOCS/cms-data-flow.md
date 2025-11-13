@@ -25,9 +25,10 @@ To download the current CMS JSON snapshots used for debugging and analysis:
 
 - Go to: **/dadmin → Developer → CMS Snapshots**
 - Click “Download JSON” for the document you want:
-  - Site Settings: `site-settings.json`
-  - Navigation: `site-navigation.json`
-  - Homepage: `pages-home.json`
+  - Homepage: `cms-homepage.json`
+  - Navigation: `cms-navigation.json`
+  - Site settings: `cms-site.json`
+  - Footer: `cms-footer.json`
 
 These files are served directly from `DOCS/snapshots` and reflect the data used by the homepage, navigation, and layout.
 
