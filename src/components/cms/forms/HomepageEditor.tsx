@@ -28,11 +28,15 @@ export default function HomepageEditor({ initialData }: { initialData: HomePage 
   const onSubmit = methods.handleSubmit((data) => {
     startTransition(async () => {
       try {
-        await saveHomepageAction(data);
-        
-        toast({ title: "Saved", description: "Homepage updated." });
-        methods.reset(data);
-
+        const result = await saveHomepageAction(data);
+        if (result.ok) {
+            toast({ title: "Saved", description: "Homepage updated." });
+            methods.reset(data); // Re-sync form with saved data to clear dirty state
+        } else {
+            // Use the more specific error from the server action if available
+            const errorMessage = result.error || "An unknown error occurred during save.";
+            throw new Error(errorMessage);
+        }
       } catch (e: any) {
         toast({ title: "Error", description: e?.message ?? "Save failed", variant: "destructive" });
       }
