@@ -1,3 +1,4 @@
+
 import { DocsList } from "@/components/docs/DocsList";
 import type { Metadata } from 'next';
 import { buildSeo } from "@/lib/seo";
