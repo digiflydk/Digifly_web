@@ -1,7 +1,6 @@
 
-
 "use client";
-import { useFieldArray, useFormContext, Controller } from "react-hook-form";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import type { HomePage } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +27,8 @@ function SortableSlideItem({ id, index, remove }: { id: string; index: number; r
     transition,
     zIndex: isDragging ? 10 : 'auto',
   };
+  
+  const hasLabel = useWatch({ control, name: `hero.slides.${index}.cta.label` });
 
   return (
     <div ref={setNodeRef} style={style} className={cn("flex gap-2 items-start p-3 rounded-lg border", isDragging ? 'bg-slate-50 shadow-lg' : 'bg-white')}>
@@ -64,6 +65,7 @@ function SortableSlideItem({ id, index, remove }: { id: string; index: number; r
         
         <div className="md:col-span-2">
             <FormLabel className="text-xs">Call to Action (CTA)</FormLabel>
+            {/* Show LinkPicker only if there's a label */}
             <LinkPicker namePrefix={`hero.slides.${index}.cta`} />
         </div>
 

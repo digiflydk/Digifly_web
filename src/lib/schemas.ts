@@ -1,4 +1,5 @@
 
+"use server";
 import { z } from "zod";
 
 // Base primitives for links
@@ -8,34 +9,6 @@ export const CmsLinkSchema = z.object({
   internalRef: z.string().nullable().default(null),
   externalUrl: z.string().default(""),
   newTab: z.boolean().default(false),
-}).superRefine((val, ctx) => {
-  // Only enforce a target when CTA is actually used (has a label)
-  if (val.label.trim().length === 0) return;
-
-  if (val.type === "internal") {
-    if (!val.internalRef) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Internal page selection is required.",
-        path: ["internalRef"],
-      });
-    }
-  }
-  if (val.type === "external") {
-    if (!val.externalUrl || val.externalUrl.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "External URL is required.",
-        path: ["externalUrl"],
-      });
-    } else if (!val.externalUrl.startsWith('http') && !val.externalUrl.startsWith('/')) {
-       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "URL must be external (https://) or root-relative (/).",
-        path: ["externalUrl"],
-      });
-    }
-  }
 });
 
 
@@ -85,7 +58,7 @@ export const NavigationSchema = z.object({
 
 // Homepage section schemas
 export const HeroSlideSchema = z.object({
-      eyebrow: z.string().optional().transform(v => (v ?? "").trim()),
+      eyebrow: z.string().optional(),
       heading: z.string().default(''),
       body: z.string().optional().default(''),
       image: z.object({ 

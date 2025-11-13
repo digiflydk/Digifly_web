@@ -54,7 +54,7 @@ export const defaultHeroSlide: HeroSlide = {
   eyebrow: "",
   heading: "New Slide",
   body: "",
-  cta: { type: 'internal', label: 'Learn More', internalRef: 'home', newTab: false },
+  cta: { type: 'internal', label: 'Learn More', internalRef: 'home', newTab: false, externalUrl: null },
   visible: true,
 };
 
