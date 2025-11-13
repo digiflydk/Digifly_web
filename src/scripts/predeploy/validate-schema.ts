@@ -1,7 +1,8 @@
+
 import { promises as fs } from 'fs';
 import path from 'path';
-import { SiteSettingsSchema } from '@/lib/schemas';
-import { SITE_DEFAULTS } from '@/lib/defaults/siteDefaults';
+import { SiteSettingsSchema } from '@/data/schemas';
+import { SITE_DEFAULTS } from '@/data/defaults';
 import { emptySiteSettings } from '@/components/dadmin/site-seo/utils/formDefaults';
 
 export const runtime = 'nodejs';

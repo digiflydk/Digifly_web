@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { NavigationSchema } from "@/lib/schemas";
+import { NavigationSchema } from "@/data/schemas";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -123,4 +123,3 @@ export function NavigationForm({ data }: { data: Navigation }) {
     </FormProvider>
   );
 }
-

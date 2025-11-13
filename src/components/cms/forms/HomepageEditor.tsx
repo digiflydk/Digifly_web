@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { HomePage } from "@/lib/types";
-import { HomepageSchema } from "@/lib/schemas";
+import { HomepageSchema } from "@/data/schemas";
 import HeroForm from "./sections/HeroForm";
 import WhatWeDoForm from "./sections/WhatWeDoForm";
 import ServicesForm from "./sections/ServicesForm";
@@ -13,7 +13,7 @@ import CtaForm from "./sections/CtaForm";
 import { useTransition } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { defaultHomepage } from "@/lib/defaults/siteDefaults";
+import { defaultHomepage } from "@/data/defaults";
 import { saveHomepageAction } from "@/app/dadmin/homepage/actions";
 import deepmerge from 'deepmerge';
 

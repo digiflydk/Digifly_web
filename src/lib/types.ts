@@ -12,7 +12,7 @@ import {
     WhatWeDoSchema,
     ServiceItemSchema,
     ServicesSchema,
-} from "./schemas";
+} from "@/data/schemas";
 
 export type Media = { src: string; alt?: string; hint?: string };
 

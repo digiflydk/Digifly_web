@@ -3,15 +3,16 @@
 
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NavigationSchema, type Navigation } from "@/lib/schemas";
+import { NavigationSchema } from "@/data/schemas";
+import type { Navigation } from "@/lib/types";
 import { toast } from "@/hooks/use-toast";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { saveNavigationAction } from "@/app/dadmin/navigation/actions";
 import NavItemsList from "./NavItemsList";
-import { defaultNavigation } from "@/lib/defaults/siteDefaults";
-
-type PageInfo = { id: string; title: string; path: string };
+import { defaultNavigation } from "@/data/defaults";
+import type { PageInfo } from '@/app/dadmin/navigation/page';
+import deepmerge from 'deepmerge';
 
 export default function NavEditor({ initialData, pages }: {
   initialData: Navigation | null;
@@ -19,7 +20,7 @@ export default function NavEditor({ initialData, pages }: {
 }) {
   const methods = useForm<Navigation>({
     resolver: zodResolver(NavigationSchema),
-    defaultValues: initialData ?? defaultNavigation,
+    defaultValues: deepmerge(defaultNavigation, initialData || {}),
     mode: "onChange",
   });
   const [isPending, startTransition] = useTransition();

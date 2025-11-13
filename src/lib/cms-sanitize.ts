@@ -1,9 +1,9 @@
 
-import { CmsLinkSchema } from "./schemas";
+import { CmsLinkSchema } from "@/data/schemas";
 import type { CmsLink, HomePage } from "./types";
 import deepmerge from "deepmerge";
-import { defaultHomepage } from "./defaults/siteDefaults";
-import { HomepageSchema } from "./schemas";
+import { defaultHomepage } from "@/data/defaults";
+import { HomepageSchema } from "@/data/schemas";
 import { zodErrorToIssues } from "./zod-helpers";
 
 export function normalizeLink(raw: any): CmsLink {

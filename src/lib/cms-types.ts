@@ -8,7 +8,7 @@ import {
     SiteSettingsSchema,
     HeroSlideSchema,
     BrandSchema
-} from "./schemas";
+} from "@/data/schemas";
 
 export type Media = { src: string; alt?: string; hint?: string };
 

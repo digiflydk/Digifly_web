@@ -11,16 +11,15 @@ import {
   ServicesPageSchema,
   CasesIndexSchema,
   ContactPageSchema,
-  type HomePage,
-} from './schemas';
+} from '@/data/schemas';
 import { getDb } from '@/lib/firebase/admin';
-import type { Navigation, Case, SiteSettings } from '@/lib/schemas';
+import type { Navigation, Case, SiteSettings, HomePage } from '@/lib/types';
 import { sanitizeHomepage } from './cms-sanitize';
 
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
-import { defaultHomepage, defaultNavigation } from './defaults/siteDefaults';
+import { defaultHomepage, defaultNavigation } from '@/data/defaults';
 import { CMS_PATHS } from './constants';
 import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
 import { getNavigation as getNavigationAction } from './server/cms-actions';

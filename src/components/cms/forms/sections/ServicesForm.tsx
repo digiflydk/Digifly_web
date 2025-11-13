@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { LinkPicker } from "../../inputs/LinkPicker";
-import { defaultServiceItem } from "@/lib/defaults/siteDefaults";
+import { defaultServiceItem } from "@/data/defaults";
 
 function ServiceItemFields({ index, remove }: { index: number, remove: (index: number) => void }) {
     const { control } = useFormContext<HomePage>();

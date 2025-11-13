@@ -1,6 +1,6 @@
 
 import type { SiteSettings, HomePage, HeroSlide, Page, Navigation, CaseDoc, CmsLink, NavLink, Services, ServiceItem } from '@/lib/types';
-import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema, HomepageSchema } from '../schemas';
+import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema, CasesIndexSchema, ContactPageSchema, CaseSchema, HomepageSchema } from '@/data/schemas';
 import { z } from 'zod';
 import { emptySiteSettings } from '@/components/dadmin/site-seo/utils/formDefaults';
 import deepmerge from "deepmerge";

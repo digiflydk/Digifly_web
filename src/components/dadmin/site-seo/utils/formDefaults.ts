@@ -1,5 +1,5 @@
 
-import { SiteSettings } from "@/lib/schemas";
+import type { SiteSettings } from "@/lib/types";
 
 export const emptySiteSettings: SiteSettings = {
   general: { 
