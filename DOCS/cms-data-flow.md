@@ -1,6 +1,6 @@
 # CMS Data Flow Analysis
 
-_Generated: 2024-11-20 • Digifly Web v1.3.30 • DGF-358_
+_Generated: 2024-11-20 • Digifly Web v1.3.37 • DGF-361_
 
 ## 1. Executive Summary
 
@@ -29,6 +29,8 @@ To download the current CMS JSON snapshots used for debugging and analysis:
   - Navigation: `cms-navigation.json`
   - Site settings: `cms-site.json`
   - Footer: `cms-footer.json`
+
+You can also download a complete JSON dump of all key CMS documents via the link at **Developer → Download CMS JSON**.
 
 These files are served directly from `DOCS/snapshots` and reflect the data used by the homepage, navigation, and layout.
 
