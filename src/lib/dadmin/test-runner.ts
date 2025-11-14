@@ -72,12 +72,12 @@ async function parsePlaywrightJsonReport(filePath: string): Promise<Pick<QARun, 
         
         return { summary, errorSummary, status };
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to parse Playwright JSON report:", error);
         return {
             status: 'error',
             summary: { total: 0, passed: 0, failed: 0, skipped: 0, flaky: 0 },
-            errorSummary: [{ testTitle: 'Report Parsing', message: 'Could not parse JSON report.' }],
+            errorSummary: [{ testTitle: 'Report Parsing', message: error.message ?? 'Could not parse JSON report.' }],
         };
     }
 }
@@ -106,9 +106,9 @@ export async function runStudioAcceptanceOnce({ taskId, triggerSource }: RunOpti
     });
 
     try {
-        const reportPath = `playwright-report/acceptance-results-${runId}.json`;
+        const reportPath = path.join(process.cwd(), 'playwright-report', `acceptance-results.json`);
         
-        const command = `npm run test:pw:acceptance -- --reporter=json > ${reportPath}`;
+        const command = `npm run test:pw:acceptance`;
         
         await new Promise<void>((resolve, reject) => {
             exec(command, { 
@@ -117,17 +117,20 @@ export async function runStudioAcceptanceOnce({ taskId, triggerSource }: RunOpti
                     PLAYWRIGHT_BASE_URL: process.env.E2E_BASE_URL
                 } 
             }, (error, stdout, stderr) => {
-                if (error && error.code !== 0) {
-                    console.warn(`Playwright exited with code ${error.code}. This is expected for failed tests.`);
+                if (error && error.code !== 0 && error.code !== 1) {
+                     // Exit code 1 is expected for failed tests, other codes are script errors
+                    console.error('Playwright command execution error:', stderr);
+                    reject(new Error(stderr || 'Playwright script failed unexpectedly.'));
+                    return;
                 }
                 if (stderr) {
-                    console.error('Playwright stderr:', stderr);
+                    console.warn('Playwright stderr:', stderr);
                 }
                 resolve();
             });
         });
 
-        const result = await parsePlaywrightJsonReport(path.join(process.cwd(), reportPath));
+        const result = await parsePlaywrightJsonReport(reportPath);
 
         await runRef.update({
             status: result.status,
