@@ -81,3 +81,4 @@ jobs:
       - name: Fail job if tests failed
         if: fromJson(steps.summarize.outputs.payload).status == 'failed'
         run: exit 1
+
