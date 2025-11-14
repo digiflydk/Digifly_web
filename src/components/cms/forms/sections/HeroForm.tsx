@@ -1,4 +1,5 @@
 
+
 "use client";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { HomePage } from "@/lib/types";
@@ -9,12 +10,39 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescripti
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { hexToRgb, cmykToRgba, rgbToCmyk } from "@/lib/utils";
+import React from "react";
+import { Button } from "@/components/ui/button";
+
+const PRESETS = [
+    { id: 'dark-80', label: 'Dark (80%)', cmyk: { c: 0, m: 0, y: 0, k: 80 }, opacityPercent: 60 },
+    { id: 'brand-purple', label: 'Brand Purple', cmyk: { c: 70, m: 80, y: 0, k: 0 }, opacityPercent: 75 },
+    { id: 'soft-grey', label: 'Soft Grey', cmyk: { c: 10, m: 5, y: 5, k: 20 }, opacityPercent: 85 },
+    { id: 'warm-black', label: 'Warm Black', cmyk: { c: 0, m: 20, y: 30, k: 95 }, opacityPercent: 70 },
+]
 
 function HeroSlideForm() {
-  const { control } = useFormContext<HomePage>();
+  const { control, setValue } = useFormContext<HomePage>();
   
-  const hasCtaLabel = useWatch({ control, name: `hero.slides.0.cta.label` });
   const overlayEnabled = useWatch({ control, name: `hero.slides.0.overlay.enabled`});
+  const cmyk = useWatch({ control, name: `hero.slides.0.overlay.cmyk` });
+  const opacity = useWatch({ control, name: `hero.slides.0.overlay.opacityPercent` });
+
+  const previewColor = cmykToRgba(cmyk?.c ?? 0, cmyk?.m ?? 0, cmyk?.y ?? 0, cmyk?.k ?? 0, (opacity ?? 60) / 100);
+
+  const handleColorPickerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const hex = event.target.value;
+      const rgb = hexToRgb(hex);
+      if (rgb) {
+          const newCmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+          setValue('hero.slides.0.overlay.cmyk', newCmyk, { shouldDirty: true });
+      }
+  };
+
+  const applyPreset = (preset: typeof PRESETS[0]) => {
+      setValue('hero.slides.0.overlay.cmyk', preset.cmyk, { shouldDirty: true });
+      setValue('hero.slides.0.overlay.opacityPercent', preset.opacityPercent, { shouldDirty: true });
+  }
 
   return (
     <div className="flex gap-2 items-start p-3 rounded-lg border bg-white">
@@ -63,23 +91,46 @@ function HeroSlideForm() {
                 </FormItem>
                 )}
             />
-            {overlayEnabled && (
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 p-4 border rounded-lg">
-                    <FormField control={control} name={`hero.slides.0.overlay.cmyk.c`} render={({ field }) => (
-                        <FormItem><FormLabel>Cyan %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 0} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
-                    )} />
-                    <FormField control={control} name={`hero.slides.0.overlay.cmyk.m`} render={({ field }) => (
-                        <FormItem><FormLabel>Magenta %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 0} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
-                    )} />
-                    <FormField control={control} name={`hero.slides.0.overlay.cmyk.y`} render={({ field }) => (
-                        <FormItem><FormLabel>Yellow %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 0} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
-                    )} />
-                    <FormField control={control} name={`hero.slides.0.overlay.cmyk.k`} render={({ field }) => (
-                        <FormItem><FormLabel>Black %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 80} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
-                    )} />
-                    <FormField control={control} name={`hero.slides.0.overlay.opacityPercent`} render={({ field }) => (
-                        <FormItem><FormLabel>Opacity %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 60} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
-                    )} />
+            {overlayEnabled !== false && (
+                <div className="mt-4 p-4 border rounded-lg space-y-4">
+                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                            <Label>Color Picker</Label>
+                            <Input type="color" onChange={handleColorPickerChange} className="h-10 p-1" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Preview</Label>
+                            <div className="h-10 w-full rounded-md border" style={{ backgroundColor: previewColor }} />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <FormField control={control} name={`hero.slides.0.overlay.cmyk.c`} render={({ field }) => (
+                            <FormItem><FormLabel>Cyan %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 0} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
+                        )} />
+                        <FormField control={control} name={`hero.slides.0.overlay.cmyk.m`} render={({ field }) => (
+                            <FormItem><FormLabel>Magenta %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 0} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
+                        )} />
+                        <FormField control={control} name={`hero.slides.0.overlay.cmyk.y`} render={({ field }) => (
+                            <FormItem><FormLabel>Yellow %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 0} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
+                        )} />
+                        <FormField control={control} name={`hero.slides.0.overlay.cmyk.k`} render={({ field }) => (
+                            <FormItem><FormLabel>Black %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 80} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
+                        )} />
+                        <FormField control={control} name={`hero.slides.0.overlay.opacityPercent`} render={({ field }) => (
+                            <FormItem><FormLabel>Opacity %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 60} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} /></FormControl></FormItem>
+                        )} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="text-xs">Presets</Label>
+                        <div className="flex flex-wrap gap-2">
+                            {PRESETS.map(p => (
+                                <Button key={p.id} type="button" variant="outline" size="sm" onClick={() => applyPreset(p)}>
+                                    {p.label}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

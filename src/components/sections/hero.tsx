@@ -55,10 +55,14 @@ export default function Hero({ data }: { data?: HeroData | null }) {
 
     const { href, label, target, rel } = resolveCmsLink(currentSlide.cta);
 
-    const overlayEnabled = currentSlide.overlay?.enabled ?? true; // Default to true for backward compatibility
+    const overlayEnabled = currentSlide.overlay?.enabled ?? true;
     const cmyk = currentSlide.overlay?.cmyk ?? { c: 0, m: 0, y: 0, k: 80 };
     const opacity = (currentSlide.overlay?.opacityPercent ?? 60) / 100;
     const overlayColor = cmykToRgba(cmyk.c, cmyk.m, cmyk.y, cmyk.k, opacity);
+    
+    // Explicitly check for false, as undefined/null should default to true for legacy data
+    const shouldRenderOverlay = currentSlide.overlay?.enabled !== false;
+
 
     return (
         <section
@@ -89,7 +93,7 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                 </motion.div>
             </AnimatePresence>
 
-            {overlayEnabled ? (
+            {shouldRenderOverlay ? (
                 <div 
                     className="absolute inset-0"
                     style={{ backgroundColor: overlayColor }}

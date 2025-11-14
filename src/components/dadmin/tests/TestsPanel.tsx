@@ -1,28 +1,37 @@
 
+
 'use client';
 import { useEffect, useState, useCallback, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, ExternalLink, AlertTriangle, Play } from 'lucide-react';
+import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { QARun } from '@/lib/qa/qa.types';
 import { db } from '@/lib/firebase-client';
 import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
+import { Badge } from '@/components/ui/badge';
 
 function RunCard({ run }: { run: QARun }) {
-    const statusColor = {
-        passed: 'text-green-600',
-        failed: 'text-red-600',
-        running: 'text-blue-600',
-        queued: 'text-yellow-600',
-        error: 'text-red-800'
-    }[run.status];
+    const getStatusInfo = (status: QARun['status']) => {
+        switch (status) {
+            case 'passed': return { color: 'text-green-600', icon: <CheckCircle className="h-4 w-4" /> };
+            case 'failed':
+            case 'error':
+            case 'timedout':
+                return { color: 'text-red-600', icon: <XCircle className="h-4 w-4" /> };
+            case 'running': return { color: 'text-blue-600', icon: <Loader2 className="h-4 w-4 animate-spin" /> };
+            case 'queued': return { color: 'text-yellow-600', icon: <AlertTriangle className="h-4 w-4" /> };
+            default: return { color: 'text-muted-foreground', icon: null };
+        }
+    };
+    
+    const { color, icon } = getStatusInfo(run.status);
 
     return (
         <div className="border rounded-lg p-4 space-y-2">
             <div className="flex justify-between items-center">
-                <span className={`font-semibold capitalize ${statusColor}`}>{run.status}</span>
+                <span className={`font-semibold capitalize flex items-center gap-2 ${color}`}>{icon}{run.status}</span>
                 <span className="text-xs text-muted-foreground">{run.finishedAt ? new Date(run.finishedAt.seconds * 1000).toLocaleString() : 'Running...'}</span>
             </div>
             <p className="font-mono text-xs">{run.runType === 'predeploy' ? 'Pre-deploy Smoke' : `Acceptance: ${run.taskId}`}</p>
