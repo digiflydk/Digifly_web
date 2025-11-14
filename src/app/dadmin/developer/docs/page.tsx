@@ -1,10 +1,11 @@
 
-import { DocsList } from "@/components/docs/DocsList";
-import type { Metadata } from 'next';
 import { buildSeo } from "@/lib/seo";
+import type { Metadata } from 'next';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Download, FileJson, Beaker, ShieldCheck, History } from "lucide-react";
+import { Download, FileJson, Beaker, ShieldCheck, History, Settings } from "lucide-react";
+import { DocsList } from "@/components/docs/DocsList";
+import LoggingSettings from "../../_components/LoggingSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +58,7 @@ const TOOLS = [
     },
     {
         title: "Playwright Tests",
-        description: "View Playwright test artifacts, reports, and trigger new E2E test runs.",
+        description: "View Playwright test artifacts and trigger new E2E test runs.",
         href: "/dadmin/developer/tests",
         icon: Beaker,
         label: "View Tests"
@@ -79,7 +80,13 @@ export default function DeveloperDocsPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           Run checks, view test reports, and download live-generated JSON overviews of the application's structure.
         </p>
-         <div className="mt-4 grid gap-4 md:grid-cols-2">
+
+        <div className="mt-6 border-t pt-6">
+            <h2 className="font-semibold text-base mb-4">Logging Settings</h2>
+            <LoggingSettings />
+        </div>
+
+         <div className="mt-8 grid gap-4 md:grid-cols-2">
             {TOOLS.map(tool => (
                 <div key={tool.href} className="border rounded-xl p-4 flex flex-col justify-between items-start gap-4">
                     <div>
