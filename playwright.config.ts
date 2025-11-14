@@ -31,6 +31,11 @@ export default defineConfig({
       testMatch: /predeploy\.spec\.ts/,
       retries: 0,
     },
+    {
+      name: 'acceptance',
+      testDir: './tests/acceptance',
+      testMatch: /.*\.spec\.ts/,
+    },
   ],
   outputDir: 'qa/artifacts',
 });
