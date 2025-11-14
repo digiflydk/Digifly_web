@@ -9,14 +9,13 @@ import type { HomePage, HeroSlide } from "@/lib/types";
 import { MediaImage } from "../ui/media-image";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { defaultHomepage } from '@/lib/defaults/siteDefaults';
 import { resolveCmsLink } from '@/lib/links';
 
 type HeroData = HomePage["hero"];
 
 export default function Hero({ data }: { data?: HeroData | null }) {
-    const safeData = data ?? defaultHomepage.hero;
-    const { slides = [], rotationDelaySec = 5 } = safeData;
+    // DGF-371: Remove fallback to defaultHomepage.hero. Rely on data prop.
+    const { slides = [], rotationDelaySec = 5 } = data || {};
     const [index, setIndex] = useState(0);
     
     const visibleSlides = slides.filter(slide => slide.visible !== false);
@@ -32,7 +31,8 @@ export default function Hero({ data }: { data?: HeroData | null }) {
         return () => clearInterval(interval);
     }, [visibleSlides.length, rotationDelaySec, hasMultipleImages]);
     
-    if (visibleSlides.length === 0) {
+    // DGF-371: If there's no data or no visible slides, show a clear empty state.
+    if (!data || visibleSlides.length === 0) {
         return (
              <section
                 className="relative -mt-[var(--header-height,64px)] w-full pt-[var(--header-height,64px)] bg-slate-100"
@@ -42,9 +42,9 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                 <div className="container relative flex items-center py-24 md:py-28 h-full">
                     <div className="max-w-2xl">
                          <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
-                           Welcome
+                           Hero Content Missing
                         </h1>
-                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">Hero content is not configured. Please add slides in the CMS.</p>
+                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">The hero section data is not configured or is empty. Please add at least one visible slide in the CMS.</p>
                     </div>
                 </div>
             </section>
@@ -129,6 +129,16 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                         />
                     ))}
                 </div>
+            )}
+            
+            {/* TEMPORARY DEBUG FOR DGF-371 */}
+            {process.env.NODE_ENV !== 'production' && (
+                <pre
+                    data-testid="hero-debug-json"
+                    className="absolute bottom-0 left-0 bg-black/50 text-white text-[10px] p-2 m-2 rounded-md max-w-sm max-h-48 overflow-auto z-50"
+                >
+                    {JSON.stringify(data, null, 2)}
+                </pre>
             )}
         </section>
     );
