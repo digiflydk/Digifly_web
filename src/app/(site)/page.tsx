@@ -12,6 +12,7 @@ import { defaultHomepage } from '@/lib/defaults/siteDefaults';
 import CasesGrid from '@/components/sections/cases-grid';
 import CtaBanner from '@/components/sections/cta-banner';
 
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
     const [pageResult, siteSettings] = await Promise.all([getHomepage(), getSiteSettings()]);
