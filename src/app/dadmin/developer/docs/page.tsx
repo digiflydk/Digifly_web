@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { buildSeo } from "@/lib/seo";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Download, FileJson, Beaker, ShieldCheck } from "lucide-react";
+import { Download, FileJson, Beaker, ShieldCheck, History } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +61,14 @@ const TOOLS = [
         href: "/dadmin/developer/tests",
         icon: Beaker,
         label: "View Tests"
-    }
+    },
+    {
+        title: "Audit Logs",
+        description: "View a stream of recent administrative actions, such as saving content or running tests.",
+        href: "/dadmin/developer/audit-logs",
+        icon: History,
+        label: "View Logs"
+    },
 ]
 
 export default function DeveloperDocsPage() {
@@ -88,6 +95,10 @@ export default function DeveloperDocsPage() {
                 </div>
             ))}
         </div>
+        <div className="mt-8">
+            <h2 className="text-lg font-semibold">Data Dumps</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Download live data snapshots for debugging.</p>
+        </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
             {DUMPS.map(dump => (
                 <div key={dump.href} className="border rounded-xl p-4 flex flex-col justify-between items-start gap-4">
@@ -96,7 +107,7 @@ export default function DeveloperDocsPage() {
                         <p className="text-sm text-muted-foreground mt-1">{dump.description}</p>
                     </div>
                     <Button asChild variant="outline" size="sm">
-                        <Link href={dump.href} download={dump.filename}>
+                        <Link href={dump.href} download={dump.filename} target="_blank">
                             <dump.icon className="h-4 w-4 mr-2" />
                             Download {dump.filename}
                         </Link>
