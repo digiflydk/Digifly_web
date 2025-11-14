@@ -3,7 +3,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isAdmin() { return request.auth != null && request.auth.token.admin == true; }
+    function isAuthed() { return request.auth != null; }
+    function isAdmin() { return isAuthed() && request.auth.token.admin == true; }
 
     // Public read for site rendering
     match /site/{docId} {
@@ -22,8 +23,8 @@ service cloud.firestore {
     }
     
     match /navigation/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
+        allow read: if true;
+        allow write: if isAdmin();
     }
 
     // Admin-only collections
@@ -32,8 +33,13 @@ service cloud.firestore {
     }
 
     match /auditLogs/{logId} {
-        allow create: if request.auth != null;
+        allow create: if isAuthed();
         allow read, update, delete: if isAdmin();
+    }
+
+    match /qaRuns/{runId} {
+      allow read: if isAuthed();
+      allow create, update: if request.auth.uid != null;
     }
   }
 }
