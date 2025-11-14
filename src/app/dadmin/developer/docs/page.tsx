@@ -3,7 +3,7 @@ import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Download, FileJson, Beaker, ShieldCheck, History, Settings } from "lucide-react";
+import { Download, FileJson, Beaker, ShieldCheck, History, Settings, Map, Camera } from "lucide-react";
 import { DocsList } from "@/components/docs/DocsList";
 import LoggingSettings from "../../_components/LoggingSettings";
 
@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   return await buildSeo({
-    title: 'Developer Docs',
-    description: 'Project documentation and technical files.',
+    title: 'Developer Tools & Docs',
+    description: 'Project documentation, tools, and technical files.',
     noIndex: true,
   });
 }
@@ -70,6 +70,20 @@ const TOOLS = [
         icon: History,
         label: "View Logs"
     },
+    {
+        title: "API Map",
+        description: "View a structured map of all CMS and developer API endpoints.",
+        href: "/dadmin/developer/api-map",
+        icon: Map,
+        label: "View API Map"
+    },
+    {
+        title: "CMS Snapshots",
+        description: "Download individual JSON snapshots of CMS documents for debugging.",
+        href: "/dadmin/developer/cms-snapshots",
+        icon: Camera,
+        label: "View Snapshots"
+    },
 ]
 
 export default function DeveloperDocsPage() {
@@ -80,11 +94,6 @@ export default function DeveloperDocsPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           Run checks, view test reports, and download live-generated JSON overviews of the application's structure.
         </p>
-
-        <div className="mt-6 border-t pt-6">
-            <h2 className="font-semibold text-base mb-4">Logging Settings</h2>
-            <LoggingSettings />
-        </div>
 
          <div className="mt-8 grid gap-4 md:grid-cols-2">
             {TOOLS.map(tool => (
@@ -123,6 +132,12 @@ export default function DeveloperDocsPage() {
             ))}
         </div>
       </div>
+      
+       <div className="mt-6 border-t pt-6">
+            <h2 className="font-semibold text-base mb-4">Logging Settings</h2>
+            <LoggingSettings />
+        </div>
+
       <div>
         <h1 className="text-xl font-semibold">Developer — Docs</h1>
         <p className="mt-2 text-sm text-muted-foreground">
