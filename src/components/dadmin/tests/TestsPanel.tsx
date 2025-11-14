@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState, useCallback, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
@@ -88,16 +89,19 @@ export default function TestsPanel() {
   const triggerSmokeTests = useCallback(async () => {
     startTransition(async () => {
       setError(null);
-      toast({ title: 'Triggering Pre-deploy Smoke Test', description: 'The GitHub Action workflow has been dispatched.' });
+      console.info("[TestsPanel] Triggering pre-deploy smoke test...");
       
       try {
         const functions = getFunctions(firebaseApp);
         const triggerPlaywrightRun = httpsCallable(functions, 'triggerPlaywrightRun');
-        await triggerPlaywrightRun({ runType: 'predeploy', testGrep: '@smoke' });
-        toast({ title: 'Success', description: 'Smoke test run is now queued.' });
+        const result: any = await triggerPlaywrightRun({ runType: 'predeploy', testGrep: '@smoke' });
+        
+        console.info(`[TestsPanel] API call successful. Run ID: ${result.data.id}`);
+        toast({ title: 'Success', description: `Smoke test run queued (ID: ${result.data.id}).` });
       } catch (e: any) {
+        console.error("[TestsPanel] API call failed:", e);
         setError(e.message);
-        toast({ title: 'Error', description: e.message, variant: 'destructive' });
+        toast({ title: 'Error Triggering Run', description: e.message, variant: 'destructive' });
       }
     });
   }, [toast]);
