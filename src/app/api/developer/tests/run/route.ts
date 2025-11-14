@@ -1,40 +1,35 @@
 
-export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
+import { getDb } from '@/lib/firebase-admin';
+import { getCurrentUser } from '@/lib/auth/serverAuth';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// If the UI uses POST, provide POST handler
+// This is a simplified endpoint to create a "pending" run.
+// In a real scenario, this would trigger a CI job.
 export async function POST() {
   try {
-    // TODO: replace with real runner or stub
-    // Simulate a short run and return a JSON report shell
-    const report = {
-      ok: true,
-      status: 'ok',
-      startedAt: new Date().toISOString(),
-      finishedAt: new Date().toISOString(),
-      summary: {
-        total: 3,
-        passed: 3,
-        failed: 0,
-        flaky: 0,
-        skipped: 0,
-      },
-      artifacts: {
-        htmlReportUrl: '/dadmin/developer/tests', // stable landing
-        rawJson: {
-          suites: [],
-        },
-      },
-    };
-    return NextResponse.json(report, { status: 200 });
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: 'run-failed', message: String(err?.message ?? err) }, { status: 500 });
-  }
-}
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
-// Optional GET handler if the client uses GET
-export async function GET() {
-  return NextResponse.json({ error: 'use POST' }, { status: 405 });
+    const db = await getDb();
+    const runRef = await db.collection('qaRuns').add({
+      status: 'queued',
+      runType: 'predeploy',
+      taskId: 'PREDEPLOY_SMOKE',
+      requestedBy: user.uid,
+      startedAt: new Date(),
+      environment: 'test',
+      triggeredBy: 'manual',
+    });
+
+    return NextResponse.json({ ok: true, runId: runRef.id });
+
+  } catch (err: any) {
+    console.error('[API /dev/tests/run] Error:', err);
+    return NextResponse.json({ ok: false, error: err?.message ?? 'An unknown error occurred.' }, { status: 500 });
+  }
 }

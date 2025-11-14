@@ -5,11 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { app as firebaseApp } from '@/lib/firebase-client'; // Use the initialized client app
 import { QARun } from '@/lib/qa/qa.types';
 import { db } from '@/lib/firebase-client';
-import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, limit, Timestamp } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -28,7 +26,7 @@ function RunCard({ run }: { run: QARun }) {
     };
     
     const { color, icon } = getStatusInfo(run.status);
-    const finishedAt = run.finishedAt ? new Date(run.finishedAt.seconds * 1000) : null;
+    const finishedAt = run.finishedAt ? (run.finishedAt as unknown as Timestamp).toDate() : null;
 
     return (
         <div className="border rounded-lg p-4 space-y-3">
@@ -76,7 +74,7 @@ export default function TestsPanel() {
             runsData.push({ id: doc.id, ...doc.data() } as QARun);
         });
         setRuns(runsData);
-        setError(null); // Clear previous errors on successful fetch
+        setError(null);
     }, (err) => {
         console.error("Error fetching test runs:", err);
         setError("Failed to subscribe to test run updates. Check Firestore rules and network connection.");
@@ -92,12 +90,14 @@ export default function TestsPanel() {
       console.info("[TestsPanel] Triggering pre-deploy smoke test...");
       
       try {
-        const functions = getFunctions(firebaseApp);
-        const triggerPlaywrightRun = httpsCallable(functions, 'triggerPlaywrightRun');
-        const result: any = await triggerPlaywrightRun({ runType: 'predeploy', testGrep: '@smoke' });
+        const res = await fetch('/api/developer/tests/run', { method: 'POST' });
+        const data = await res.json();
         
-        console.info(`[TestsPanel] API call successful. Run ID: ${result.data.id}`);
-        toast({ title: 'Success', description: `Smoke test run queued (ID: ${result.data.id}).` });
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Failed to trigger run.');
+        }
+
+        toast({ title: 'Success', description: `Smoke test run queued (ID: ${data.runId}).` });
       } catch (e: any) {
         console.error("[TestsPanel] API call failed:", e);
         setError(e.message);
