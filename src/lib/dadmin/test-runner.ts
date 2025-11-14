@@ -4,12 +4,14 @@ import "server-only";
 
 import { getDb } from "@/lib/firebase-admin";
 import { logAdminAction } from "./audit";
-import { QARun } from "../qa/qa.types";
+import type { QARun } from "../qa/qa.types";
 import { FieldValue } from "firebase-admin/firestore";
-import { exec } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 import { PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH } from "./playwright-constants";
+import { test, expect } from '@playwright/test';
+// DGF-398: Import the runner from Playwright's internal API.
+import { runTests } from '@playwright/test/lib/runner';
 
 type RunOptions = {
   taskId: string | null;
@@ -116,6 +118,7 @@ export async function runStudioAcceptanceOnce({
 }: RunOptions): Promise<{ runId: string }> {
   const db = await getDb();
   let runId = "unknown";
+  const startedAt = new Date();
 
   const runData: Omit<QARun, "id"> = {
     taskId,
@@ -141,40 +144,45 @@ export async function runStudioAcceptanceOnce({
   try {
     await fs.rm(reportPath, { force: true });
     
-    const command = `npx playwright test --project=acceptance --config=playwright.config.ts`;
+    // DGF-398 / 2: Use Playwright's programmatic API instead of exec
+    const result = await runTests({
+      projects: ['acceptance'],
+      reporter: 'json,line' // Keep line for debugging, json is used by parser
+    }, {});
+    
+    // Playwright's programmatic runner result has a 'status' of 'passed' or 'failed'
+    if (result.status !== 'passed' && result.status !== 'failed') {
+        throw new Error(`Playwright run exited with unexpected status: ${result.status}`);
+    }
 
-    await new Promise<void>((resolve, reject) => {
-      exec(command, { env: { ...process.env, CI: "true" } }, (error, stdout, stderr) => {
-        if (error && error.code !== 0 && error.code !== 1) {
-          console.error("Playwright command execution error:", stderr);
-          reject(new Error(stderr || "Playwright script failed unexpectedly."));
-          return;
-        }
-        if (stderr) console.warn("Playwright stderr:", stderr);
-        resolve();
-      });
-    });
-
-    const result = await parsePlaywrightJsonReport(reportPath);
+    const parsedResult = await parsePlaywrightJsonReport(reportPath);
+    const finishedAt = new Date();
 
     await runRef.update({
-      status: result.status,
-      summary: result.summary,
-      errorSummary: result.errorSummary,
+      status: parsedResult.status,
+      summary: parsedResult.summary,
+      errorSummary: parsedResult.errorSummary,
       finishedAt: FieldValue.serverTimestamp(),
+      durationMs: finishedAt.getTime() - startedAt.getTime(),
     });
 
     await logAdminAction({
       action: "playwright.acceptance.studio.finish",
-      status: result.status,
+      status: parsedResult.status,
       runId,
       taskId,
-      payloadSummary: `Result: ${result.summary?.passed}/${result.summary?.total} passed.`,
+      payloadSummary: `Result: ${parsedResult.summary?.passed}/${parsedResult.summary?.total} passed.`,
     });
 
   } catch (e: any) {
     console.error(`[runStudioAcceptanceOnce] Error for runId ${runId}:`, e);
-    await runRef.update({ status: "error", errorMessage: e.message, finishedAt: FieldValue.serverTimestamp() });
+    const finishedAt = new Date();
+    await runRef.update({ 
+      status: "error", 
+      errorMessage: e.message, 
+      finishedAt: FieldValue.serverTimestamp(),
+      durationMs: finishedAt.getTime() - startedAt.getTime(),
+    });
     await logAdminAction({
       action: "playwright.acceptance.studio.error",
       status: "error",
