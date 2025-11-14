@@ -24,6 +24,7 @@ import { CMS_PATHS } from './constants';
 import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefaults';
 import { getNavigation as getNavigationAction } from './server/cms-actions';
 import deepmerge from "deepmerge";
+import { logAdminAction } from './dadmin/audit';
 
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -87,31 +88,43 @@ type GetHomepageResult =
 
 export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomepageResult> {
   noStore();
+  let firestoreSnapshot: any = {};
+  let responsePayload: any = {};
+  
   try {
     const db = await getDb();
     const snap = await db.doc("pages/home").get();
     const rawData = snap.exists ? snap.data() : {};
+    firestoreSnapshot = JSON.parse(JSON.stringify(rawData)); // Deep copy for logging
     
-    // Sanitize and normalize the data first
     const sanitized = sanitizeHomepage(rawData);
-    
-    // Then attempt to parse
     const parsed = HomepageSchema.safeParse(sanitized);
     
     if (parsed.success) {
+      responsePayload = parsed.data;
       return { ok: true, data: parsed.data };
     }
     
-    // If parsing fails, we log the issues but still return the best-effort sanitized data
     const issues = zodErrorToIssues(parsed.error);
     if (process.env.NODE_ENV !== 'production' || options.debug) {
       console.warn("[cms-server] Homepage validation failed, returning best-effort data.", { issues });
     }
     
+    responsePayload = sanitized;
     return { ok: false, error: "Validation failed, returning best-effort data.", data: sanitized, issues };
+
   } catch (err: any) {
     console.error("[getHomepage] Firestore fetch failed:", err.message);
+    responsePayload = defaultHomepage;
     return { ok: false, error: err.message || 'Failed to fetch from Firestore.', data: defaultHomepage, issues: [] };
+  } finally {
+      await logAdminAction({
+        action: 'homepage.read',
+        status: 'ok',
+        path: 'pages/home',
+        firestoreSnapshot,
+        responsePayload,
+      });
   }
 }
 

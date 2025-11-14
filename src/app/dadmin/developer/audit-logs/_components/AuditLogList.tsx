@@ -44,7 +44,7 @@ export function AuditLogList({ logs }: { logs: any[] }) {
                 >
                   <div className="flex justify-between items-center">
                     <div className="font-mono text-sm">
-                        <Badge variant={log.status === 'ok' ? 'default' : 'destructive'} className={log.status === 'ok' ? 'bg-green-600' : ''}>
+                        <Badge variant={log.status === 'ok' ? 'default' : 'destructive'} className={log.action.includes('.read') ? 'bg-blue-600' : log.status === 'ok' ? 'bg-green-600' : ''}>
                           {log.status.toUpperCase()}
                         </Badge>
                         <span className="ml-3">{log.action}</span>

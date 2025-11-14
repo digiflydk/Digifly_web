@@ -5,7 +5,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getAdminApp } from "@/lib/firebase-admin";
 import { getCurrentUser } from "@/lib/auth/serverAuth";
 
-export type AdminAction = "site-seo.save" | "homepage.save" | "cases.save" | "playwright.run";
+export type AdminAction = "site-seo.save" | "homepage.save" | "homepage.read" | "cases.save" | "playwright.run";
 export interface AuditLog {
   action: AdminAction;
   actorUid: string | null;
@@ -18,6 +18,8 @@ export interface AuditLog {
   version?: string;
   receivedPayload?: any;
   afterSaveSnapshot?: any;
+  firestoreSnapshot?: any;
+  responsePayload?: any;
 }
 
 
