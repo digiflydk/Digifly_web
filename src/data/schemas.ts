@@ -77,6 +77,7 @@ export const HeroSlideSchema = z.object({
       cta: CmsLinkSchema.nullish(),
       visible: z.boolean().default(true),
       overlay: HeroOverlaySchema.optional().default({}),
+      textColor: z.string().optional().nullable(),
 });
 
 export const WhatWeDoSchema = z.object({

@@ -80,6 +80,21 @@ function HeroSlideForm() {
         <div className="md:col-span-2 border-t pt-4">
             <FormField
                 control={control}
+                name={`hero.slides.0.textColor`}
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Text Color</FormLabel>
+                        <FormControl>
+                            <Input {...field} placeholder="#FFFFFF" value={field.value ?? ""} />
+                        </FormControl>
+                    </FormItem>
+                )}
+            />
+        </div>
+
+        <div className="md:col-span-2 border-t pt-4">
+            <FormField
+                control={control}
                 name={`hero.slides.0.overlay.enabled`}
                 render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
