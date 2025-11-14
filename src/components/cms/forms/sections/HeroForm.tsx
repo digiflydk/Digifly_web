@@ -5,15 +5,16 @@ import type { HomePage } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { LinkPicker } from "../../inputs/LinkPicker";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
-// DGF-362: This component now only edits the FIRST slide in the array.
 function HeroSlideForm() {
   const { control } = useFormContext<HomePage>();
   
-  // Watch the label to conditionally render the link picker
   const hasCtaLabel = useWatch({ control, name: `hero.slides.0.cta.label` });
+  const overlayEnabled = useWatch({ control, name: `hero.slides.0.overlay.enabled`});
 
   return (
     <div className="flex gap-2 items-start p-3 rounded-lg border bg-white">
@@ -45,8 +46,42 @@ function HeroSlideForm() {
         
         <div className="md:col-span-2">
             <FormLabel className="text-xs">Call to Action (CTA)</FormLabel>
-            {/* DGF-362: Use the LinkPicker for the first slide's CTA */}
             <LinkPicker namePrefix={`hero.slides.0.cta`} />
+        </div>
+
+        <div className="md:col-span-2 border-t pt-4">
+            <FormField
+                control={control}
+                name={`hero.slides.0.overlay.enabled`}
+                render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                        <FormLabel className="text-base">Enable Overlay</FormLabel>
+                        <FormDescription>Show a colored overlay on top of the hero image.</FormDescription>
+                    </div>
+                    <FormControl><Switch checked={field.value ?? true} onCheckedChange={field.onChange} /></FormControl>
+                </FormItem>
+                )}
+            />
+            {overlayEnabled && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 p-4 border rounded-lg">
+                    <FormField control={control} name={`hero.slides.0.overlay.cmyk.c`} render={({ field }) => (
+                        <FormItem><FormLabel>Cyan %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 0} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl></FormItem>
+                    )} />
+                    <FormField control={control} name={`hero.slides.0.overlay.cmyk.m`} render={({ field }) => (
+                        <FormItem><FormLabel>Magenta %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 0} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl></FormItem>
+                    )} />
+                    <FormField control={control} name={`hero.slides.0.overlay.cmyk.y`} render={({ field }) => (
+                        <FormItem><FormLabel>Yellow %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 0} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl></FormItem>
+                    )} />
+                    <FormField control={control} name={`hero.slides.0.overlay.cmyk.k`} render={({ field }) => (
+                        <FormItem><FormLabel>Black %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 80} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl></FormItem>
+                    )} />
+                    <FormField control={control} name={`hero.slides.0.overlay.opacityPercent`} render={({ field }) => (
+                        <FormItem><FormLabel>Opacity %</FormLabel><FormControl><Input type="number" min="0" max="100" {...field} value={field.value ?? 60} onChange={e => field.onChange(parseInt(e.target.value))} /></FormControl></FormItem>
+                    )} />
+                </div>
+            )}
         </div>
       </div>
     </div>

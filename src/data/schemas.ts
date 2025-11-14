@@ -55,6 +55,17 @@ export const NavigationSchema = z.object({
 });
 
 // Homepage section schemas
+export const HeroOverlaySchema = z.object({
+    enabled: z.boolean().default(true),
+    cmyk: z.object({
+        c: z.number().min(0).max(100).default(0),
+        m: z.number().min(0).max(100).default(0),
+        y: z.number().min(0).max(100).default(0),
+        k: z.number().min(0).max(100).default(80),
+    }).default({ c: 0, m: 0, y: 0, k: 80 }),
+    opacityPercent: z.number().min(0).max(100).default(60),
+});
+
 export const HeroSlideSchema = z.object({
       eyebrow: z.string().optional(),
       heading: z.string().default(''),
@@ -64,7 +75,8 @@ export const HeroSlideSchema = z.object({
         alt: z.string().optional().default('')
       }).optional().default({}),
       cta: CmsLinkSchema.nullish(),
-      visible: z.boolean().default(true)
+      visible: z.boolean().default(true),
+      overlay: HeroOverlaySchema.optional().default({}),
 });
 
 export const WhatWeDoSchema = z.object({

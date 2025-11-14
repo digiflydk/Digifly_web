@@ -10,11 +10,11 @@ import { MediaImage } from "../ui/media-image";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { resolveCmsLink } from '@/lib/links';
+import { cmykToRgba } from '@/lib/utils';
 
 type HeroData = HomePage["hero"];
 
 export default function Hero({ data }: { data?: HeroData | null }) {
-    // DGF-371: Remove fallback to defaultHomepage.hero. Rely on data prop.
     const { slides = [], rotationDelaySec = 5 } = data || {};
     const [index, setIndex] = useState(0);
     
@@ -31,7 +31,6 @@ export default function Hero({ data }: { data?: HeroData | null }) {
         return () => clearInterval(interval);
     }, [visibleSlides.length, rotationDelaySec, hasMultipleImages]);
     
-    // DGF-371: If there's no data or no visible slides, show a clear empty state.
     if (!data || visibleSlides.length === 0) {
         return (
              <section
@@ -55,6 +54,11 @@ export default function Hero({ data }: { data?: HeroData | null }) {
     if (!currentSlide) return null;
 
     const { href, label, target, rel } = resolveCmsLink(currentSlide.cta);
+
+    const overlayEnabled = currentSlide.overlay?.enabled ?? true; // Default to true for backward compatibility
+    const cmyk = currentSlide.overlay?.cmyk ?? { c: 0, m: 0, y: 0, k: 80 };
+    const opacity = (currentSlide.overlay?.opacityPercent ?? 60) / 100;
+    const overlayColor = cmykToRgba(cmyk.c, cmyk.m, cmyk.y, cmyk.k, opacity);
 
     return (
         <section
@@ -85,29 +89,38 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                 </motion.div>
             </AnimatePresence>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent" />
+            {overlayEnabled ? (
+                <div 
+                    className="absolute inset-0"
+                    style={{ backgroundColor: overlayColor }}
+                />
+            ) : (
+                <>
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent" />
+                </>
+            )}
             
             <div className="container relative flex items-center py-24 md:py-28 h-full">
-                <div className="max-w-2xl">
+                <div className="max-w-2xl text-white">
                     {currentSlide.eyebrow && (
-                        <p className="text-sm font-semibold tracking-wide text-accent mb-2">
+                        <p className="text-sm font-semibold tracking-wide text-white/80 mb-2">
                             {currentSlide.eyebrow}
                         </p>
                     )}
                     {currentSlide.heading && (
-                        <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
+                        <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-white">
                             {currentSlide.heading}
                         </h1>
                     )}
                     {currentSlide.body && (
-                        <div className="prose prose-lg mt-4 max-w-none text-muted-foreground">
+                        <div className="prose prose-lg mt-4 max-w-none text-white/90">
                             <p>{currentSlide.body}</p>
                         </div>
                     )}
                     <div className="mt-8 flex flex-wrap gap-4">
                         {href && label && (
-                            <Button asChild>
+                            <Button asChild variant="secondary" className="bg-white text-primary hover:bg-white/90">
                                 <Link href={href} target={target} rel={rel}>{label}</Link>
                             </Button>
                         )}
@@ -123,7 +136,7 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                             onClick={() => setIndex(i)}
                             className={cn(
                                 "h-2 w-2 rounded-full transition-colors",
-                                i === index ? "bg-primary" : "bg-primary/30 hover:bg-primary/50"
+                                i === index ? "bg-white" : "bg-white/30 hover:bg-white/50"
                             )}
                             aria-label={`Go to slide ${i + 1}`}
                         />
@@ -131,7 +144,6 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                 </div>
             )}
             
-            {/* TEMPORARY DEBUG FOR DGF-371 */}
             {process.env.NODE_ENV !== 'production' && (
                 <pre
                     data-testid="hero-debug-json"

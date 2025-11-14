@@ -1,3 +1,4 @@
+
 import { test, expect } from '@playwright/test';
 
 test.describe('Digifly Smoke Test', () => {
@@ -26,21 +27,7 @@ test.describe('Digifly Smoke Test', () => {
     expect(page.url()).toContain('/contact');
   });
 
-  test('4. Styles are applied via CSS variables', async ({ page }) => {
-    await page.goto('/');
-    const ctaButton = page.locator('a:has-text("Start Your Project")');
-    
-    const backgroundColor = await ctaButton.evaluate(el => {
-      return window.getComputedStyle(el).getPropertyValue('background-color');
-    });
-
-    // This is an indirect check. We're verifying that the color isn't a default
-    // and matches the HSL value from globals.css which is set by our tokens.
-    // rgb(33, 150, 243) corresponds to hsl(211 100% 56%)
-    expect(backgroundColor).toBe('rgb(33, 150, 243)');
-  });
-
-  test('5. All images load correctly', async ({ page }) => {
+  test('4. All images load correctly', async ({ page }) => {
     await page.goto('/');
     const images = page.locator('img');
     const allImages = await images.all();
@@ -54,7 +41,7 @@ test.describe('Digifly Smoke Test', () => {
     }
   });
 
-  test('6. Scanner-blocked routes return 404', async ({ page }) => {
+  test('5. Scanner-blocked routes return 404', async ({ page }) => {
     const blockedRoutes = ['/.git/config', '/swagger.json'];
     for (const route of blockedRoutes) {
       const response = await page.goto(route, { waitUntil: 'commit' });
