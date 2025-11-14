@@ -21,7 +21,7 @@ const menuItems = [
 const devMenuItems = [
     { href: "/dadmin/developer/docs", label: "Docs & Dumps", icon: FileText },
     { href: "/dadmin/developer/tests", label: "Playwright Tests", icon: Beaker },
-    { href: "/dadmin/developer/audit-logs", label: "Audit Logs", icon: History },
+    { href: "/dadmin/developer/logs", label: "Audit Logs", icon: History },
     { href: "/dadmin/dev/api-map", label: "API Map", icon: Wrench },
     { href: "/dadmin/api-explorer", label: "API Explorer", icon: Beaker },
     { href: "/dadmin/dev/cms-snapshots", label: "CMS Snapshots", icon: DownloadCloud },
