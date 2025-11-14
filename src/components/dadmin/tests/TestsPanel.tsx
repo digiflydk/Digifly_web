@@ -63,6 +63,8 @@ export default function TestsPanel() {
   const [error, setError] = useState<string | null>(null);
   const [isSmokePending, startSmokeTransition] = useTransition();
   const [isDebugPending, startDebugTransition] = useTransition();
+  const [isStudioSelftestPending, startStudioSelftestTransition] = useTransition();
+
 
   useEffect(() => setIsClient(true), []);
 
@@ -129,11 +131,36 @@ export default function TestsPanel() {
     });
   }, [toast]);
 
+  const triggerStudioSelftest = useCallback(async () => {
+    startStudioSelftestTransition(async () => {
+      setError(null);
+      console.info("[TestsPanel] Triggering Studio acceptance selftest...");
+
+      try {
+        const res = await fetch('/api/developer/tests/studio-acceptance-selftest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskId: 'DGF-394' }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Failed to trigger selftest.');
+        }
+        toast({ title: 'Success', description: `Studio acceptance selftest queued (ID: ${data.runId}).` });
+      } catch (e: any) {
+        console.error("[TestsPanel] Selftest API call failed:", e);
+        setError(e.message);
+        toast({ title: 'Error Triggering Selftest', description: e.message, variant: 'destructive' });
+      }
+    });
+  }, [toast]);
+
   if (!isClient) {
       return <div className="p-8 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
   }
   
-  const isPending = isSmokePending || isDebugPending;
+  const isPending = isSmokePending || isDebugPending || isStudioSelftestPending;
+  const isProd = process.env.NODE_ENV === 'production';
 
   return (
     <div className="space-y-6">
@@ -145,13 +172,18 @@ export default function TestsPanel() {
                     Manually trigger smoke tests or view results from automated acceptance runs.
                 </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
                 <Button onClick={triggerSmokeTests} disabled={isPending}>
                 {isSmokePending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Triggering...</> : <><Play className="mr-2 h-4 w-4" />Run Pre-deploy Smoke</>}
                 </Button>
-                {process.env.NODE_ENV !== 'production' && (
+                {!isProd && (
                     <Button onClick={triggerDebugRun} disabled={isPending} variant="secondary">
                         {isDebugPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running...</> : <><Bug className="mr-2 h-4 w-4" />Run Debug</>}
+                    </Button>
+                )}
+                {!isProd && (
+                    <Button onClick={triggerStudioSelftest} disabled={isPending} variant="secondary">
+                        {isStudioSelftestPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running...</> : <><Play className="mr-2 h-4 w-4" />Run Studio Acceptance Selftest</>}
                     </Button>
                 )}
             </div>

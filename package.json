@@ -1,6 +1,7 @@
+
 {
   "name": "nextn",
-  "version": "1.3.63",
+  "version": "1.3.64",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 9002",
@@ -15,6 +16,7 @@
     "qa:install": "npx playwright install --with-deps",
     "test:pw": "playwright test --config=playwright.config.ts",
     "test:pw:acceptance": "playwright test --project=acceptance",
+    "test:pw:acceptance:ci": "playwright test --project=acceptance",
     "test:pw:ci": "BASE_URL=$BASE_URL playwright test --config=playwright.config.ts || true",
     "test:pw:report": "npx playwright show-report qa/report/html",
     "test:e2e": "playwright test",

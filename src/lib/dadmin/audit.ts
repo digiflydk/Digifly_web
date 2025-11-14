@@ -12,7 +12,13 @@ export type AdminAction =
     | "navigation.save" | "navigation.read"
     | "pages.save" | "pages.read"
     | "services.save" | "services.read"
-    | "playwright.run";
+    | "playwright.run"
+    | "playwright.acceptance.debug.start"
+    | "playwright.acceptance.debug.finish"
+    | "playwright.acceptance.debug.error"
+    | "playwright.acceptance.studio.start"
+    | "playwright.acceptance.studio.finish"
+    | "playwright.acceptance.studio.error";
 
 export interface AuditLog {
   action: AdminAction;
@@ -103,6 +109,12 @@ export async function getLogSettings(): Promise<LoggingSettings> {
             'services.save': false,
             'services.read': false,
             'playwright.run': false,
+            'playwright.acceptance.debug.start': true, // default to on
+            'playwright.acceptance.debug.finish': true,
+            'playwright.acceptance.debug.error': true,
+            'playwright.acceptance.studio.start': true,
+            'playwright.acceptance.studio.finish': true,
+            'playwright.acceptance.studio.error': true,
         } as any,
     };
     const settings = await getLoggingSettings();
