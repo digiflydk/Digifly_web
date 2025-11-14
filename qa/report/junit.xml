@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="4" failures="4" skipped="0" errors="0" time="5.746292">
-<testsuite name="acceptance/dadmin-homepage.spec.ts" timestamp="2025-11-14T18:17:11.236Z" hostname="acceptance" tests="2" failures="2" skipped="0" time="0.029" errors="0">
-<testcase name="Acceptance: D-Admin Homepage Editor › @acceptance form loads and hero fields are rendered" classname="acceptance/dadmin-homepage.spec.ts" time="0.015">
+<testsuites id="" name="" tests="4" failures="4" skipped="0" errors="0" time="5.299135">
+<testsuite name="acceptance/dadmin-homepage.spec.ts" timestamp="2025-11-14T18:42:39.919Z" hostname="acceptance" tests="2" failures="2" skipped="0" time="0.032" errors="0">
+<testcase name="Acceptance: D-Admin Homepage Editor › @acceptance form loads and hero fields are rendered" classname="acceptance/dadmin-homepage.spec.ts" time="0.019">
 <failure message="dadmin-homepage.spec.ts:13:7 @acceptance form loads and hero fields are rendered" type="FAILURE">
 <![CDATA[  [acceptance] › acceptance/dadmin-homepage.spec.ts:13:7 › Acceptance: D-Admin Homepage Editor › @acceptance form loads and hero fields are rendered 
 
@@ -34,7 +34,7 @@
 ]]>
 </failure>
 </testcase>
-<testcase name="Acceptance: D-Admin Homepage Editor › @acceptance can type in a field and it reflects the change" classname="acceptance/dadmin-homepage.spec.ts" time="0.014">
+<testcase name="Acceptance: D-Admin Homepage Editor › @acceptance can type in a field and it reflects the change" classname="acceptance/dadmin-homepage.spec.ts" time="0.013">
 <failure message="dadmin-homepage.spec.ts:25:7 @acceptance can type in a field and it reflects the change" type="FAILURE">
 <![CDATA[  [acceptance] › acceptance/dadmin-homepage.spec.ts:25:7 › Acceptance: D-Admin Homepage Editor › @acceptance can type in a field and it reflects the change 
 
@@ -69,8 +69,8 @@
 </failure>
 </testcase>
 </testsuite>
-<testsuite name="acceptance/homepage-hero-colors.spec.ts" timestamp="2025-11-14T18:17:11.236Z" hostname="acceptance" tests="1" failures="1" skipped="0" time="0.017" errors="0">
-<testcase name="[DGF-388] Acceptance: Homepage Hero Colors › @acceptance hero text color can be updated from CMS" classname="acceptance/homepage-hero-colors.spec.ts" time="0.017">
+<testsuite name="acceptance/homepage-hero-colors.spec.ts" timestamp="2025-11-14T18:42:39.919Z" hostname="acceptance" tests="1" failures="1" skipped="0" time="0.012" errors="0">
+<testcase name="[DGF-388] Acceptance: Homepage Hero Colors › @acceptance hero text color can be updated from CMS" classname="acceptance/homepage-hero-colors.spec.ts" time="0.012">
 <failure message="homepage-hero-colors.spec.ts:12:7 @acceptance hero text color can be updated from CMS" type="FAILURE">
 <![CDATA[  [acceptance] › acceptance/homepage-hero-colors.spec.ts:12:7 › [DGF-388] Acceptance: Homepage Hero Colors › @acceptance hero text color can be updated from CMS 
 
@@ -105,8 +105,8 @@
 </failure>
 </testcase>
 </testsuite>
-<testsuite name="acceptance/homepage.spec.ts" timestamp="2025-11-14T18:17:11.236Z" hostname="acceptance" tests="1" failures="1" skipped="0" time="0.013" errors="0">
-<testcase name="Acceptance: Public Homepage › @acceptance hero heading and CTA from CMS are visible" classname="acceptance/homepage.spec.ts" time="0.013">
+<testsuite name="acceptance/homepage.spec.ts" timestamp="2025-11-14T18:42:39.919Z" hostname="acceptance" tests="1" failures="1" skipped="0" time="0.019" errors="0">
+<testcase name="Acceptance: Public Homepage › @acceptance hero heading and CTA from CMS are visible" classname="acceptance/homepage.spec.ts" time="0.019">
 <failure message="homepage.spec.ts:5:7 @acceptance hero heading and CTA from CMS are visible" type="FAILURE">
 <![CDATA[  [acceptance] › acceptance/homepage.spec.ts:5:7 › Acceptance: Public Homepage › @acceptance hero heading and CTA from CMS are visible 
 

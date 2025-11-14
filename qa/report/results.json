@@ -133,7 +133,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 15,
+                      "duration": 19,
                       "error": {
                         "message": "Error: browserType.launch: \n╔══════════════════════════════════════════════════════╗\n║ Host system is missing dependencies to run browsers. ║\n║ Missing libraries:                                   ║\n║     libglib-2.0.so.0                                 ║\n║     libgobject-2.0.so.0                              ║\n║     libnspr4.so                                      ║\n║     libnss3.so                                       ║\n║     libnssutil3.so                                   ║\n║     libdbus-1.so.3                                   ║\n║     libgio-2.0.so.0                                  ║\n║     libatk-1.0.so.0                                  ║\n║     libatk-bridge-2.0.so.0                           ║\n║     libexpat.so.1                                    ║\n║     libatspi.so.0                                    ║\n║     libX11.so.6                                      ║\n║     libXcomposite.so.1                               ║\n║     libXdamage.so.1                                  ║\n║     libXext.so.6                                     ║\n║     libXfixes.so.3                                   ║\n║     libXrandr.so.2                                   ║\n║     libgbm.so.1                                      ║\n║     libxcb.so.1                                      ║\n║     libxkbcommon.so.0                                ║\n║     libudev.so.1                                     ║\n║     libasound.so.2                                   ║\n╚══════════════════════════════════════════════════════╝",
                         "stack": "Error: browserType.launch: \n╔══════════════════════════════════════════════════════╗\n║ Host system is missing dependencies to run browsers. ║\n║ Missing libraries:                                   ║\n║     libglib-2.0.so.0                                 ║\n║     libgobject-2.0.so.0                              ║\n║     libnspr4.so                                      ║\n║     libnss3.so                                       ║\n║     libnssutil3.so                                   ║\n║     libdbus-1.so.3                                   ║\n║     libgio-2.0.so.0                                  ║\n║     libatk-1.0.so.0                                  ║\n║     libatk-bridge-2.0.so.0                           ║\n║     libexpat.so.1                                    ║\n║     libatspi.so.0                                    ║\n║     libX11.so.6                                      ║\n║     libXcomposite.so.1                               ║\n║     libXdamage.so.1                                  ║\n║     libXext.so.6                                     ║\n║     libXfixes.so.3                                   ║\n║     libXrandr.so.2                                   ║\n║     libgbm.so.1                                      ║\n║     libxcb.so.1                                      ║\n║     libxkbcommon.so.0                                ║\n║     libudev.so.1                                     ║\n║     libasound.so.2                                   ║\n╚══════════════════════════════════════════════════════╝"
@@ -146,7 +146,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-14T18:17:12.345Z",
+                      "startTime": "2025-11-14T18:42:40.998Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -177,7 +177,7 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 14,
+                      "duration": 13,
                       "error": {
                         "message": "Error: browserType.launch: \n╔══════════════════════════════════════════════════════╗\n║ Host system is missing dependencies to run browsers. ║\n║ Missing libraries:                                   ║\n║     libglib-2.0.so.0                                 ║\n║     libgobject-2.0.so.0                              ║\n║     libnspr4.so                                      ║\n║     libnss3.so                                       ║\n║     libnssutil3.so                                   ║\n║     libdbus-1.so.3                                   ║\n║     libgio-2.0.so.0                                  ║\n║     libatk-1.0.so.0                                  ║\n║     libatk-bridge-2.0.so.0                           ║\n║     libexpat.so.1                                    ║\n║     libatspi.so.0                                    ║\n║     libX11.so.6                                      ║\n║     libXcomposite.so.1                               ║\n║     libXdamage.so.1                                  ║\n║     libXext.so.6                                     ║\n║     libXfixes.so.3                                   ║\n║     libXrandr.so.2                                   ║\n║     libgbm.so.1                                      ║\n║     libxcb.so.1                                      ║\n║     libxkbcommon.so.0                                ║\n║     libudev.so.1                                     ║\n║     libasound.so.2                                   ║\n╚══════════════════════════════════════════════════════╝",
                         "stack": "Error: browserType.launch: \n╔══════════════════════════════════════════════════════╗\n║ Host system is missing dependencies to run browsers. ║\n║ Missing libraries:                                   ║\n║     libglib-2.0.so.0                                 ║\n║     libgobject-2.0.so.0                              ║\n║     libnspr4.so                                      ║\n║     libnss3.so                                       ║\n║     libnssutil3.so                                   ║\n║     libdbus-1.so.3                                   ║\n║     libgio-2.0.so.0                                  ║\n║     libatk-1.0.so.0                                  ║\n║     libatk-bridge-2.0.so.0                           ║\n║     libexpat.so.1                                    ║\n║     libatspi.so.0                                    ║\n║     libX11.so.6                                      ║\n║     libXcomposite.so.1                               ║\n║     libXdamage.so.1                                  ║\n║     libXext.so.6                                     ║\n║     libXfixes.so.3                                   ║\n║     libXrandr.so.2                                   ║\n║     libgbm.so.1                                      ║\n║     libxcb.so.1                                      ║\n║     libxkbcommon.so.0                                ║\n║     libudev.so.1                                     ║\n║     libasound.so.2                                   ║\n╚══════════════════════════════════════════════════════╝"
@@ -190,7 +190,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-14T18:17:14.099Z",
+                      "startTime": "2025-11-14T18:42:42.330Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -238,7 +238,7 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 17,
+                      "duration": 12,
                       "error": {
                         "message": "Error: browserType.launch: \n╔══════════════════════════════════════════════════════╗\n║ Host system is missing dependencies to run browsers. ║\n║ Missing libraries:                                   ║\n║     libglib-2.0.so.0                                 ║\n║     libgobject-2.0.so.0                              ║\n║     libnspr4.so                                      ║\n║     libnss3.so                                       ║\n║     libnssutil3.so                                   ║\n║     libdbus-1.so.3                                   ║\n║     libgio-2.0.so.0                                  ║\n║     libatk-1.0.so.0                                  ║\n║     libatk-bridge-2.0.so.0                           ║\n║     libexpat.so.1                                    ║\n║     libatspi.so.0                                    ║\n║     libX11.so.6                                      ║\n║     libXcomposite.so.1                               ║\n║     libXdamage.so.1                                  ║\n║     libXext.so.6                                     ║\n║     libXfixes.so.3                                   ║\n║     libXrandr.so.2                                   ║\n║     libgbm.so.1                                      ║\n║     libxcb.so.1                                      ║\n║     libxkbcommon.so.0                                ║\n║     libudev.so.1                                     ║\n║     libasound.so.2                                   ║\n╚══════════════════════════════════════════════════════╝",
                         "stack": "Error: browserType.launch: \n╔══════════════════════════════════════════════════════╗\n║ Host system is missing dependencies to run browsers. ║\n║ Missing libraries:                                   ║\n║     libglib-2.0.so.0                                 ║\n║     libgobject-2.0.so.0                              ║\n║     libnspr4.so                                      ║\n║     libnss3.so                                       ║\n║     libnssutil3.so                                   ║\n║     libdbus-1.so.3                                   ║\n║     libgio-2.0.so.0                                  ║\n║     libatk-1.0.so.0                                  ║\n║     libatk-bridge-2.0.so.0                           ║\n║     libexpat.so.1                                    ║\n║     libatspi.so.0                                    ║\n║     libX11.so.6                                      ║\n║     libXcomposite.so.1                               ║\n║     libXdamage.so.1                                  ║\n║     libXext.so.6                                     ║\n║     libXfixes.so.3                                   ║\n║     libXrandr.so.2                                   ║\n║     libgbm.so.1                                      ║\n║     libxcb.so.1                                      ║\n║     libxkbcommon.so.0                                ║\n║     libudev.so.1                                     ║\n║     libasound.so.2                                   ║\n╚══════════════════════════════════════════════════════╝"
@@ -251,7 +251,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-14T18:17:15.331Z",
+                      "startTime": "2025-11-14T18:42:43.621Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -299,7 +299,7 @@
                       "workerIndex": 3,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 13,
+                      "duration": 19,
                       "error": {
                         "message": "Error: browserType.launch: \n╔══════════════════════════════════════════════════════╗\n║ Host system is missing dependencies to run browsers. ║\n║ Missing libraries:                                   ║\n║     libglib-2.0.so.0                                 ║\n║     libgobject-2.0.so.0                              ║\n║     libnspr4.so                                      ║\n║     libnss3.so                                       ║\n║     libnssutil3.so                                   ║\n║     libdbus-1.so.3                                   ║\n║     libgio-2.0.so.0                                  ║\n║     libatk-1.0.so.0                                  ║\n║     libatk-bridge-2.0.so.0                           ║\n║     libexpat.so.1                                    ║\n║     libatspi.so.0                                    ║\n║     libX11.so.6                                      ║\n║     libXcomposite.so.1                               ║\n║     libXdamage.so.1                                  ║\n║     libXext.so.6                                     ║\n║     libXfixes.so.3                                   ║\n║     libXrandr.so.2                                   ║\n║     libgbm.so.1                                      ║\n║     libxcb.so.1                                      ║\n║     libxkbcommon.so.0                                ║\n║     libudev.so.1                                     ║\n║     libasound.so.2                                   ║\n╚══════════════════════════════════════════════════════╝",
                         "stack": "Error: browserType.launch: \n╔══════════════════════════════════════════════════════╗\n║ Host system is missing dependencies to run browsers. ║\n║ Missing libraries:                                   ║\n║     libglib-2.0.so.0                                 ║\n║     libgobject-2.0.so.0                              ║\n║     libnspr4.so                                      ║\n║     libnss3.so                                       ║\n║     libnssutil3.so                                   ║\n║     libdbus-1.so.3                                   ║\n║     libgio-2.0.so.0                                  ║\n║     libatk-1.0.so.0                                  ║\n║     libatk-bridge-2.0.so.0                           ║\n║     libexpat.so.1                                    ║\n║     libatspi.so.0                                    ║\n║     libX11.so.6                                      ║\n║     libXcomposite.so.1                               ║\n║     libXdamage.so.1                                  ║\n║     libXext.so.6                                     ║\n║     libXfixes.so.3                                   ║\n║     libXrandr.so.2                                   ║\n║     libgbm.so.1                                      ║\n║     libxcb.so.1                                      ║\n║     libxkbcommon.so.0                                ║\n║     libudev.so.1                                     ║\n║     libasound.so.2                                   ║\n╚══════════════════════════════════════════════════════╝"
@@ -312,7 +312,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-14T18:17:16.574Z",
+                      "startTime": "2025-11-14T18:42:44.908Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -332,8 +332,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-14T18:17:11.047Z",
-    "duration": 5746.292,
+    "startTime": "2025-11-14T18:42:39.851Z",
+    "duration": 5299.134999999999,
     "expected": 0,
     "skipped": 0,
     "unexpected": 4,
