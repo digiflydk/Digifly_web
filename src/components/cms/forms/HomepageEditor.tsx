@@ -17,10 +17,16 @@ import { defaultHomepage } from "@/data/defaults";
 import { saveHomepageAction } from "@/app/dadmin/homepage/actions";
 import deepmerge from 'deepmerge';
 
+// DGF-372: Custom merge strategy to ensure arrays from initialData overwrite defaults.
+const overwriteMerge = (destinationArray: any[], sourceArray: any[], options: deepmerge.Options): any[] => sourceArray;
+
 export default function HomepageEditor({ initialData }: { initialData: HomePage }) {
   const methods = useForm<HomePage>({
     resolver: zodResolver(HomepageSchema),
-    defaultValues: deepmerge(defaultHomepage, initialData || {}),
+    // DGF-372: Apply the overwrite merge strategy here.
+    defaultValues: deepmerge(defaultHomepage, initialData || {}, {
+      arrayMerge: overwriteMerge
+    }),
     mode: "onChange",
   });
   const [isPending, startTransition] = useTransition();
