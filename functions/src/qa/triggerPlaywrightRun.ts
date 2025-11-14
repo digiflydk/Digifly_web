@@ -2,6 +2,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import fetch from 'node-fetch';
+import { logAdminAction } from '../../../src/lib/dadmin/audit';
 
 const GH_TOKEN = process.env.GH_FINE_TOKEN!;
 const GH_OWNER = process.env.GH_OWNER!;
@@ -16,6 +17,15 @@ type TriggerPayload = {
 
 export const triggerPlaywrightRun = functions.https.onCall(async (data: TriggerPayload, context) => {
   const uid = context.auth?.uid ?? 'system';
+  const email = context.auth?.token.email ?? 'unknown';
+
+  await logAdminAction({
+      action: 'playwright.run',
+      status: 'ok',
+      actorUid: uid,
+      actorEmail: email,
+      payloadSummary: `Triggered ${data.runType} run. Grep: ${data.testGrep || 'none'}`
+  });
   
   const runRef = await admin.firestore().collection('qaRuns').add({
     status: 'queued',

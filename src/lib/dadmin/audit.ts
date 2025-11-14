@@ -102,6 +102,7 @@ export async function getLogSettings(): Promise<LoggingSettings> {
             'pages.read': false,
             'services.save': false,
             'services.read': false,
+            'playwright.run': false,
         } as any,
     };
     const settings = await getLoggingSettings();

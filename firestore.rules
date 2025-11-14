@@ -4,10 +4,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAuthed() { return request.auth != null; }
-    function isAdmin() { return isAuthed() && request.auth.token.role == "admin"; }
+    function isAdmin() { return isAuthed() && request.auth.token.admin == true; }
 
-    // Public site reads
-    match /site/{doc} {
+    // Public read access for site rendering content
+    match /site/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -18,27 +18,38 @@ service cloud.firestore {
     }
     
     match /cases/{caseId} {
-      allow read: if resource.data.published == true;
+      // Public can only read published cases. Admins can read all.
+      allow read: if resource.data.published == true || isAdmin();
       allow list, write: if isAdmin();
     }
     
+    // Legacy nav, might be removed later
     match /navigation/{docId} {
         allow read: if true; // Nav is public
         allow write: if isAdmin();
     }
 
+    // Admin-only collections
     match /admins/{uid} {
       allow read, write: if isAdmin();
     }
 
+    // Audit logs should be readable by admins, creatable by authed (backend)
     match /auditLogs/{logId} {
-        allow create: if isAuthed(); // Allow authenticated users to create logs
-        allow read, update, delete: if isAdmin(); // Admins can manage all logs
+        allow create: if isAuthed(); // Allow authenticated backend functions to create logs
+        allow read: if isAdmin();
+        allow update, delete: if false; // Disallow client updates/deletes
     }
 
+    // QA test runs should be readable by admins from the client
     match /qaRuns/{runId} {
       allow read: if isAuthed();
-      allow create, update: if request.auth.uid != null; // Allow creation/update by authenticated (functions)
+      allow write: if false; // Disallow client writes; only backend/CI can create/update.
+    }
+
+    // Developer settings for logging are admin-readable
+    match /developerSettings/logging {
+        allow read, write: if isAdmin();
     }
   }
 }
