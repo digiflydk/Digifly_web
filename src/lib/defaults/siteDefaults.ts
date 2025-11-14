@@ -4,6 +4,7 @@ import { HeroSlideSchema, NavigationSchema, AboutPageSchema, ServicesPageSchema,
 import { z } from 'zod';
 import { emptySiteSettings } from '@/components/dadmin/site-seo/utils/formDefaults';
 import deepmerge from "deepmerge";
+import { logAdminAction } from './dadmin/audit';
 
 export const SITE_DEFAULTS: SiteSettings = {
   general: {
@@ -92,7 +93,7 @@ export const defaultHomepage: HomePage = HomepageSchema.parse({
   },
   whatWeDo: {
     enabled: true,
-    subtitle: "WHY, HOW, WHAT",
+    subtitle: "STRATEGI, SOFTWARE, AUTOMATION",
     title: "What We Do",
     body: "Strategy, software development, and AI-driven automation. We help businesses identify opportunities for growth and efficiency, then build the technology to make it happen.",
     image: {
