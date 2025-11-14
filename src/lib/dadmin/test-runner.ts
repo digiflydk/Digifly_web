@@ -9,7 +9,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import fs from "fs/promises";
 import path from "path";
 import { PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH } from "./playwright-constants";
-import { exec } from "child_process";
+import { spawn } from "child_process";
 
 type RunOptions = {
   taskId: string | null;
@@ -37,15 +37,70 @@ type PlaywrightJsonReport = {
       }[];
     }[];
   }[];
+  tests?: {
+    titlePath: string[];
+    title: string;
+    outcome: 'failed' | 'passed' | 'skipped';
+    error?: { message: string };
+  }[];
 };
+
+async function removeOldReport() {
+    const reportPath = path.resolve(process.cwd(), PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH);
+    try {
+        await fs.unlink(reportPath);
+    } catch {
+        // ignore if file does not exist
+    }
+}
+
+async function runPlaywrightAcceptance(taskId: string | null): Promise<{
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}> {
+  const args = ['playwright', 'test', '--project=acceptance'];
+
+  return new Promise((resolve, reject) => {
+    const child = spawn('npx', args, {
+      shell: process.platform === 'win32',
+      env: {
+        ...process.env,
+        DGF_TASK_ID: taskId ?? '',
+      },
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('error', (error) => {
+      reject(error);
+    });
+
+    child.on('close', (code) => {
+      resolve({ exitCode: code ?? 1, stdout, stderr });
+    });
+  });
+}
+
 
 async function parsePlaywrightJsonReport(
   filePath: string
 ): Promise<{ summary: QARun["summary"]; errorSummary: QARun["errorSummary"]; status: QARun["status"] }> {
   let reportContent: string;
+  let fileMissing = false;
   try {
     reportContent = await fs.readFile(filePath, "utf-8");
   } catch (error) {
+    fileMissing = true;
     console.error(`[parsePlaywrightJsonReport] Report file not found at ${filePath}`);
     return {
       status: "error",
@@ -62,36 +117,47 @@ async function parsePlaywrightJsonReport(
   try {
     const report: PlaywrightJsonReport = JSON.parse(reportContent);
 
-    const summary = {
-      total: report.stats.total,
-      passed: report.stats.expected,
-      failed: report.stats.unexpected,
-      flaky: report.stats.flaky,
-      skipped: report.stats.skipped,
+    const summary: QARun['summary'] = {
+      total: report.stats.total || 0,
+      passed: report.stats.expected || 0,
+      failed: report.stats.unexpected || 0,
+      flaky: report.stats.flaky || 0,
+      skipped: report.stats.skipped || 0,
     };
 
     const errorSummary: QARun["errorSummary"] = [];
-    report.suites.forEach((suite) => {
-      suite.specs.forEach((spec) => {
-        spec.tests.forEach((test) => {
-          test.results.forEach((result) => {
-            if (
-              result.status === "failed" ||
-              result.status === "timedOut" ||
-              result.status === "interrupted"
-            ) {
-              errorSummary.push({
-                testTitle: `${suite.title} › ${spec.title}`,
-                message: result.error?.message.split("\n")[0] ?? "Unknown error",
-              });
+    if (report.tests) { // newer playwright json format
+        report.tests.forEach(test => {
+            if (test.outcome === 'failed' || test.outcome === 'unexpected') {
+                 errorSummary.push({
+                    testTitle: test.titlePath.join(' › '),
+                    message: test.error?.message?.split('\n')[0] ?? 'Test failed without message',
+                });
             }
+        })
+    } else if (report.suites) { // older playwright json format
+        report.suites.forEach((suite) => {
+          suite.specs.forEach((spec) => {
+            spec.tests.forEach((test) => {
+              test.results.forEach((result) => {
+                if (
+                  result.status === "failed" ||
+                  result.status === "timedOut" ||
+                  result.status === "interrupted"
+                ) {
+                  errorSummary.push({
+                    testTitle: `${suite.title} › ${spec.title}`,
+                    message: result.error?.message?.split("\n")[0] ?? "Unknown error",
+                  });
+                }
+              });
+            });
           });
         });
-      });
-    });
+    }
 
     const status: QARun["status"] =
-      summary.failed > 0 || summary.flaky > 0 ? "failed" : "passed";
+      (summary.failed ?? 0) > 0 || (summary.flaky ?? 0) > 0 ? "failed" : "passed";
 
     return { summary, errorSummary, status };
   } catch (error: any) {
@@ -107,19 +173,6 @@ async function parsePlaywrightJsonReport(
       ],
     };
   }
-}
-
-function runPlaywright(): Promise<{ code: number | null, stdout: string, stderr: string }> {
-    return new Promise((resolve) => {
-        const command = `npx playwright test --project=acceptance`;
-        exec(command, (error, stdout, stderr) => {
-            resolve({
-                stdout,
-                stderr,
-                code: error ? error.code ?? 1 : 0,
-            });
-        });
-    });
 }
 
 export async function runStudioAcceptanceOnce({
@@ -149,15 +202,15 @@ export async function runStudioAcceptanceOnce({
     taskId,
   });
 
-  const reportPath = path.join(process.cwd(), PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH);
+  const reportPath = path.resolve(process.cwd(), PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH);
 
   try {
-    await fs.rm(reportPath, { force: true });
+    await removeOldReport();
     
-    const { code, stderr } = await runPlaywright();
+    const { exitCode, stderr } = await runPlaywrightAcceptance(taskId);
     
-    if (code !== 0 && code !== 1) { // 0=pass, 1=tests failed. Other codes are system errors.
-        throw new Error(`Playwright process exited with code ${code}. Stderr: ${stderr.slice(0, 500)}`);
+    if (exitCode !== 0 && exitCode !== 1) { // 0=pass, 1=tests failed. Other codes are system errors.
+        throw new Error(`Playwright process exited with code ${exitCode}. Stderr: ${stderr.slice(0, 500)}`);
     }
 
     const parsedResult = await parsePlaywrightJsonReport(reportPath);
