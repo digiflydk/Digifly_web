@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -146,15 +145,6 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                         />
                     ))}
                 </div>
-            )}
-            
-            {process.env.NODE_ENV !== 'production' && (
-                <pre
-                    data-testid="hero-debug-json"
-                    className="absolute bottom-0 left-0 bg-black/50 text-white text-[10px] p-2 m-2 rounded-md max-w-sm max-h-48 overflow-auto z-50"
-                >
-                    {JSON.stringify(data, null, 2)}
-                </pre>
             )}
         </section>
     );
