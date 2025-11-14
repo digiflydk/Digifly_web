@@ -36,10 +36,6 @@ export default defineConfig({
       name: 'acceptance',
       testDir: './tests/acceptance',
       testMatch: /.*\.spec\.ts/,
-      reporter: [
-        ['list'],
-        ['json', { outputFile: 'playwright-report/acceptance-results.json' }]
-      ],
     },
   ],
   outputDir: 'qa/artifacts',
