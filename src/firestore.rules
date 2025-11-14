@@ -17,10 +17,12 @@ service cloud.firestore {
     }
     
     match /cases/{caseId} {
-      allow read: if resource.data.published == true;
+      // Public can only read published cases. Admins can read all.
+      allow read: if resource.data.published == true || isAdmin();
       allow write: if isAdmin();
     }
     
+    // Legacy nav, keep for seeding/migration for now
     match /navigation/{docId} {
         allow read: if true;
         allow write: if isAdmin();
@@ -31,16 +33,22 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Audit logs should be readable by admins from the client
     match /auditLogs/{logId} {
-        allow create: if isAuthed();
-        allow read, update, delete: if isAdmin();
+        allow create: if isAuthed(); // Allow backend to create logs
+        allow read: if isAdmin();
+        allow update, delete: if false; // Disallow client updates/deletes
     }
 
+    // QA test runs should be readable by admins from the client
     match /qaRuns/{runId} {
-      // Allow authenticated admin users to read test runs from the client-side UI.
-      allow read: if isAuthed(); 
-      // Disallow client writes; only backend/CI can create/update.
-      allow write: if false;
+      allow read: if isAuthed(); // Allow authenticated users to read test runs from the client-side UI.
+      allow write: if false; // Disallow client writes; only backend/CI can create/update.
+    }
+
+    // Fallback to deny all other access
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
