@@ -1,5 +1,5 @@
 
-import { getDb } from "@/lib/firebase/admin";
+import { getDb } from "@/lib/firebase-admin";
 import { AuditLogList } from "./_components/AuditLogList";
 
 export const dynamic = 'force-dynamic';
