@@ -1,69 +1,91 @@
 
-
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Loader2, ExternalLink, AlertTriangle, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { QARun } from '@/lib/qa/qa.types';
+import { db } from '@/lib/firebase-client';
+import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 
-async function safeJson(res: Response) {
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`HTTP ${res.status} — ${text.slice(0, 150)}`);
-  }
+function RunCard({ run }: { run: QARun }) {
+    const statusColor = {
+        passed: 'text-green-600',
+        failed: 'text-red-600',
+        running: 'text-blue-600',
+        queued: 'text-yellow-600',
+        error: 'text-red-800'
+    }[run.status];
+
+    return (
+        <div className="border rounded-lg p-4 space-y-2">
+            <div className="flex justify-between items-center">
+                <span className={`font-semibold capitalize ${statusColor}`}>{run.status}</span>
+                <span className="text-xs text-muted-foreground">{run.finishedAt ? new Date(run.finishedAt.seconds * 1000).toLocaleString() : 'Running...'}</span>
+            </div>
+            <p className="font-mono text-xs">{run.runType === 'predeploy' ? 'Pre-deploy Smoke' : `Acceptance: ${run.taskId}`}</p>
+            {run.totals && (
+                 <div className="text-xs text-muted-foreground flex gap-4">
+                    <span>Total: {run.totals.total}</span>
+                    <span className="text-green-600">Passed: {run.totals.passed}</span>
+                    <span className="text-red-600">Failed: {run.totals.failed}</span>
+                    <span>Skipped: {run.totals.skipped}</span>
+                 </div>
+            )}
+            {run.artifactUrl && (
+                <Button variant="outline" size="sm" asChild>
+                    <a href={run.artifactUrl} target="_blank" rel="noopener noreferrer">
+                        View Report <ExternalLink className="h-4 w-4 ml-2" />
+                    </a>
+                </Button>
+            )}
+        </div>
+    )
 }
 
 export default function TestsPanel() {
-  const [isRunning, setIsRunning] = useState(false);
+  const [runs, setRuns] = useState<QARun[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [latestReportUrl, setLatestReportUrl] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => setIsClient(true), []);
 
-  const fetchLatestReport = useCallback(async () => {
-    try {
-      const res = await fetch('/predeploy/reports/index.json', { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        setLatestReportUrl(data.latestUrl);
-      } else {
-        setLatestReportUrl(null);
-      }
-    } catch {
-      setLatestReportUrl(null);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchLatestReport();
-  }, [fetchLatestReport]);
+    const q = query(collection(db, "qaRuns"), orderBy("startedAt", "desc"), limit(20));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const runsData: QARun[] = [];
+        querySnapshot.forEach((doc) => {
+            runsData.push({ id: doc.id, ...doc.data() } as QARun);
+        });
+        setRuns(runsData);
+    }, (err) => {
+        console.error("Error fetching test runs:", err);
+        setError("Failed to subscribe to test run updates.");
+    });
+    return () => unsubscribe();
+  }, []);
 
   const { toast } = useToast();
 
-  const trigger = useCallback(async () => {
-    setIsRunning(true);
-    setError(null);
-    toast({ title: 'Pre-deploy QA Started', description: 'This simulates running checks. To run it for real, use `npm run predeploy` in your terminal.' });
-    
-    // This is a UI simulation. A real implementation would trigger a server-side process.
-    await new Promise(res => setTimeout(res, 2000));
-
-    try {
-      // After simulation, try to find a report that might have been generated locally.
-      await fetchLatestReport(); 
+  const triggerSmokeTests = useCallback(async () => {
+    startTransition(async () => {
+      setError(null);
+      toast({ title: 'Triggering Pre-deploy Smoke Test', description: 'The GitHub Action workflow has been dispatched.' });
       
-      toast({ title: 'Simulation Complete', description: 'If a local report exists, its link will appear below.'});
-    } catch (e: any) {
-      setError(e.message);
-      toast({ title: 'Error', description: e.message, variant: 'destructive' });
-    } finally {
-      setIsRunning(false);
-    }
-  }, [toast, fetchLatestReport]);
+      try {
+        const functions = getFunctions();
+        const triggerPlaywrightRun = httpsCallable(functions, 'triggerPlaywrightRun');
+        await triggerPlaywrightRun({ runType: 'predeploy', testGrep: '@smoke' });
+        toast({ title: 'Success', description: 'Smoke test run is now queued.' });
+      } catch (e: any) {
+        setError(e.message);
+        toast({ title: 'Error', description: e.message, variant: 'destructive' });
+      }
+    });
+  }, [toast]);
 
   if (!isClient) {
       return <div>Loading...</div>;
@@ -73,14 +95,14 @@ export default function TestsPanel() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="space-y-1">
-          <h1 className="text-xl font-semibold">Pre-Deploy QA</h1>
+          <h1 className="text-xl font-semibold">Playwright Test Runs</h1>
            <p className="text-sm text-muted-foreground">
-             Run smoke tests to catch issues before deploying.
+             Manually trigger smoke tests or view results from automated acceptance runs.
            </p>
         </div>
         <div className="flex gap-2">
-            <Button onClick={trigger} disabled={isRunning}>
-              {isRunning ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running Checks…</> : 'Run Pre-deploy QA'}
+            <Button onClick={triggerSmokeTests} disabled={isPending}>
+              {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Triggering...</> : <><Play className="mr-2 h-4 w-4" />Run Pre-deploy Smoke</>}
             </Button>
         </div>
       </div>
@@ -88,32 +110,22 @@ export default function TestsPanel() {
       {error && (
         <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Run Failed</AlertTitle>
+            <AlertTitle>Action Failed</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {latestReportUrl ? (
-        <Alert>
-          <AlertTitle>Latest Report Ready</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            A report from the last pre-deploy run is available.
-            <Button variant="outline" size="sm" asChild>
-                <a href={latestReportUrl} target="_blank" rel="noopener noreferrer">
-                    View Report <ExternalLink className="h-4 w-4 ml-2" />
-                </a>
-            </Button>
-          </AlertDescription>
-        </Alert>
-      ) : (
-          <div className="border rounded-lg p-6 text-center text-muted-foreground">
-              <p className="font-medium">No pre-deploy report found.</p>
-              <p className="text-sm mt-2">Run the check locally to generate one:</p>
-              <pre className="mt-2 inline-block bg-slate-100 dark:bg-slate-800 p-2 rounded-md text-xs">
-                <code>npm run predeploy</code>
-              </pre>
-          </div>
-      )}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Recent Runs</h2>
+        {runs.length > 0 ? (
+            runs.map(run => <RunCard key={run.id} run={run} />)
+        ) : (
+            <div className="border rounded-lg p-6 text-center text-muted-foreground">
+                <p className="font-medium">No test runs found.</p>
+                <p className="text-sm mt-2">Trigger a run or push a commit to see results here.</p>
+            </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,10 +1,13 @@
 
-name: E2E
+name: E2E Tests
 on:
   workflow_dispatch:
     inputs:
       qaRunId:
         required: true
+        type: string
+      testGrep:
+        required: false
         type: string
 jobs:
   test:
@@ -17,40 +20,64 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
-      - run: npx playwright install --with-deps
-      - env:
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        env:
           E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
-        run: npm run test:e2e:ci -- -g "@smoke" || true
-      - name: Summarize
+          PW_JSON_OUTPUT_NAME: qa/report/results.json
+          TEST_GREP: ${{ inputs.testGrep }}
+        run: |
+          if [ -z "$TEST_GREP" ]; then
+            npm run test:pw -- --reporter=list,json,html
+          else
+            npm run test:pw -- --reporter=list,json,html -g "$TEST_GREP"
+          fi
+      - name: Summarize Test Run
+        id: summarize
         run: |
           node -e "
-          const fs=require('fs');
-          const p=process.env.PW_SUMMARY_PATH||'qa/summary.json';
-          const s={passed:0,failed:0,skipped:0,total:0,status:'passed'};
-          try{
-            const j=JSON.parse(fs.readFileSync('qa/.summary.json','utf8'));
-            Object.assign(s,j);
-          }catch(e){}
-          if(s.failed>0) s.status='failed';
-          fs.mkdirSync('qa',{recursive:true});
-          fs.writeFileSync(p,JSON.stringify(s));
+          const fs = require('fs');
+          const path = require('path');
+          const summary = { passed: 0, failed: 0, flaky: 0, skipped: 0, total: 0 };
+          try {
+            const results = JSON.parse(fs.readFileSync('qa/report/results.json', 'utf8'));
+            summary.total = results.stats.total;
+            summary.passed = results.stats.expected;
+            summary.failed = results.stats.unexpected;
+            summary.flaky = results.stats.flaky;
+            summary.skipped = results.stats.skipped;
+          } catch (e) {
+            console.error('Could not parse test results:', e);
+          }
+          const status = summary.failed > 0 || summary.flaky > 0 ? 'failed' : 'passed';
+          const payload = {
+            qaRunId: '${{ inputs.qaRunId }}',
+            status: status,
+            totals: summary,
+            artifactUrl: 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}',
+            commit: '${{ github.sha }}',
+            workflowRunId: ${{ github.run_id }}
+          };
+          fs.writeFileSync('qa/summary_payload.json', JSON.stringify(payload));
           "
-      - name: Upload HTML report
+      - name: Upload HTML report artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: qa/report
-      - name: Notify Firebase
+          name: playwright-report-${{ inputs.qaRunId }}
+          path: qa/report/html
+          retention-days: 7
+
+      - name: Notify Firebase Webhook
+        if: always()
         env:
-          QA_RUN_ID: ${{ inputs.qaRunId }}
           FIREBASE_QA_WEBHOOK: ${{ secrets.FIREBASE_QA_WEBHOOK }}
-          GITHUB_SHA: ${{ github.sha }}
         run: |
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          SUMMARY=$(cat qa/summary.json)
           curl -s -X POST "$FIREBASE_QA_WEBHOOK" \
             -H "Content-Type: application/json" \
-            -d "{\"qaRunId\":\"$QA_RUN_ID\",\"status\":$(echo $SUMMARY | jq -r '.status|@json'),\"totals\":$SUMMARY,\"artifactUrl\":\"$ARTIFACT_URL\",\"commit\":\"$GITHUB_SHA\",\"workflowRunId\":${{ github.run_id }}}"
-      - name: Fail if needed
-        run: |
-          if [ "$(jq -r .status qa/summary.json)" = "failed" ]; then exit 1; fi
+            -d @qa/summary_payload.json
+      
+      - name: Fail job if tests failed
+        if: fromJson(steps.summarize.outputs.payload).status == 'failed'
+        run: exit 1
