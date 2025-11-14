@@ -1,10 +1,14 @@
 
-// src/app/dadmin/tests/page.tsx
+// This page has been moved to /dadmin/developer/tests
+// The content is now managed there. This file can be removed in a future cleanup task.
+"use client";
+import { useEffect } from 'react';
+import { redirect } from 'next/navigation';
 
-import TestsPanel from "@/components/dadmin/tests/TestsPanel";
-
-export const dynamic = 'force-dynamic';
-
-export default function PlaywrightTestsPage() {
-    return <TestsPanel />;
+export default function Page() {
+  useEffect(() => {
+    redirect('/dadmin/developer/tests');
+  }, []);
+  
+  return null;
 }
