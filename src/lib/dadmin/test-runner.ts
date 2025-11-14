@@ -43,9 +43,9 @@ type PlaywrightJsonReport = {
 async function parsePlaywrightJsonReport(
   filePath: string
 ): Promise<{ summary: QARun["summary"]; errorSummary: QARun["errorSummary"]; status: QARun["status"] }> {
+  let reportContent: string;
   try {
-    // DGF-398: Check if file exists before reading
-    await fs.access(filePath);
+    reportContent = await fs.readFile(filePath, "utf-8");
   } catch (error) {
     console.error(`[parsePlaywrightJsonReport] Report file not found at ${filePath}`);
     return {
@@ -54,14 +54,13 @@ async function parsePlaywrightJsonReport(
       errorSummary: [
         {
           testTitle: "Report Generation",
-          message: `Acceptance JSON report not found at ${filePath}`,
+          message: `Acceptance JSON report not found at ${filePath}.`,
         },
       ],
     };
   }
 
   try {
-    const reportContent = await fs.readFile(filePath, "utf-8");
     const report: PlaywrightJsonReport = JSON.parse(reportContent);
 
     const summary = {
@@ -140,15 +139,12 @@ export async function runStudioAcceptanceOnce({
   const reportPath = path.join(process.cwd(), PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH);
 
   try {
-    // DGF-398: Ensure old report is gone before starting a new run
     await fs.rm(reportPath, { force: true });
     
-    const command = `npm run test:pw:acceptance:ci`;
+    const command = `npx playwright test --project=acceptance --config=playwright.config.ts`;
 
     await new Promise<void>((resolve, reject) => {
-      exec(command, { env: { ...process.env } }, (error, stdout, stderr) => {
-        // Playwright exits with 1 on test failures, which is expected.
-        // Only reject on other error codes.
+      exec(command, { env: { ...process.env, CI: "true" } }, (error, stdout, stderr) => {
         if (error && error.code !== 0 && error.code !== 1) {
           console.error("Playwright command execution error:", stderr);
           reject(new Error(stderr || "Playwright script failed unexpectedly."));
@@ -178,7 +174,7 @@ export async function runStudioAcceptanceOnce({
 
   } catch (e: any) {
     console.error(`[runStudioAcceptanceOnce] Error for runId ${runId}:`, e);
-    await runRef.update({ status: "error", finishedAt: FieldValue.serverTimestamp() });
+    await runRef.update({ status: "error", errorMessage: e.message, finishedAt: FieldValue.serverTimestamp() });
     await logAdminAction({
       action: "playwright.acceptance.studio.error",
       status: "error",
