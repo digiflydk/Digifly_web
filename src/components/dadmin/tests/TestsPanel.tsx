@@ -2,7 +2,7 @@
 'use client';
 import { useEffect, useState, useCallback, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock, Bug } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { QARun } from '@/lib/qa/qa.types';
@@ -61,7 +61,8 @@ export default function TestsPanel() {
   const [runs, setRuns] = useState<QARun[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isSmokePending, startSmokeTransition] = useTransition();
+  const [isDebugPending, startDebugTransition] = useTransition();
 
   useEffect(() => setIsClient(true), []);
 
@@ -85,7 +86,7 @@ export default function TestsPanel() {
   const { toast } = useToast();
 
   const triggerSmokeTests = useCallback(async () => {
-    startTransition(async () => {
+    startSmokeTransition(async () => {
       setError(null);
       console.info("[TestsPanel] Triggering pre-deploy smoke test...");
       
@@ -105,10 +106,34 @@ export default function TestsPanel() {
       }
     });
   }, [toast]);
+  
+  const triggerDebugRun = useCallback(async () => {
+    startDebugTransition(async () => {
+      setError(null);
+      console.info("[TestsPanel] Triggering debug acceptance run...");
+      
+      try {
+        const res = await fetch('/api/developer/tests/debug-acceptance', { method: 'POST' });
+        const data = await res.json();
+        
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Failed to trigger debug run.');
+        }
+
+        toast({ title: 'Success', description: `Debug run created (ID: ${data.runId}).` });
+      } catch (e: any) {
+        console.error("[TestsPanel] Debug API call failed:", e);
+        setError(e.message);
+        toast({ title: 'Error Triggering Debug Run', description: e.message, variant: 'destructive' });
+      }
+    });
+  }, [toast]);
 
   if (!isClient) {
       return <div className="p-8 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
   }
+  
+  const isPending = isSmokePending || isDebugPending;
 
   return (
     <div className="space-y-6">
@@ -122,8 +147,13 @@ export default function TestsPanel() {
             </div>
             <div className="flex gap-2">
                 <Button onClick={triggerSmokeTests} disabled={isPending}>
-                {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Triggering...</> : <><Play className="mr-2 h-4 w-4" />Run Pre-deploy Smoke</>}
+                {isSmokePending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Triggering...</> : <><Play className="mr-2 h-4 w-4" />Run Pre-deploy Smoke</>}
                 </Button>
+                {process.env.NODE_ENV !== 'production' && (
+                    <Button onClick={triggerDebugRun} disabled={isPending} variant="secondary">
+                        {isDebugPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running...</> : <><Bug className="mr-2 h-4 w-4" />Run Debug</>}
+                    </Button>
+                )}
             </div>
         </div>
       </div>

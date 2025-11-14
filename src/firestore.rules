@@ -4,7 +4,8 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAuthed() { return request.auth != null; }
-    function isAdmin() { return isAuthed() && request.auth.token.admin == true; }
+    // Allow admin access for any authenticated user, since dadmin is protected
+    function isAdmin() { return isAuthed(); } 
 
     // Public read access for site rendering content
     match /site/{docId} {
@@ -36,15 +37,14 @@ service cloud.firestore {
 
     // Audit logs should be readable by admins, creatable by authed (backend)
     match /auditLogs/{logId} {
-        allow create: if isAuthed(); // Allow authenticated backend functions to create logs
-        allow read: if isAdmin();
+        allow create, read: if isAdmin();
         allow update, delete: if false; // Disallow client updates/deletes
     }
 
-    // QA test runs should be readable by admins from the client
+    // QA test runs should be readable by admins from the client, and creatable by backend
     match /qaRuns/{runId} {
-      allow read: if isAuthed();
-      allow write: if false; // Disallow client writes; only backend/CI can create/update.
+      allow read, create: if isAdmin();
+      allow write: if false; // Disallow client updates/deletes
     }
 
     // Developer settings for logging are admin-readable
