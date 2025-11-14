@@ -17,17 +17,13 @@ export default async function DadminLayout({ children }: { children: React.React
   }
   
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="bg-slate-50 text-slate-900 font-sans">
-        <div className="flex flex-col min-h-screen">
-            <div className="flex-1">
-                <AdminShell user={user}>
-                    {children}
-                </AdminShell>
-            </div>
-            <AdminFooter />
-        </div>
-      </body>
-    </html>
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 font-sans">
+      <div className="flex-1">
+        <AdminShell user={user}>
+          {children}
+        </AdminShell>
+      </div>
+      <AdminFooter />
+    </div>
   );
 }

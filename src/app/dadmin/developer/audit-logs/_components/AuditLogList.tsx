@@ -1,6 +1,6 @@
 
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,6 +17,16 @@ function JsonViewer({ data }: { data: any }) {
       <code>{JSON.stringify(data, null, 2)}</code>
     </pre>
   );
+}
+
+function LogTimestamp({ ts }: { ts: string }) {
+    const [formattedDate, setFormattedDate] = useState('');
+  
+    useEffect(() => {
+      setFormattedDate(formatDistanceToNow(new Date(ts), { addSuffix: true }));
+    }, [ts]);
+  
+    return <>{formattedDate}</>;
 }
 
 export function AuditLogList({ logs }: { logs: any[] }) {
@@ -50,7 +60,7 @@ export function AuditLogList({ logs }: { logs: any[] }) {
                         <span className="ml-3">{log.action}</span>
                     </div>
                     <div className="text-xs text-slate-500">
-                      {formatDistanceToNow(new Date(log.ts), { addSuffix: true })}
+                        <LogTimestamp ts={log.ts} />
                     </div>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">by {log.actorEmail}</p>
