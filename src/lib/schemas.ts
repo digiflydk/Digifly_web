@@ -1,8 +1,8 @@
+
 // This file is now intended for re-exporting Zod types, not schemas.
 // The Zod schema objects have been moved to src/data/schemas.ts to
 // resolve Next.js "use server" build errors.
 
-import { z } from "zod";
 import {
     CmsLinkSchema,
     NavLinkSchema,
@@ -44,19 +44,9 @@ export {
 // Components and pages should import types from here or from src/lib/types.ts
 
 // Audit Log schema (remains here as it's only used in server-only context)
-export type AdminAction = "site-seo.save" | "site-seo.preview" | "site-seo.deploy" | "homepage.save" | "cases.save" | "playwright.run";
-export interface AuditLog {
-  action: AdminAction;
-  actorUid: string | null;
-  actorEmail?: string | null;
-  path?: string;
-  payloadSummary?: string;
-  status: "ok" | "error";
-  errorMessage?: string;
-  ts: any; // Using `any` for Firebase's serverTimestamp()
-  version?: string;
-}
+export type { AuditLog, AdminAction } from './dadmin/audit';
 
 // Shim old names to satisfy imports and avoid breaking changes
+import { z } from 'zod';
 export const BasePageSchema = z.object({ slug: z.string(), title: z.string().optional() });
 export const NavItemSchema  = NavLinkSchema;

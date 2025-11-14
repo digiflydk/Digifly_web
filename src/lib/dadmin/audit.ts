@@ -1,27 +1,42 @@
 
 "use server";
 
-import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getAdminApp } from "@/lib/firebase-admin";
-import type { AuditLog } from "@/lib/schemas";
+import { getCurrentUser } from "@/lib/auth/serverAuth";
+
+export type AdminAction = "site-seo.save" | "homepage.save" | "cases.save" | "playwright.run";
+export interface AuditLog {
+  action: AdminAction;
+  actorUid: string | null;
+  actorEmail?: string | null;
+  path?: string;
+  payloadSummary?: string;
+  status: "ok" | "error";
+  errorMessage?: string;
+  ts: any; // Using `any` for Firebase's serverTimestamp()
+  version?: string;
+  receivedPayload?: any;
+  afterSaveSnapshot?: any;
+}
+
 
 /**
  * Logs an administrative action to Firestore.
  * This is a server-only function that uses the Admin SDK.
- * It does not have access to client-side auth context, so actor info must be inferred
- * from a session or passed in if available.
+ * It automatically fetches the current authenticated user.
  */
 export async function logAdminAction(
-  input: Omit<AuditLog, "ts" | "actorUid" | "actorEmail">,
-  actor?: { uid: string; email?: string } | null
+  input: Omit<AuditLog, "ts" | "actorUid" | "actorEmail">
 ) {
   try {
     const db = getFirestore(getAdminApp());
+    const actor = await getCurrentUser(); // Fetch current user from session
+
     const doc: AuditLog = {
       ...input,
-      actorUid: actor?.uid ?? null,
-      actorEmail: actor?.email ?? null,
+      actorUid: actor?.uid ?? "unknown",
+      actorEmail: actor?.email ?? "unknown",
       ts: FieldValue.serverTimestamp(), // Use server timestamp for accuracy
     };
     await db.collection("auditLogs").add(doc);

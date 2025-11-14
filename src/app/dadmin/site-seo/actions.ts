@@ -13,17 +13,17 @@ export async function saveSiteSettingsAction(
   input: SiteSettings
 ): Promise<{ ok: true } | { ok: false, error: string }> {
     try {
-        await writeSiteSettings(input);
-        // This is a server action, it cannot know the client-side user.
-        // For a true audit trail, you'd need to pass user info from the client
-        // or have a server-side session management system.
-        // For now, we log the action without actor info.
+        const savedData = await writeSiteSettings(input);
+        
         await logAdminAction({
             action: "site-seo.save",
             status: "ok",
             path: "site/settings",
             payloadSummary: `Title: ${input.seo?.defaultTitle ?? ""}`,
             version: process.env.NEXT_PUBLIC_APP_VERSION,
+            // Full payload and snapshot for detailed debugging
+            receivedPayload: input,
+            afterSaveSnapshot: savedData,
         });
 
         revalidatePath("/", "layout");
@@ -37,6 +37,7 @@ export async function saveSiteSettingsAction(
           path: "site/settings",
           errorMessage: String(err?.message ?? err),
           version: process.env.NEXT_PUBLIC_APP_VERSION,
+          receivedPayload: input, // Log the payload that failed
         });
         return { ok: false, error: err.message || "An unknown error occurred." };
     }
