@@ -51,7 +51,7 @@ export default function LoggingSettings() {
         return <div className="p-4 border rounded-lg bg-slate-50 text-center">Loading settings...</div>;
     }
 
-    const availableActions = Object.keys(settings.actions) as (keyof LoggingSettings['actions'])[];
+    const availableActions = Object.keys(settings.actions).sort() as (keyof LoggingSettings['actions'])[];
 
     return (
         <Card>

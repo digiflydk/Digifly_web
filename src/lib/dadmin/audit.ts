@@ -5,7 +5,14 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getAdminApp } from "@/lib/firebase-admin";
 import { getCurrentUser } from "@/lib/auth/serverAuth";
 
-export type AdminAction = "site-seo.save" | "homepage.save" | "homepage.read" | "cases.save" | "playwright.run";
+export type AdminAction = 
+    | "homepage.save" | "homepage.read" 
+    | "site-seo.save" | "site-seo.read" 
+    | "cases.save" | "cases.read" 
+    | "navigation.save" | "navigation.read"
+    | "pages.save" | "pages.read"
+    | "services.save" | "services.read"
+    | "playwright.run";
 
 export interface AuditLog {
   action: AdminAction;
@@ -86,6 +93,15 @@ export async function getLogSettings(): Promise<LoggingSettings> {
             'homepage.save': false,
             'homepage.read': false,
             'site-seo.save': false,
+            'site-seo.read': false,
+            'cases.save': false,
+            'cases.read': false,
+            'navigation.save': false,
+            'navigation.read': false,
+            'pages.save': false,
+            'pages.read': false,
+            'services.save': false,
+            'services.read': false,
         } as any,
     };
     const settings = await getLoggingSettings();

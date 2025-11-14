@@ -9,6 +9,7 @@ import { CMS_PATHS } from "../constants";
 import { sanitizeHomepage } from "../cms-sanitize";
 import deepmerge from "deepmerge";
 import { defaultHomepage, defaultNavigation } from "../defaults/siteDefaults";
+import { logAdminAction } from '../dadmin/audit';
 
 export async function saveHomepageAction(payload: unknown) {
     const db = await getDb();
@@ -24,6 +25,15 @@ export async function saveNavigationAction(payload: unknown) {
     const db = await getDb();
     const parsed = NavigationSchema.parse(payload);
     await db.doc('site/navigation').set(parsed, { merge: true });
+    
+    await logAdminAction({
+        action: 'navigation.save',
+        status: 'ok',
+        path: 'site/navigation',
+        receivedPayload: payload,
+        afterSaveSnapshot: parsed,
+    });
+
     revalidatePath("/", "layout");
     return { ok: true, error: null };
 }
@@ -38,5 +48,14 @@ export async function getHomepage() {
 export async function getNavigation(): Promise<Navigation | null> {
     const db = await getDb();
     const snap = await db.doc('site/navigation').get();
-    return snap.exists ? snap.data() as Navigation : null;
+    const data = snap.exists ? snap.data() as Navigation : null;
+    
+    await logAdminAction({
+        action: 'navigation.read',
+        status: 'ok',
+        path: 'site/navigation',
+        responsePayload: data,
+    });
+    
+    return data;
 }

@@ -161,6 +161,12 @@ export async function getCasesServer(options: { publishedOnly?: boolean } = { pu
 
 export async function getCases(searchParams?: URLSearchParams): Promise<Case[]> {
     const data = await getCasesServer({ publishedOnly: true });
+    await logAdminAction({
+      action: 'cases.read',
+      status: 'ok',
+      path: CMS_PATHS.cases,
+      responsePayload: { count: data.length },
+    });
     return data as Case[];
 }
 
@@ -213,7 +219,15 @@ export async function createCase(data: Partial<Case>) {
         updatedAt: new Date().toISOString(),
     });
     revalidatePath('/cases');
-    return { id: ref.id, ...payload };
+    const saved = { id: ref.id, ...payload };
+    await logAdminAction({
+      action: 'cases.save',
+      status: 'ok',
+      path: ref.path,
+      payloadSummary: `Created case: ${payload.title}`,
+      afterSaveSnapshot: saved,
+    });
+    return saved;
 }
 
 
@@ -222,7 +236,15 @@ export async function updateCase(id: string, data: Partial<Case>) {
     await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
     revalidatePath(`/cases/${id}`);
     revalidatePath('/cases');
-    return { id, ...data };
+    const saved = { id, ...data };
+     await logAdminAction({
+      action: 'cases.save',
+      status: 'ok',
+      path: `${CMS_PATHS.cases}/${id}`,
+      payloadSummary: `Updated case: ${data.title}`,
+      afterSaveSnapshot: saved,
+    });
+    return saved;
 }
 
 export async function deleteCaseServer(id: string) {
