@@ -27,8 +27,10 @@ function HeroSlideForm() {
   const overlayEnabled = useWatch({ control, name: `hero.slides.0.overlay.enabled`});
   const cmyk = useWatch({ control, name: `hero.slides.0.overlay.cmyk` });
   const opacity = useWatch({ control, name: `hero.slides.0.overlay.opacityPercent` });
+  const textColor = useWatch({ control, name: `hero.slides.0.textColor` });
 
   const previewColor = cmykToRgba(cmyk?.c ?? 0, cmyk?.m ?? 0, cmyk?.y ?? 0, cmyk?.k ?? 0, (opacity ?? 60) / 100);
+  const finalTextColor = textColor || '#FFFFFF';
 
   const handleColorPickerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const hex = event.target.value;
@@ -42,6 +44,15 @@ function HeroSlideForm() {
   const applyPreset = (preset: typeof PRESETS[0]) => {
       setValue('hero.slides.0.overlay.cmyk', preset.cmyk, { shouldDirty: true });
       setValue('hero.slides.0.overlay.opacityPercent', preset.opacityPercent, { shouldDirty: true });
+  }
+
+  const handleTextColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^#([0-9a-f]{3}){1,2}$/i.test(value) || /^#([0-9a-f]{4}){1,2}$/i.test(value) || value === '') {
+        setValue('hero.slides.0.textColor', value, { shouldDirty: true });
+    } else {
+        setValue('hero.slides.0.textColor', value, { shouldDirty: true });
+    }
   }
 
   return (
@@ -83,10 +94,16 @@ function HeroSlideForm() {
                 name={`hero.slides.0.textColor`}
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Text Color</FormLabel>
-                        <FormControl>
-                            <Input {...field} placeholder="#FFFFFF" value={field.value ?? ""} />
-                        </FormControl>
+                        <FormLabel>Text Color (HEX)</FormLabel>
+                        <div className="flex items-center gap-2">
+                            <FormControl>
+                                <Input type="color" className="h-10 w-12 p-1" value={finalTextColor} onChange={(e) => field.onChange(e.target.value)} />
+                            </FormControl>
+                            <FormControl>
+                                <Input {...field} placeholder="#FFFFFF" value={field.value ?? ""} onChange={handleTextColorChange} className="font-mono" />
+                            </FormControl>
+                        </div>
+                        <FormMessage />
                     </FormItem>
                 )}
             />
