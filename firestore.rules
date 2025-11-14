@@ -35,5 +35,10 @@ service cloud.firestore {
         allow create: if isAuthed(); // Allow authenticated users to create logs
         allow read, update, delete: if isAdmin(); // Admins can manage all logs
     }
+
+    match /qaRuns/{runId} {
+      allow read: if isAuthed();
+      allow create, update: if request.auth.uid != null; // Allow creation/update by authenticated (functions)
+    }
   }
 }

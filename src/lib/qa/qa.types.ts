@@ -9,7 +9,10 @@ export interface QARun {
   taskId?: string | null;
   requestedBy: string;
   startedAt?: FirebaseFirestore.Timestamp;
-  finishedAt?: FirebaseFirestore.Timestamp;
+  finishedAt?: {
+    seconds: number;
+    nanoseconds: number;
+  };
   environment?: 'studio' | 'test' | 'prod';
   commit?: string;
   totals?: { passed: number; failed: number; flaky: number; skipped: number; total: number };
