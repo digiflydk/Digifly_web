@@ -28,56 +28,39 @@ export function normalizeCta(raw: any): { label: string; link: CmsLink } {
  * This function does NOT throw on validation errors; it logs them and returns
  * the best-effort data to avoid breaking the entire page.
  */
-export function sanitizeHomepage(input: Partial<HomePage> | undefined | null): HomePage {
-  // Start with a deep merge to fill in missing nested objects and properties from defaults.
-  const merged = deepmerge(defaultHomepage, (input ?? {}) as object) as HomePage;
+export function sanitizeHomepage(input: Partial<HomePage> | undefined | null): Partial<HomePage> {
+  const data = (input ?? {}) as Partial<HomePage>;
 
-  // DGF-362: Enforce array lengths to prevent "inflation".
-  // Take the first item from Firestore data if it exists, otherwise use the default.
-  if (merged.hero?.slides && merged.hero.slides.length > 0) {
-    merged.hero.slides = [merged.hero.slides[0]];
-  } else {
-    merged.hero.slides = [defaultHeroSlide];
+  // DGF-362 & DGF-367: Ensure arrays have the correct length but don't add full default items.
+  // This just slices, it doesn't add missing items.
+  if (data.hero?.slides) {
+    data.hero.slides = data.hero.slides.slice(0, 1);
   }
 
-  // Take up to 3 services.
-  if (merged.services?.items) {
-    merged.services.items = merged.services.items.slice(0, 3);
+  if (data.services?.items) {
+    data.services.items = data.services.items.slice(0, 3);
   }
 
-  // Take up to 3 featured cases.
-  if (merged.featuredCases) {
-    merged.featuredCases = merged.featuredCases.slice(0, 3);
+  if (data.featuredCases) {
+    data.featuredCases = data.featuredCases.slice(0, 3);
   }
   
-  // Sanitize nested CmsLink objects within the structure
-  if (merged.hero?.slides[0]?.cta) {
-    merged.hero.slides[0].cta = normalizeLink(merged.hero.slides[0].cta);
+  // Sanitize nested CmsLink objects within the structure if they exist
+  if (data.hero?.slides?.[0]?.cta) {
+    data.hero.slides[0].cta = normalizeLink(data.hero.slides[0].cta);
   }
 
-  if (merged.whatWeDo?.cta) {
-    merged.whatWeDo.cta = normalizeLink(merged.whatWeDo.cta);
+  if (data.whatWeDo?.cta) {
+    data.whatWeDo.cta = normalizeLink(data.whatWeDo.cta);
   }
 
-  if (merged.services?.items) {
-    merged.services.items = merged.services.items.map(it => ({ ...it, link: normalizeLink(it.link) }));
+  if (data.services?.items) {
+    data.services.items = data.services.items.map(it => ({ ...it, link: normalizeLink(it.link) }));
   }
 
-  if (merged.cta?.button) {
-    merged.cta.button = normalizeLink(merged.cta.button);
-  }
-
-  const result = HomepageSchema.safeParse(merged);
-
-  if (!result.success) {
-    console.warn(
-      "[Client/Server] [sanitizeHomepage] Final object has validation issues. This may cause downstream errors.",
-      JSON.stringify(zodErrorToIssues(result.error), null, 2)
-    );
-    // Return the merged data anyway, it's the most complete version we have.
-    return merged;
+  if (data.cta?.button) {
+    data.cta.button = normalizeLink(data.cta.button);
   }
   
-  // Return the fully validated and parsed data if successful.
-  return result.data;
+  return data;
 }

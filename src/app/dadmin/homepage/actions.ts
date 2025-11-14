@@ -2,7 +2,7 @@
 "use server";
 
 import { getDb } from "@/lib/firebase/admin";
-import { HomepageSchema } from "@/lib/schemas";
+import { HomepageSchema, type HomePage } from "@/lib/schemas";
 import { revalidatePath } from 'next/cache';
 import { CMS_PATHS } from "@/lib/constants";
 import { sanitizeHomepage } from "@/lib/cms-sanitize";
@@ -14,16 +14,28 @@ import { logAdminAction } from "@/lib/dadmin/audit";
 export async function saveHomepageAction(payload: unknown): Promise<{ ok: boolean; error?: string; issues?: any[] }> {
     try {
         const db = await getDb();
-        const sanitized = sanitizeHomepage(payload);
+        const docRef = db.doc(CMS_PATHS.page('home'));
+
+        // 1. Get existing data to merge against, ensuring we don't lose fields from other tabs.
+        const existingSnap = await docRef.get();
+        const existingData = existingSnap.exists ? existingSnap.data() : {};
+
+        // 2. Sanitize the incoming payload from the form.
+        const sanitizedPayload = sanitizeHomepage(payload);
+
+        // 3. Merge sanitized payload into the existing data.
+        // This preserves fields that aren't on the current form tab.
+        const mergedData = deepmerge(existingData, sanitizedPayload);
         
-        const merged = deepmerge(defaultHomepage, sanitized);
+        // 4. Validate the final, complete object.
+        const parsed = HomepageSchema.parse(mergedData);
         
-        const parsed = HomepageSchema.parse(merged);
-        
-        await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
+        // 5. Save the complete object, overwriting the document.
+        await docRef.set(parsed, { merge: false });
         
         revalidatePath("/", "layout");
 
+        // 6. Log the action with the final saved data as the snapshot.
         await logAdminAction({
             action: 'homepage.save',
             status: 'ok',
