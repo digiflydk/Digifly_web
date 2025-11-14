@@ -1,7 +1,7 @@
 
 import { test, expect } from '@playwright/test';
 
-test.describe('Pre-deploy Smoke Tests @predeploy', () => {
+test.describe('Pre-deploy Smoke Tests @predeploy @smoke', () => {
 
   test('Homepage loads with 200 OK', async ({ page }) => {
     const response = await page.goto('/');
