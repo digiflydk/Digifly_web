@@ -9,16 +9,13 @@ import { FieldValue } from "firebase-admin/firestore";
 import fs from "fs/promises";
 import path from "path";
 import { PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH } from "./playwright-constants";
-import { test, expect } from '@playwright/test';
-// DGF-398: Import the runner from Playwright's internal API.
-import { runTests } from '@playwright/test/lib/runner';
+import { exec } from "child_process";
 
 type RunOptions = {
   taskId: string | null;
   triggerSource: "studio" | "studioDebug";
 };
 
-// Simplified JSON report structure from Playwright
 type PlaywrightJsonReport = {
   stats: {
     total: number;
@@ -112,6 +109,19 @@ async function parsePlaywrightJsonReport(
   }
 }
 
+function runPlaywright(): Promise<{ code: number | null, stdout: string, stderr: string }> {
+    return new Promise((resolve) => {
+        const command = `npx playwright test --project=acceptance`;
+        exec(command, (error, stdout, stderr) => {
+            resolve({
+                stdout,
+                stderr,
+                code: error ? error.code ?? 1 : 0,
+            });
+        });
+    });
+}
+
 export async function runStudioAcceptanceOnce({
   taskId,
   triggerSource,
@@ -144,15 +154,10 @@ export async function runStudioAcceptanceOnce({
   try {
     await fs.rm(reportPath, { force: true });
     
-    // DGF-398 / 2: Use Playwright's programmatic API instead of exec
-    const result = await runTests({
-      projects: ['acceptance'],
-      reporter: 'json,line' // Keep line for debugging, json is used by parser
-    }, {});
+    const { code, stderr } = await runPlaywright();
     
-    // Playwright's programmatic runner result has a 'status' of 'passed' or 'failed'
-    if (result.status !== 'passed' && result.status !== 'failed') {
-        throw new Error(`Playwright run exited with unexpected status: ${result.status}`);
+    if (code !== 0 && code !== 1) { // 0=pass, 1=tests failed. Other codes are system errors.
+        throw new Error(`Playwright process exited with code ${code}. Stderr: ${stderr.slice(0, 500)}`);
     }
 
     const parsedResult = await parsePlaywrightJsonReport(reportPath);
