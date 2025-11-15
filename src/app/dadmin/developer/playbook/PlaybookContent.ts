@@ -1,6 +1,6 @@
 
 export const PLAYBOOK_CONTENT = `
-# DIGIFLY ENGINEERING PLAYBOOK (v1.0.1)
+# DIGIFLY ENGINEERING PLAYBOOK (v1.0.2)
 
 ## 1. Architecture Principles
 
@@ -39,21 +39,22 @@ Task content must be precise, file-safe, and limited in scope.
 - Studio implements tests.
 - No internal Playwright APIs allowed.
 
-### 3.1 Test numbering and naming
+### 3.1 Test numbering and naming (DGF-419)
 - Every acceptance test is linked to a Studio task ID (\`DGF-xxx\`).
 - The **numeric part** of the task ID is the test ID.
   - Example: task \`DGF-406\` → test ID \`406\`.
-- Acceptance test files must follow this convention:
+- The test suite title and at least one test title must contain the task ID to enable filtering.
+- Acceptance test files should follow this convention for clarity:
   - \`tests/acceptance/{id}-{short-description}.spec.ts\`
   - Example: \`tests/acceptance/406-homepage-hero.spec.ts\`
+- The “Current Task ID” field in \`/dadmin/developer/tests\` is used as a filter (\`--grep\`), so only relevant tests run.
 - QA runs store \`taskId\` so we can trace:
   - Task → Tests → QA run → Logs.
-- When using \`/dadmin/developer/tests\`, always set the “Current Task ID” to the DGF ID of the task you're validating.
 
 ### 3.2 DGF-413: Regression tests in Studio (no browser)
 - **Why?** The Studio environment cannot reliably run a real browser for Playwright tests.
 - **What?** The "acceptance" test pipeline now runs Node.js-only regression tests that directly test core backend logic like CMS save/read functions.
-- **Where?** These tests live in \`/tests/acceptance\` and are named like \`*.regression.acceptance.spec.ts\`.
+- **Where?** These tests live in \`/tests/acceptance\` and are named like \`*.acceptance.spec.ts\`.
 - **How?** They must not use Playwright's \`page\` or \`browser\` fixtures. They run via the existing Studio selftest flow and provide fast feedback on core logic.
 - **Future:** Full browser-based UI tests can be reintroduced later via a different CI environment (e.g., GitHub Actions) that can reliably launch browsers.
 

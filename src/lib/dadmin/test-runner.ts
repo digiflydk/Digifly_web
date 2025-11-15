@@ -135,12 +135,18 @@ function parsePlaywrightJsonReport(filePath: string, reportContent: string): Par
     }
     
     // If Playwright ran but found no tests, it's an error condition.
-    if (summary.total === 0) {
+    if (summary.total === 0 && report.errors.length === 0) {
       return {
         status: 'error',
         summary,
         errorSummary: [{ testTitle: 'Test Discovery', message: 'No tests were found by Playwright for the "acceptance" project.' }],
       };
+    }
+    
+    if (report.errors.length > 0) {
+      summary.failed += report.errors.length;
+      summary.total += report.errors.length;
+      report.errors.forEach(e => errorSummary.push({ testTitle: "Global Error", message: e.message || e.value || 'An unknown error occurred during test setup.' }));
     }
 
     const status: QARun['status'] = (summary.failed ?? 0) > 0 || (summary.flaky ?? 0) > 0 ? 'failed' : 'passed';
@@ -177,7 +183,8 @@ async function runPlaywrightAcceptance(taskId: string | null): Promise<{
   stdout: string;
   stderr: string;
 }> {
-  const args = ['playwright', 'test', '--project=acceptance'];
+  const grepArg = taskId ? ['--grep', taskId] : [];
+  const args = ['playwright', 'test', '--project=acceptance', ...grepArg];
 
   return new Promise((resolve, reject) => {
     const child = spawn('npx', args, {
@@ -246,6 +253,8 @@ export async function runStudioAcceptanceOnce({
     
     const { exitCode, stderr } = await runPlaywrightAcceptance(effectiveTaskId);
     
+    // Playwright exits with 1 if tests fail, which is expected.
+    // Exit codes other than 0 or 1 indicate a process error.
     if (exitCode !== 0 && exitCode !== 1) {
         throw new Error(`Playwright process exited with code ${exitCode}. Stderr: ${stderr.slice(0, 500)}`);
     }
