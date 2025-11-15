@@ -1,5 +1,13 @@
 
-import 'server-only';
+// DGF-424: Ensure this module can be loaded in non-Next environments (e.g. Playwright acceptance tests).
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('server-only');
+} catch {
+  // In test/Playwright environments, 'server-only' is not available.
+  // Ignore the error so tests can import this file without breaking.
+}
+
 import admin from "firebase-admin";
 
 let app: admin.app.App | null = null;
