@@ -1,5 +1,4 @@
-
-// DGF-422: Ensure this module can be imported in non-Next environments (Playwright acceptance tests)
+// DGF-422, DGF-423: Ensure this module can be imported in non-Next environments (Playwright acceptance tests)
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('server-only');
@@ -16,7 +15,7 @@ import deepmerge from "deepmerge";
 import { defaultHomepage } from "../defaults/siteDefaults";
 import { logAdminAction } from '../dadmin/audit';
 
-// Helper to dynamically revalidate paths only when in a Next.js environment
+// DGF-423: Helper to dynamically revalidate paths only when in a Next.js environment
 async function revalidate(path: string, type?: 'layout' | 'page') {
   try {
     const { revalidatePath } = await import('next/cache');
@@ -26,7 +25,6 @@ async function revalidate(path: string, type?: 'layout' | 'page') {
     // We can safely ignore it.
   }
 }
-
 
 export async function saveHomepageAction(payload: unknown) {
     const db = await getDb();

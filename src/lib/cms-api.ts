@@ -1,7 +1,7 @@
 // This file acts as a server-only facade for CMS server functions.
 // It ensures that only async functions are exported, complying with Next.js 15's
 // "use server" module constraints.
-// DGF-421: This file is imported by tests, so 'server-only' must be guarded.
+// DGF-421, DGF-423: This file is imported by tests, so 'server-only' must be guarded.
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('server-only');

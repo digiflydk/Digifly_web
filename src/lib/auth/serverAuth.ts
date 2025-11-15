@@ -1,5 +1,5 @@
 "use server";
-// DGF-421: This file may be imported by tests, so 'server-only' must be guarded.
+// DGF-421, DGF-423: This file may be imported by tests, so 'server-only' must be guarded.
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('server-only');
@@ -38,13 +38,21 @@ export async function clearSessionCookie(): Promise<void> {
 }
 
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
-  const sessionCookie = cookies().get(SESSION_COOKIE_NAME)?.value;
-  if (!sessionCookie) {
+  let sessionCookieValue;
+  try {
+    sessionCookieValue = cookies().get(SESSION_COOKIE_NAME)?.value;
+  } catch (error) {
+    // This will throw in non-Next.js environments (like Playwright tests)
+    // We can safely return null in that case.
+    return null;
+  }
+  
+  if (!sessionCookieValue) {
     return null;
   }
   
   try {
-    const decodedClaims = await getAuth(getAdminApp()).verifySessionCookie(sessionCookie, true);
+    const decodedClaims = await getAuth(getAdminApp()).verifySessionCookie(sessionCookieValue, true);
     return {
       uid: decodedClaims.uid,
       email: decodedClaims.email,
