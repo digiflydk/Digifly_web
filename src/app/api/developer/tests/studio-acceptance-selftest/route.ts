@@ -2,6 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runStudioAcceptanceOnce } from '@/lib/dadmin/test-runner';
 
+// IMPORTANT:
+// - No "use server" directive.
+// - No other exports (no runtime, no dynamic, no types).
+
 export async function POST(req: NextRequest) {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ ok: false, error: 'This endpoint is not available in production.' }, { status: 403 });
@@ -17,20 +21,17 @@ export async function POST(req: NextRequest) {
         ? body.taskId.trim()
         : null;
 
-    // The runner is async but we don't await it here, we let it run in the background.
-    // The client will see the result via the real-time Firestore listener.
-    runStudioAcceptanceOnce({ taskId, triggerSource: 'studioSelftest' }).catch(e => {
-        // Log the error but don't cause the API to fail, as the runner handles its own error state.
-        console.error(`[studio-acceptance-selftest] Background run failed: ${e.message}`);
-    });
+    // Run a single Studio acceptance run (existing logic encapsulated in the helper).
+    // This function runs in the background, we don't await it.
+    runStudioAcceptanceOnce({ taskId, triggerSource: 'studioSelftest' });
 
     return NextResponse.json(
       {
         ok: true,
-        message: 'Studio acceptance selftest queued.',
-        taskId: taskId ?? null,
+        message: 'Studio acceptance selftest triggered.',
+        taskId: taskId,
       },
-      { status: 202 }, // 202 Accepted
+      { status: 202 } // 202 Accepted, as the process is running in the background.
     );
   } catch (error: any) {
     console.error('studio-acceptance-selftest error', error);
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
         message: 'Failed to trigger Studio acceptance selftest.',
         error: error?.message ?? 'Unknown error',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

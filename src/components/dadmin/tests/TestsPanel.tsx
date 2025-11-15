@@ -2,6 +2,8 @@
 'use client';
 import { useEffect, useState, useCallback, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock, Bug } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -53,6 +55,7 @@ function getTriggerLabel(trigger?: QARunTrigger, taskId?: string | null) {
         case 'studioSelftest': return 'Manual Selftest';
         case 'studioDebug': return 'Manual Debug';
         case 'predeploySmoke': return 'Manual Smoke Test';
+        case 'autoAcceptance': return `Auto for task ${taskId || 'Unknown'}`;
         default: return 'Unknown';
     }
 }
@@ -85,7 +88,9 @@ function RunCard({ run }: { run: QARun }) {
                 </div>
                 <div className="flex flex-wrap gap-2 items-center">
                     <Badge variant="outline">{run.runType}</Badge>
-                    {run.taskId && <Badge variant="secondary" className="font-mono">{run.taskId}</Badge>}
+                    <Badge variant="secondary" title="Task ID">
+                      Task: {run.taskId ?? '—'}
+                    </Badge>
                     <Badge variant="secondary" title={`Triggered by: ${run.triggeredBy}`}>
                         {getTriggerLabel(run.triggeredBy, run.taskId)}
                     </Badge>
@@ -127,6 +132,8 @@ export default function TestsPanel() {
   const [runs, setRuns] = useState<QARun[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentTaskId, setCurrentTaskId] = useState<string>('');
+  
   const [isSmokePending, startSmokeTransition] = useTransition();
   const [isDebugPending, startDebugTransition] = useTransition();
   const [isStudioSelftestPending, startStudioSelftestTransition] = useTransition();
@@ -206,20 +213,20 @@ export default function TestsPanel() {
         const res = await fetch('/api/developer/tests/studio-acceptance-selftest', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId: 'DGF-401' }),
+          body: JSON.stringify({ taskId: currentTaskId.trim() || null }),
         });
         const data = await res.json();
         if (!res.ok || !data.ok) {
           throw new Error(data.error || 'Failed to trigger selftest.');
         }
-        toast({ title: 'Success', description: `Studio acceptance selftest queued (ID: ${data.runId}).` });
+        toast({ title: 'Success', description: `Studio acceptance selftest queued.` });
       } catch (e: any) {
         console.error("[TestsPanel] Selftest API call failed:", e);
         setError(e.message);
         toast({ title: 'Error Triggering Selftest', description: e.message, variant: 'destructive' });
       }
     });
-  }, [toast]);
+  }, [toast, currentTaskId]);
 
   if (!isClient) {
       return <div className="p-8 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
@@ -238,20 +245,20 @@ export default function TestsPanel() {
                     Manually trigger smoke tests or view results from automated acceptance runs.
                 </p>
             </div>
-            <div className="flex gap-2 flex-wrap">
-                <Button onClick={triggerSmokeTests} disabled={isPending}>
-                {isSmokePending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Triggering...</> : <><Play className="mr-2 h-4 w-4" />Run Pre-deploy Smoke</>}
+            <div className="flex gap-2 flex-wrap items-end">
+                <div className="grid gap-1.5">
+                    <Label htmlFor="task-id-input" className="text-xs">Current Task ID (optional)</Label>
+                    <Input
+                        id="task-id-input"
+                        placeholder="e.g. DGF-408"
+                        value={currentTaskId}
+                        onChange={(e) => setCurrentTaskId(e.target.value)}
+                        className="h-9"
+                    />
+                </div>
+                <Button onClick={triggerStudioSelftest} disabled={isPending}>
+                    {isStudioSelftestPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running...</> : <><Play className="mr-2 h-4 w-4" />Run Studio Acceptance Selftest</>}
                 </Button>
-                {!isProd && (
-                    <Button onClick={triggerDebugRun} disabled={isPending} variant="secondary">
-                        {isDebugPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running...</> : <><Bug className="mr-2 h-4 w-4" />Run Debug</>}
-                    </Button>
-                )}
-                {!isProd && (
-                    <Button onClick={triggerStudioSelftest} disabled={isPending} variant="secondary">
-                        {isStudioSelftestPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running...</> : <><Play className="mr-2 h-4 w-4" />Run Studio Acceptance Selftest</>}
-                    </Button>
-                )}
             </div>
         </div>
       </div>

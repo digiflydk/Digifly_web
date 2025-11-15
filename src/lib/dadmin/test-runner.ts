@@ -25,7 +25,7 @@ type PlaywrightJsonReport = {
     skipped: number;
     duration: number;
   };
-  suites: {
+  suites?: {
     title: string;
     specs: {
       title: string;
@@ -38,10 +38,10 @@ type PlaywrightJsonReport = {
     }[];
   }[];
   tests?: {
-    titlePath: string[];
+    titlePath: () => string[];
     title: string;
-    outcome: 'failed' | 'passed' | 'skipped';
-    error?: { message: string };
+    outcome: 'failed' | 'passed' | 'skipped' | 'unexpected';
+    results: { error?: { message: string } }[]
   }[];
 };
 
@@ -118,20 +118,20 @@ async function parsePlaywrightJsonReport(
     const report: PlaywrightJsonReport = JSON.parse(reportContent);
 
     const summary: QARun['summary'] = {
-      total: report.stats.total || 0,
-      passed: report.stats.expected || 0,
-      failed: report.stats.unexpected || 0,
-      flaky: report.stats.flaky || 0,
-      skipped: report.stats.skipped || 0,
+      total: report.stats?.total ?? 0,
+      passed: report.stats?.expected ?? 0,
+      failed: report.stats?.unexpected ?? 0,
+      flaky: report.stats?.flaky ?? 0,
+      skipped: report.stats?.skipped ?? 0,
     };
 
     const errorSummary: QARun["errorSummary"] = [];
-    if (report.tests) { // newer playwright json format
+    if (report.tests) {
         report.tests.forEach(test => {
             if (test.outcome === 'failed' || test.outcome === 'unexpected') {
                  errorSummary.push({
-                    testTitle: test.titlePath?.join(' › ') ?? test.title ?? 'Unnamed test',
-                    message: test.error?.message?.split('\n')[0] ?? 'Test failed without message',
+                    testTitle: test.titlePath().join(' › '),
+                    message: test.results[0]?.error?.message?.split('\n')[0] ?? 'Test failed without message',
                 });
             }
         })
@@ -156,8 +156,7 @@ async function parsePlaywrightJsonReport(
         });
     }
 
-    const status: QARun["status"] =
-      (summary.failed ?? 0) > 0 || (summary.flaky ?? 0) > 0 ? "failed" : "passed";
+    const status: QARun["status"] = (summary.failed ?? 0) > 0 || (summary.flaky ?? 0) > 0 ? "failed" : "passed";
 
     return { summary, errorSummary, status };
   } catch (error: any) {
@@ -168,7 +167,7 @@ async function parsePlaywrightJsonReport(
       errorSummary: [
         {
           testTitle: "Report Parsing",
-          message: `Could not parse JSON report at ${filePath}: ${error.message}`,
+          message: `Could not read or parse JSON report at ${filePath}: ${error.message}`,
         },
       ],
     };
@@ -177,14 +176,16 @@ async function parsePlaywrightJsonReport(
 
 export async function runStudioAcceptanceOnce({
   taskId,
-  triggerSource,
+  triggerSource = 'studioSelftest',
 }: RunOptions): Promise<{ runId: string }> {
   const db = await getDb();
   let runId = "unknown";
   const startedAt = new Date();
 
+  const effectiveTaskId = taskId ?? null;
+
   const runData: Omit<QARun, "id"> = {
-    taskId,
+    taskId: effectiveTaskId,
     runType: "acceptance",
     environment: "test",
     triggeredBy: triggerSource,
@@ -199,7 +200,7 @@ export async function runStudioAcceptanceOnce({
     action: "playwright.acceptance.studio.start",
     status: "ok",
     path: `qaRuns/${runId}`,
-    taskId,
+    taskId: effectiveTaskId,
   });
 
   const reportPath = path.resolve(process.cwd(), PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH);
@@ -207,9 +208,10 @@ export async function runStudioAcceptanceOnce({
   try {
     await removeOldReport();
     
-    const { exitCode, stderr } = await runPlaywrightAcceptance(taskId);
+    const { exitCode, stderr } = await runPlaywrightAcceptance(effectiveTaskId);
     
-    if (exitCode !== 0 && exitCode !== 1) { // 0=pass, 1=tests failed. Other codes are system errors.
+    // exitCode 1 means tests failed, which is not a system error.
+    if (exitCode !== 0 && exitCode !== 1) {
         throw new Error(`Playwright process exited with code ${exitCode}. Stderr: ${stderr.slice(0, 500)}`);
     }
 
@@ -228,7 +230,7 @@ export async function runStudioAcceptanceOnce({
       action: "playwright.acceptance.studio.finish",
       status: parsedResult.status,
       path: `qaRuns/${runId}`,
-      taskId,
+      taskId: effectiveTaskId,
       payloadSummary: `Result: ${parsedResult.summary?.passed}/${parsedResult.summary?.total} passed.`,
     });
 
@@ -245,7 +247,7 @@ export async function runStudioAcceptanceOnce({
       action: "playwright.acceptance.studio.error",
       status: "error",
       path: `qaRuns/${runId}`,
-      taskId,
+      taskId: effectiveTaskId,
       errorMessage: e.message,
     });
     throw e;
