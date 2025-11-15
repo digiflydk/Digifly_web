@@ -3,7 +3,7 @@ import type { FieldValue } from 'firebase-admin/firestore';
 
 export type QARunStatus = 'queued' | 'running' | 'passed' | 'failed' | 'error' | 'timedout';
 export type QARunType = 'acceptance' | 'predeploy';
-export type QATrigger = 'manual' | 'studio' | 'studioDebug';
+export type QATrigger = 'manual' | 'studio' | 'studioDebug' | 'studioSelftest' | 'predeploySmoke' | 'autoAcceptance';
 
 export interface QARun {
   id: string;

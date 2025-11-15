@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock, Bug } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { QARun } from '@/lib/qa/qa.types';
+import { QARun, QARunTrigger } from '@/lib/qa/qa.types';
 import { db } from '@/lib/firebase-client';
 import { collection, query, orderBy, onSnapshot, limit, Timestamp } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
@@ -40,11 +40,21 @@ function JsonViewer({ data }: { data: any }) {
         {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
         <span className="ml-2">{copied ? 'Copied' : 'Copy JSON'}</span>
       </Button>
-      <pre className="bg-slate-900 text-white text-xs p-4 rounded-lg overflow-auto max-h-[60vh]">
+      <pre className="bg-slate-900 text-white text-xs p-4 rounded-lg overflow-auto max-h-[70vh]">
         <code>{prettyJson}</code>
       </pre>
     </div>
   );
+}
+
+function getTriggerLabel(trigger?: QARunTrigger, taskId?: string | null) {
+    switch (trigger) {
+        case 'studio': return `Auto for task ${taskId || 'Unknown'}`;
+        case 'studioSelftest': return 'Manual Selftest';
+        case 'studioDebug': return 'Manual Debug';
+        case 'predeploySmoke': return 'Manual Smoke Test';
+        default: return 'Unknown';
+    }
 }
 
 function RunCard({ run }: { run: QARun }) {
@@ -76,7 +86,9 @@ function RunCard({ run }: { run: QARun }) {
                 <div className="flex flex-wrap gap-2 items-center">
                     <Badge variant="outline">{run.runType}</Badge>
                     {run.taskId && <Badge variant="secondary" className="font-mono">{run.taskId}</Badge>}
-                    <Badge variant="secondary">{run.triggeredBy}</Badge>
+                    <Badge variant="secondary" title={`Triggered by: ${run.triggeredBy}`}>
+                        {getTriggerLabel(run.triggeredBy, run.taskId)}
+                    </Badge>
                 </div>
                 {run.totals && (
                     <div className="text-xs text-muted-foreground flex gap-4 flex-wrap border-t pt-3 mt-3">
@@ -87,7 +99,7 @@ function RunCard({ run }: { run: QARun }) {
                     </div>
                 )}
                  {run.errorMessage && (
-                    <p className="text-xs text-red-500 font-mono bg-red-50 p-2 rounded-md">{run.errorMessage}</p>
+                    <p className="text-xs text-red-500 font-mono bg-red-50 p-2 rounded-md line-clamp-2">{run.errorMessage}</p>
                 )}
                  <div className="flex items-center gap-2 pt-2">
                     {run.artifactUrl && (
@@ -194,7 +206,7 @@ export default function TestsPanel() {
         const res = await fetch('/api/developer/tests/studio-acceptance-selftest', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId: 'DGF-400' }),
+          body: JSON.stringify({ taskId: 'DGF-401' }),
         });
         const data = await res.json();
         if (!res.ok || !data.ok) {

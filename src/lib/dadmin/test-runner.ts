@@ -2,9 +2,9 @@
 "use server";
 import "server-only";
 
-import { getDb } from "@/lib/firebase-admin";
+import { getDb } from "@/lib/firebase/admin";
 import { logAdminAction } from "./audit";
-import type { QARun } from "../qa/qa.types";
+import type { QARun, QARunTrigger } from "../qa/qa.types";
 import { FieldValue } from "firebase-admin/firestore";
 import fs from "fs/promises";
 import path from "path";
@@ -13,7 +13,7 @@ import { spawn } from "child_process";
 
 type RunOptions = {
   taskId: string | null;
-  triggerSource: "studio" | "studioDebug";
+  triggerSource: QARunTrigger;
 };
 
 type PlaywrightJsonReport = {
@@ -130,7 +130,7 @@ async function parsePlaywrightJsonReport(
         report.tests.forEach(test => {
             if (test.outcome === 'failed' || test.outcome === 'unexpected') {
                  errorSummary.push({
-                    testTitle: test.titlePath.join(' › '),
+                    testTitle: test.titlePath?.join(' › ') ?? test.title ?? 'Unnamed test',
                     message: test.error?.message?.split('\n')[0] ?? 'Test failed without message',
                 });
             }

@@ -1,4 +1,5 @@
 
+"use server";
 import { NextResponse, NextRequest } from 'next/server';
 import { logAdminAction } from '@/lib/dadmin/audit';
 import { runStudioAcceptanceOnce } from '@/lib/dadmin/test-runner';
@@ -15,11 +16,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const taskId = body.taskId || 'DGF-400';
+    const taskId = body.taskId || 'DGF-401';
 
     const result = await runStudioAcceptanceOnce({
       taskId,
-      triggerSource: "studioDebug",
+      triggerSource: "studioSelftest",
     });
     runId = result.runId;
 
