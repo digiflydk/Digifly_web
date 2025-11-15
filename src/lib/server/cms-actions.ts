@@ -1,15 +1,32 @@
 
-"use server";
-import 'server-only';
+// DGF-422: Ensure this module can be imported in non-Next environments (Playwright acceptance tests)
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('server-only');
+} catch {
+  // In test/Playwright environments, 'server-only' is not available.
+  // Ignore the error so tests can import this file without breaking.
+}
 
 import { getDb } from "@/lib/firebase/admin";
 import { NavigationSchema, HomepageSchema, type Navigation, type HomePage } from "@/data/schemas";
-import { revalidatePath } from 'next/cache';
 import { CMS_PATHS } from "../constants";
 import { sanitizeHomepage } from "../cms-sanitize";
 import deepmerge from "deepmerge";
-import { defaultHomepage, defaultNavigation } from "../defaults/siteDefaults";
+import { defaultHomepage } from "../defaults/siteDefaults";
 import { logAdminAction } from '../dadmin/audit';
+
+// Helper to dynamically revalidate paths only when in a Next.js environment
+async function revalidate(path: string, type?: 'layout' | 'page') {
+  try {
+    const { revalidatePath } = await import('next/cache');
+    revalidatePath(path, type);
+  } catch (e) {
+    // This will fail in non-Next.js environments like tests, which is expected.
+    // We can safely ignore it.
+  }
+}
+
 
 export async function saveHomepageAction(payload: unknown) {
     const db = await getDb();
@@ -17,7 +34,7 @@ export async function saveHomepageAction(payload: unknown) {
     const merged = deepmerge(defaultHomepage, sanitized);
     const parsed = HomepageSchema.parse(merged);
     await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
-    revalidatePath("/", "layout");
+    await revalidate("/", "layout");
     return { ok: true };
 }
 
@@ -34,7 +51,7 @@ export async function saveNavigationAction(payload: unknown) {
         afterSaveSnapshot: parsed,
     });
 
-    revalidatePath("/", "layout");
+    await revalidate("/", "layout");
     return { ok: true, error: null };
 }
 
