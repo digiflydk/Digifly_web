@@ -1,2 +1,6 @@
-<testsuites id="" name="" tests="0" failures="0" skipped="0" errors="0" time="0.23355399999999987">
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="1.662329">
+<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-15T12:31:14.093Z" hostname="acceptance" tests="1" failures="0" skipped="0" time="0.024" errors="0">
+<testcase name="DGF-415 — acceptance sanity › can run a trivial Node-only test" classname="acceptance/homepage.acceptance.spec.ts" time="0.024">
+</testcase>
+</testsuite>
 </testsuites>
