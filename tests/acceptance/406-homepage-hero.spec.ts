@@ -1,7 +1,8 @@
 
+// Acceptance test for DGF-406: Homepage hero
 import { test, expect } from '@playwright/test';
 
-test.describe('Acceptance: Homepage Hero', () => {
+test.describe('Homepage hero', () => {
   test('renders primary hero slide with visible CTA', async ({ page }) => {
     await page.goto('/');
 

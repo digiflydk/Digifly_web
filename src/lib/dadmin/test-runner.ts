@@ -198,7 +198,7 @@ export async function runStudioAcceptanceOnce({
   await logAdminAction({
     action: "playwright.acceptance.studio.start",
     status: "ok",
-    runId,
+    path: `qaRuns/${runId}`,
     taskId,
   });
 
@@ -227,7 +227,7 @@ export async function runStudioAcceptanceOnce({
     await logAdminAction({
       action: "playwright.acceptance.studio.finish",
       status: parsedResult.status,
-      runId,
+      path: `qaRuns/${runId}`,
       taskId,
       payloadSummary: `Result: ${parsedResult.summary?.passed}/${parsedResult.summary?.total} passed.`,
     });
@@ -244,7 +244,7 @@ export async function runStudioAcceptanceOnce({
     await logAdminAction({
       action: "playwright.acceptance.studio.error",
       status: "error",
-      runId,
+      path: `qaRuns/${runId}`,
       taskId,
       errorMessage: e.message,
     });

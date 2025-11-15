@@ -2,32 +2,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runStudioAcceptanceOnce } from '@/lib/dadmin/test-runner';
 
-// IMPORTANT:
-// - No "use server" directive.
-// - No other exports (no runtime, no dynamic, no types).
-
 export async function POST(req: NextRequest) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ ok: false, error: 'This endpoint is not available in production.' }, { status: 403 });
+  }
+
   try {
-    // Optional: if the client sends a body, parse it,
-    // but current logic can stay simple.
     const body = req.headers.get('content-type')?.includes('application/json')
       ? await req.json().catch(() => null)
       : null;
 
     const taskId =
-      body && typeof body.taskId === 'string' ? body.taskId : 'DGF-405';
+      body && typeof body.taskId === 'string' && body.taskId.trim().length > 0
+        ? body.taskId.trim()
+        : null;
 
-    // Run a single Studio acceptance run (existing logic encapsulated in the helper).
-    const { runId } = await runStudioAcceptanceOnce({ taskId, triggerSource: 'studioSelftest' });
+    // The runner is async but we don't await it here, we let it run in the background.
+    // The client will see the result via the real-time Firestore listener.
+    runStudioAcceptanceOnce({ taskId, triggerSource: 'studioSelftest' }).catch(e => {
+        // Log the error but don't cause the API to fail, as the runner handles its own error state.
+        console.error(`[studio-acceptance-selftest] Background run failed: ${e.message}`);
+    });
 
     return NextResponse.json(
       {
         ok: true,
-        message: 'Studio acceptance selftest triggered.',
-        runId,
+        message: 'Studio acceptance selftest queued.',
         taskId: taskId ?? null,
       },
-      { status: 200 },
+      { status: 202 }, // 202 Accepted
     );
   } catch (error: any) {
     console.error('studio-acceptance-selftest error', error);

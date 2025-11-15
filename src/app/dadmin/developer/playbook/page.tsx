@@ -1,7 +1,7 @@
 
 import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import Link from "next/link";
@@ -25,21 +25,20 @@ async function getPlaybookMeta() {
     const docRef = db.doc('developer/playbook');
     const snap = await docRef.get();
 
-    if (!snap.exists) {
-      // Initialize if it doesn't exist
-      const initialMeta = { version: '1.0.0', lastUpdated: FieldValue.serverTimestamp(), updatedBy: 'system' };
-      await docRef.set(initialMeta);
-      return { ...initialMeta, lastUpdated: new Date().toISOString() };
+    if (!snap.exists || snap.data()?.version !== '1.0.1') {
+      const newMeta = { version: '1.0.1', lastUpdated: FieldValue.serverTimestamp(), updatedBy: 'system' };
+      await docRef.set(newMeta, { merge: true });
+      return { ...newMeta, lastUpdated: new Date().toISOString() };
     }
     const data = snap.data()!;
     return {
-      version: data.version || '1.0.0',
+      version: data.version || '1.0.1',
       lastUpdated: data.lastUpdated?.toDate?.().toISOString() ?? new Date().toISOString(),
       updatedBy: data.updatedBy || 'system',
     };
   } catch (error) {
-    console.error("[Playbook Page] Failed to fetch metadata:", error);
-    return { version: '1.0.0', lastUpdated: new Date().toISOString(), updatedBy: 'local' };
+    console.error("[Playbook Page] Failed to fetch/update metadata:", error);
+    return { version: '1.0.1', lastUpdated: new Date().toISOString(), updatedBy: 'local' };
   }
 }
 
@@ -49,6 +48,7 @@ export default async function PlaybookPage() {
     .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mt-8 mb-4">$1</h1>')
     .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-semibold mt-6 mb-3">$1</h2>')
     .replace(/^### (.*$)/gim, '<h3 class="text-xl font-semibold mt-4 mb-2">$1</h3>')
+    .replace(/^#### (.*$)/gim, '<h4 class="text-lg font-semibold mt-4 mb-2">$1</h4>')
     .replace(/\n- (.*)/g, '\n<li class="ml-4">$1</li>')
     .replace(/<ul>\s*<li/g, '<ul class="list-disc list-inside space-y-2"> <li')
     .replace(/<\/li>\s*<\/ul>/g, '</li></ul>')
