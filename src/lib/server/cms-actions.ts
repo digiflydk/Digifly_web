@@ -1,3 +1,4 @@
+
 // DGF-422, DGF-423: Ensure this module can be imported in non-Next environments (Playwright acceptance tests)
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -14,6 +15,9 @@ import { sanitizeHomepage } from "../cms-sanitize";
 import deepmerge from "deepmerge";
 import { defaultHomepage } from "../defaults/siteDefaults";
 import { logAdminAction } from '../dadmin/audit';
+import { ZodError } from "zod";
+
+const overwriteMerge = (destinationArray: any[], sourceArray: any[], options: deepmerge.Options): any[] => sourceArray;
 
 // DGF-423: Helper to dynamically revalidate paths only when in a Next.js environment
 async function revalidate(path: string, type?: 'layout' | 'page') {
@@ -26,14 +30,57 @@ async function revalidate(path: string, type?: 'layout' | 'page') {
   }
 }
 
-export async function saveHomepageAction(payload: unknown) {
-    const db = await getDb();
-    const sanitized = sanitizeHomepage(payload);
-    const merged = deepmerge(defaultHomepage, sanitized);
-    const parsed = HomepageSchema.parse(merged);
-    await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
-    await revalidate("/", "layout");
-    return { ok: true };
+export async function saveHomepageAction(payload: unknown): Promise<{ ok: boolean; error?: string; issues?: any[] }> {
+    try {
+        const db = await getDb();
+        const docRef = db.doc(CMS_PATHS.page('home'));
+
+        const existingSnap = await docRef.get();
+        const existingData = existingSnap.exists ? existingSnap.data() : {};
+        const sanitizedPayload = sanitizeHomepage(payload);
+        
+        const mergedData = deepmerge(existingData, sanitizedPayload, {
+            arrayMerge: overwriteMerge
+        });
+        
+        const parsed = HomepageSchema.parse(mergedData);
+        
+        await docRef.set(parsed, { merge: false });
+        
+        await revalidate("/", "layout");
+
+        await logAdminAction({
+            action: 'homepage.save',
+            status: 'ok',
+            path: CMS_PATHS.page('home'),
+            payloadSummary: `Hero: ${parsed.hero.slides[0]?.heading ?? 'N/A'}`,
+            receivedPayload: payload,
+            afterSaveSnapshot: parsed,
+        });
+        
+        return { ok: true };
+    } catch (e: any) {
+        if (e instanceof ZodError) {
+            console.error("[saveHomepageAction] Zod Validation Error:", e.issues);
+            await logAdminAction({
+                action: 'homepage.save',
+                status: 'error',
+                path: CMS_PATHS.page('home'),
+                errorMessage: 'Zod validation failed.',
+                receivedPayload: payload,
+            });
+            return { ok: false, error: "Validation failed", issues: e.issues };
+        }
+        console.error("[saveHomepageAction] Unexpected Error:", e.message);
+        await logAdminAction({
+            action: 'homepage.save',
+            status: 'error',
+            path: CMS_PATHS.page('home'),
+            errorMessage: e.message,
+            receivedPayload: payload,
+        });
+        return { ok: false, error: "An unexpected server error occurred." };
+    }
 }
 
 export async function saveNavigationAction(payload: unknown) {

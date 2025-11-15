@@ -1,36 +1,47 @@
-<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="3.1190269999999995">
-<testsuite name="acceptance/406-homepage-hero.acceptance.spec.ts" timestamp="2025-11-15T19:53:06.788Z" hostname="acceptance" tests="1" failures="1" skipped="0" time="0.014" errors="0">
-<testcase name="DGF-406 - Homepage hero acceptance › DGF-406 - renders primary hero slide with visible CTA" classname="acceptance/406-homepage-hero.acceptance.spec.ts" time="0.014">
-<failure message="406-homepage-hero.acceptance.spec.ts:6:9 DGF-406 - renders primary hero slide with visible CTA" type="FAILURE">
-<![CDATA[  [acceptance] › acceptance/406-homepage-hero.acceptance.spec.ts:6:9 › DGF-406 - Homepage hero acceptance › DGF-406 - renders primary hero slide with visible CTA 
+<testsuites id="" name="" tests="2" failures="2" skipped="0" errors="0" time="6.738767">
+<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-15T20:46:30.637Z" hostname="acceptance" tests="2" failures="2" skipped="0" time="0.123" errors="0">
+<testcase name="DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-406 — can write and read hero heading without error" classname="acceptance/homepage.acceptance.spec.ts" time="0.06">
+<failure message="homepage.acceptance.spec.ts:28:7 DGF-406 — can write and read hero heading without error" type="FAILURE">
+<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:28:7 › DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-406 — can write and read hero heading without error 
 
-    Error: browserType.launch: 
-    ╔══════════════════════════════════════════════════════╗
-    ║ Host system is missing dependencies to run browsers. ║
-    ║ Missing libraries:                                   ║
-    ║     libglib-2.0.so.0                                 ║
-    ║     libgobject-2.0.so.0                              ║
-    ║     libnspr4.so                                      ║
-    ║     libnss3.so                                       ║
-    ║     libnssutil3.so                                   ║
-    ║     libdbus-1.so.3                                   ║
-    ║     libgio-2.0.so.0                                  ║
-    ║     libatk-1.0.so.0                                  ║
-    ║     libatk-bridge-2.0.so.0                           ║
-    ║     libexpat.so.1                                    ║
-    ║     libatspi.so.0                                    ║
-    ║     libX11.so.6                                      ║
-    ║     libXcomposite.so.1                               ║
-    ║     libXdamage.so.1                                  ║
-    ║     libXext.so.6                                     ║
-    ║     libXfixes.so.3                                   ║
-    ║     libXrandr.so.2                                   ║
-    ║     libgbm.so.1                                      ║
-    ║     libxcb.so.1                                      ║
-    ║     libxkbcommon.so.0                                ║
-    ║     libudev.so.1                                     ║
-    ║     libasound.so.2                                   ║
-    ╚══════════════════════════════════════════════════════╝
+    TypeError: (0 , _cmsApi.saveHomepageAction) is not a function
+
+      43 |     });
+      44 |     
+    > 45 |     await saveHomepageAction(updatedPayload);
+         |                             ^
+      46 |
+      47 |     const readResult = await getHomepage();
+      48 |     expect(readResult.ok).toBe(true);
+        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:45:29
+
+    TypeError: (0 , _cmsApi.saveHomepageAction) is not a function
+
+      20 | test.afterAll(async () => {
+      21 |   if (originalHomepageData) {
+    > 22 |     await saveHomepageAction(originalHomepageData);
+         |                             ^
+      23 |   }
+      24 | });
+      25 |
+        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:22:29
+]]>
+</failure>
+</testcase>
+<testcase name="DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-416 — homepage.read returns expected data shape" classname="acceptance/homepage.acceptance.spec.ts" time="0.063">
+<failure message="homepage.acceptance.spec.ts:54:7 DGF-416 — homepage.read returns expected data shape" type="FAILURE">
+<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:54:7 › DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-416 — homepage.read returns expected data shape 
+
+    TypeError: (0 , _cmsApi.saveHomepageAction) is not a function
+
+      20 | test.afterAll(async () => {
+      21 |   if (originalHomepageData) {
+    > 22 |     await saveHomepageAction(originalHomepageData);
+         |                             ^
+      23 |   }
+      24 | });
+      25 |
+        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:22:29
 ]]>
 </failure>
 </testcase>

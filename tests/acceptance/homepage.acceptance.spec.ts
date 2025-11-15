@@ -1,6 +1,8 @@
-// Acceptance tests for DGF-416 (homepage regression) and DGF-406 (initial acceptance)
+
+// Acceptance tests for DGF-406 & DGF-416 (homepage regression)
+// DGF-427: Updated to use the stable cms-api facade.
 import { test, expect } from '@playwright/test';
-import { saveHomepageAction, getHomepage } from '@/lib/cms-api';
+import { getHomepage, saveHomepage } from '@/lib/cms-api';
 import type { HomePage } from '@/lib/types';
 import { defaultHomepage } from '@/data/defaults';
 import deepmerge from 'deepmerge';
@@ -8,18 +10,19 @@ import deepmerge from 'deepmerge';
 let originalHomepageData: HomePage | null = null;
 
 test.beforeAll(async () => {
-  const result = await getHomepage();
-  if (result.ok) {
-    originalHomepageData = result.data;
-  } else {
-    // If reading fails, use defaults as a baseline for restoration.
+  // Backup original data once before all tests in this file
+  try {
+    originalHomepageData = await getHomepage();
+  } catch (e) {
+    console.warn("Could not read original homepage data, will restore with defaults.", e);
     originalHomepageData = defaultHomepage;
   }
 });
 
 test.afterAll(async () => {
+  // Restore original data once after all tests in this file have run
   if (originalHomepageData) {
-    await saveHomepageAction(originalHomepageData);
+    await saveHomepage(originalHomepageData);
   }
 });
 
@@ -27,34 +30,29 @@ test.describe('DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
   
   test('DGF-406 — can write and read hero heading without error', async () => {
     const markerHeading = `DGF-416 regression test - ${Date.now()}`;
-    // Fetch current data to avoid overwriting unrelated fields
-    const result = await getHomepage();
-    const currentData = result.ok ? result.data : defaultHomepage;
+    const currentData = await getHomepage();
     
-    const updatedPayload = deepmerge(currentData, {
+    const updatedPayload: HomePage = deepmerge(currentData, {
       hero: {
         slides: [
           { heading: markerHeading },
         ]
       }
     }, {
-      // DGF-372: Ensure arrays are overwritten, not merged
       arrayMerge: (_destination, source) => source,
     });
     
-    await saveHomepageAction(updatedPayload);
+    // ACT: Use the new stable facade function
+    await saveHomepage(updatedPayload);
 
-    const readResult = await getHomepage();
-    expect(readResult.ok).toBe(true);
-    const readData = readResult.data;
+    const readData = await getHomepage();
     
+    // ASSERT
     expect(readData?.hero?.slides?.[0]?.heading).toBe(markerHeading);
   });
   
   test('DGF-416 — homepage.read returns expected data shape', async () => {
-    const result = await getHomepage();
-    expect(result.ok).toBe(true);
-    const data = result.data;
+    const data = await getHomepage();
     
     expect(data).toHaveProperty('hero');
     expect(data).toHaveProperty('whatWeDo');
