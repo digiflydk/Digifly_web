@@ -1,35 +1,44 @@
 
-import { NextResponse, NextRequest } from 'next/server';
-import { logAdminAction } from '@/lib/dadmin/audit';
+import { NextRequest, NextResponse } from 'next/server';
 import { runStudioAcceptanceOnce } from '@/lib/dadmin/test-runner';
 
+// IMPORTANT:
+// - No "use server" directive.
+// - No other exports (no runtime, no dynamic, no types).
+
 export async function POST(req: NextRequest) {
-  if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ ok: false, error: 'This endpoint is not available in production.' }, { status: 403 });
-  }
-  
-  let runId: string | undefined;
-
   try {
-    const body = await req.json().catch(() => ({}));
-    const taskId = body.taskId || 'DGF-403'; 
+    // Optional: if the client sends a body, parse it,
+    // but current logic can stay simple.
+    const body = req.headers.get('content-type')?.includes('application/json')
+      ? await req.json().catch(() => null)
+      : null;
 
-    const result = await runStudioAcceptanceOnce({
-      taskId,
-      triggerSource: "studioSelftest",
-    });
-    runId = result.runId;
+    const taskId =
+      body && typeof body.taskId === 'string' ? body.taskId : 'DGF-405';
 
-    return NextResponse.json({ ok: true, runId });
+    // Run a single Studio acceptance run (existing logic encapsulated in the helper).
+    const { runId } = await runStudioAcceptanceOnce({ taskId, triggerSource: 'studioSelftest' });
 
-  } catch (err: any) {
-    console.error(`[studio-acceptance-selftest] Failed to run test`, err);
-    await logAdminAction({
-      action: 'playwright.acceptance.studio.error',
-      status: 'error',
-      runId: runId,
-      errorMessage: `Selftest endpoint failed: ${err.message}`,
-    });
-    return NextResponse.json({ ok: false, error: 'Failed to trigger Studio acceptance selftest.' }, { status: 500 });
+    return NextResponse.json(
+      {
+        ok: true,
+        message: 'Studio acceptance selftest triggered.',
+        runId,
+        taskId: taskId ?? null,
+      },
+      { status: 200 },
+    );
+  } catch (error: any) {
+    console.error('studio-acceptance-selftest error', error);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        message: 'Failed to trigger Studio acceptance selftest.',
+        error: error?.message ?? 'Unknown error',
+      },
+      { status: 500 },
+    );
   }
 }
