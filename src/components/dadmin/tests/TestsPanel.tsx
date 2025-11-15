@@ -4,14 +4,14 @@ import { useEffect, useState, useCallback, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock, Bug } from 'lucide-react';
+import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock, FileJson, Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { QARun, QARunTrigger } from '@/lib/qa/qa.types';
 import { db } from '@/lib/firebase-client';
 import { collection, query, orderBy, onSnapshot, limit, Timestamp } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Copy, FileJson } from 'lucide-react';
 
 function JsonViewer({ data }: { data: any }) {
   const { toast } = useToast();
@@ -49,6 +48,7 @@ function JsonViewer({ data }: { data: any }) {
   );
 }
 
+
 function getTriggerLabel(trigger?: QARunTrigger, taskId?: string | null) {
     switch (trigger) {
         case 'studio': return `Auto for task ${taskId || 'Unknown'}`;
@@ -63,20 +63,19 @@ function getTriggerLabel(trigger?: QARunTrigger, taskId?: string | null) {
 function RunCard({ run }: { run: QARun }) {
     const getStatusInfo = (status: QARun['status']) => {
         switch (status) {
-            case 'passed': return { color: 'text-green-600 bg-green-50 border-green-200', icon: <CheckCircle className="h-4 w-4" /> };
+            case 'passed': return { color: 'text-green-700 bg-green-50 border-green-200', icon: <CheckCircle className="h-4 w-4" /> };
             case 'failed':
             case 'error':
             case 'timedout':
-                return { color: 'text-red-600 bg-red-50 border-red-200', icon: <XCircle className="h-4 w-4" /> };
-            case 'running': return { color: 'text-blue-600 bg-blue-50 border-blue-200', icon: <Loader2 className="h-4 w-4 animate-spin" /> };
-            case 'queued': return { color: 'text-yellow-600 bg-yellow-50 border-yellow-200', icon: <Clock className="h-4 w-4" /> };
+                return { color: 'text-red-700 bg-red-50 border-red-200', icon: <XCircle className="h-4 w-4" /> };
+            case 'running': return { color: 'text-blue-700 bg-blue-50 border-blue-200', icon: <Loader2 className="h-4 w-4 animate-spin" /> };
+            case 'queued': return { color: 'text-yellow-700 bg-yellow-50 border-yellow-200', icon: <Clock className="h-4 w-4" /> };
             default: return { color: 'text-muted-foreground bg-slate-50 border-slate-200', icon: <AlertTriangle className="h-4 w-4" /> };
         }
     };
     
     const { color, icon } = getStatusInfo(run.status);
     const startedAt = run.startedAt ? (run.startedAt as unknown as Timestamp).toDate() : null;
-    const finishedAt = run.finishedAt ? (run.finishedAt as unknown as Timestamp).toDate() : null;
 
     return (
       <Dialog>
@@ -96,15 +95,16 @@ function RunCard({ run }: { run: QARun }) {
                     </Badge>
                 </div>
                 {run.totals && (
-                    <div className="text-xs text-muted-foreground flex gap-4 flex-wrap border-t pt-3 mt-3">
-                        <span>Total: {run.totals.total}</span>
-                        <span className="text-green-600">Passed: {run.totals.passed}</span>
-                        <span className="text-red-600">Failed: {run.totals.failed}</span>
-                        <span>Skipped: {run.totals.skipped}</span>
+                    <div className="text-xs text-muted-foreground grid grid-cols-2 sm:grid-cols-3 md:flex gap-x-4 gap-y-1 flex-wrap border-t pt-3 mt-3">
+                        <span>Total: <strong>{run.totals.total}</strong></span>
+                        <span className="text-green-600">Passed: <strong>{run.totals.passed}</strong></span>
+                        <span className="text-red-600">Failed: <strong>{run.totals.failed}</strong></span>
+                        <span>Skipped: <strong>{run.totals.skipped}</strong></span>
+                        {typeof run.durationMs === 'number' && <span>Duration: <strong>{(run.durationMs/1000).toFixed(2)}s</strong></span>}
                     </div>
                 )}
                  {run.errorMessage && (
-                    <p className="text-xs text-red-500 font-mono bg-red-50 p-2 rounded-md line-clamp-2">{run.errorMessage}</p>
+                    <p className="text-xs text-red-600 font-mono bg-red-50 p-2 rounded-md line-clamp-2">{run.errorMessage}</p>
                 )}
                  <div className="flex items-center gap-2 pt-2">
                     {run.artifactUrl && (
@@ -114,7 +114,11 @@ function RunCard({ run }: { run: QARun }) {
                             </a>
                         </Button>
                     )}
-                    {run.commit && <Badge variant="secondary" className="font-mono text-xs">{run.commit.slice(0,7)}</Badge>}
+                    <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+                            <FileJson className="h-4 w-4 mr-2" /> View JSON
+                        </Button>
+                    </DialogTrigger>
                 </div>
             </div>
         </DialogTrigger>
@@ -266,7 +270,7 @@ export default function TestsPanel() {
       {error && (
         <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Action Failed</AlertTitle>
+            <AlertTitle>Subscription Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}

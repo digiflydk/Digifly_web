@@ -2,10 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runStudioAcceptanceOnce } from '@/lib/dadmin/test-runner';
 
-// IMPORTANT:
-// - No "use server" directive.
-// - No other exports (no runtime, no dynamic, no types).
-
 export async function POST(req: NextRequest) {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ ok: false, error: 'This endpoint is not available in production.' }, { status: 403 });
@@ -22,7 +18,7 @@ export async function POST(req: NextRequest) {
         : null;
 
     // Run a single Studio acceptance run (existing logic encapsulated in the helper).
-    // This function runs in the background, we don't await it.
+    // Do not await this, as it runs in the background.
     runStudioAcceptanceOnce({ taskId, triggerSource: 'studioSelftest' });
 
     return NextResponse.json(
