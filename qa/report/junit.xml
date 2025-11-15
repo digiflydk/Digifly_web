@@ -1,49 +1,8 @@
-<testsuites id="" name="" tests="2" failures="2" skipped="0" errors="0" time="6.738767">
-<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-15T20:46:30.637Z" hostname="acceptance" tests="2" failures="2" skipped="0" time="0.123" errors="0">
-<testcase name="DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-406 — can write and read hero heading without error" classname="acceptance/homepage.acceptance.spec.ts" time="0.06">
-<failure message="homepage.acceptance.spec.ts:28:7 DGF-406 — can write and read hero heading without error" type="FAILURE">
-<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:28:7 › DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-406 — can write and read hero heading without error 
-
-    TypeError: (0 , _cmsApi.saveHomepageAction) is not a function
-
-      43 |     });
-      44 |     
-    > 45 |     await saveHomepageAction(updatedPayload);
-         |                             ^
-      46 |
-      47 |     const readResult = await getHomepage();
-      48 |     expect(readResult.ok).toBe(true);
-        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:45:29
-
-    TypeError: (0 , _cmsApi.saveHomepageAction) is not a function
-
-      20 | test.afterAll(async () => {
-      21 |   if (originalHomepageData) {
-    > 22 |     await saveHomepageAction(originalHomepageData);
-         |                             ^
-      23 |   }
-      24 | });
-      25 |
-        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:22:29
-]]>
-</failure>
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="9.055939">
+<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-15T21:11:40.648Z" hostname="acceptance" tests="2" failures="0" skipped="0" time="0.355" errors="0">
+<testcase name="DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-406 — can write and read hero heading without error" classname="acceptance/homepage.acceptance.spec.ts" time="0.251">
 </testcase>
-<testcase name="DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-416 — homepage.read returns expected data shape" classname="acceptance/homepage.acceptance.spec.ts" time="0.063">
-<failure message="homepage.acceptance.spec.ts:54:7 DGF-416 — homepage.read returns expected data shape" type="FAILURE">
-<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:54:7 › DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-416 — homepage.read returns expected data shape 
-
-    TypeError: (0 , _cmsApi.saveHomepageAction) is not a function
-
-      20 | test.afterAll(async () => {
-      21 |   if (originalHomepageData) {
-    > 22 |     await saveHomepageAction(originalHomepageData);
-         |                             ^
-      23 |   }
-      24 | });
-      25 |
-        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:22:29
-]]>
-</failure>
+<testcase name="DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-416 — homepage.read returns expected data shape" classname="acceptance/homepage.acceptance.spec.ts" time="0.104">
 </testcase>
 </testsuite>
 </testsuites>

@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function getPlaybookMeta() {
-  const PLAYBOOK_VERSION = '1.0.2'; // The version defined in the playbook content
+  const PLAYBOOK_VERSION = '1.0.3'; // The version defined in the playbook content
   try {
     const db = await getDb();
     const docRef = db.doc('developer/playbook');
