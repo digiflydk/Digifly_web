@@ -50,6 +50,16 @@ Task content must be precise, file-safe, and limited in scope.
   - Task → Tests → QA run → Logs.
 - When using \`/dadmin/developer/tests\`, always set the “Current Task ID” to the DGF ID of the task you're validating.
 
+### 3.2 Acceptance Tests (DGF-411)
+- Acceptance test files live in \`/tests/acceptance\`.
+- Naming convention: \`*.acceptance.spec.ts\`.
+- To scope a test to a task, include the task ID in the test title (e.g., "DGF-411 — My test") and set the "Current Task ID" in the dadmin UI before running.
+- **Rule of thumb**: Every new feature larger than a trivial copy change must include at least one acceptance test.
+- **How to run manually**:
+  1. Go to \`/dadmin/developer/tests\`.
+  2. Set "Current Task ID" (e.g., DGF-411).
+  3. Click “Run Studio Acceptance Selftest”.
+  4. Check the summary and JSON details in the "Recent Runs" list.
 
 ## 4. Logging & Observability
 

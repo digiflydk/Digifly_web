@@ -20,25 +20,26 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function getPlaybookMeta() {
+  const PLAYBOOK_VERSION = '1.0.1'; // The version defined in the playbook content
   try {
     const db = await getDb();
     const docRef = db.doc('developer/playbook');
     const snap = await docRef.get();
 
-    if (!snap.exists || snap.data()?.version !== '1.0.1') {
-      const newMeta = { version: '1.0.1', lastUpdated: FieldValue.serverTimestamp(), updatedBy: 'system' };
+    if (!snap.exists || snap.data()?.version !== PLAYBOOK_VERSION) {
+      const newMeta = { version: PLAYBOOK_VERSION, lastUpdated: FieldValue.serverTimestamp(), updatedBy: 'system' };
       await docRef.set(newMeta, { merge: true });
       return { ...newMeta, lastUpdated: new Date().toISOString() };
     }
     const data = snap.data()!;
     return {
-      version: data.version || '1.0.1',
+      version: data.version || PLAYBOOK_VERSION,
       lastUpdated: data.lastUpdated?.toDate?.().toISOString() ?? new Date().toISOString(),
       updatedBy: data.updatedBy || 'system',
     };
   } catch (error) {
     console.error("[Playbook Page] Failed to fetch/update metadata:", error);
-    return { version: '1.0.1', lastUpdated: new Date().toISOString(), updatedBy: 'local' };
+    return { version: PLAYBOOK_VERSION, lastUpdated: new Date().toISOString(), updatedBy: 'local' };
   }
 }
 

@@ -36,7 +36,7 @@ export default defineConfig({
     {
       name: "acceptance",
       testDir: "./tests/acceptance",
-      testMatch: /.*\\.spec\\.ts/,
+      testMatch: "*.acceptance.spec.ts",
     },
   ],
   outputDir: "qa/artifacts",
