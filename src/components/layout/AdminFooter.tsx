@@ -2,7 +2,7 @@
 export default function AdminFooter() {
     return (
         <footer className="py-3 px-6 text-center text-xs text-slate-500 border-t bg-white">
-            Version: 1.3.84 • DGF-413
+            Version: 1.3.86 • DGF-415
         </footer>
     )
 }
