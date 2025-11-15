@@ -1,6 +1,10 @@
-
 "use server";
-import 'server-only';
+// DGF-421: This file may be imported by tests, so 'server-only' must be guarded.
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('server-only');
+} catch {}
+
 import { getAdminApp } from '@/lib/firebase-admin';
 import { getAuth } from 'firebase-admin/auth';
 import { cookies } from 'next/headers';
