@@ -1,6 +1,6 @@
-<testsuites id="" name="" tests="3" failures="3" skipped="0" errors="0" time="5.157509">
-<testsuite name="acceptance/406-homepage-hero.acceptance.spec.ts" timestamp="2025-11-15T11:59:53.707Z" hostname="acceptance" tests="1" failures="1" skipped="0" time="0.011" errors="0">
-<testcase name="DGF-411 — homepage hero content is visible › renders primary hero slide with visible CTA" classname="acceptance/406-homepage-hero.acceptance.spec.ts" time="0.011">
+<testsuites id="" name="" tests="3" failures="3" skipped="0" errors="0" time="4.441542">
+<testsuite name="acceptance/406-homepage-hero.acceptance.spec.ts" timestamp="2025-11-15T12:15:56.679Z" hostname="acceptance" tests="1" failures="1" skipped="0" time="0.026" errors="0">
+<testcase name="DGF-411 — homepage hero content is visible › renders primary hero slide with visible CTA" classname="acceptance/406-homepage-hero.acceptance.spec.ts" time="0.026">
 <failure message="406-homepage-hero.acceptance.spec.ts:6:7 renders primary hero slide with visible CTA" type="FAILURE">
 <![CDATA[  [acceptance] › acceptance/406-homepage-hero.acceptance.spec.ts:6:7 › DGF-411 — homepage hero content is visible › renders primary hero slide with visible CTA 
 
@@ -35,8 +35,8 @@
 </failure>
 </testcase>
 </testsuite>
-<testsuite name="acceptance/dadmin-homepage.acceptance.spec.ts" timestamp="2025-11-15T11:59:53.707Z" hostname="acceptance" tests="2" failures="2" skipped="0" time="0.032" errors="0">
-<testcase name="DGF-411 — D-Admin Homepage Editor E2E › can update hero eyebrow, save, and see change on public site" classname="acceptance/dadmin-homepage.acceptance.spec.ts" time="0.016">
+<testsuite name="acceptance/dadmin-homepage.acceptance.spec.ts" timestamp="2025-11-15T12:15:56.679Z" hostname="acceptance" tests="2" failures="2" skipped="0" time="0.028" errors="0">
+<testcase name="DGF-411 — D-Admin Homepage Editor E2E › can update hero eyebrow, save, and see change on public site" classname="acceptance/dadmin-homepage.acceptance.spec.ts" time="0.012">
 <failure message="dadmin-homepage.acceptance.spec.ts:27:7 can update hero eyebrow, save, and see change on public site" type="FAILURE">
 <![CDATA[  [acceptance] › acceptance/dadmin-homepage.acceptance.spec.ts:27:7 › DGF-411 — D-Admin Homepage Editor E2E › can update hero eyebrow, save, and see change on public site 
 

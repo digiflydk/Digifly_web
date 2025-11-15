@@ -24,15 +24,15 @@ Task content must be precise, file-safe, and limited in scope.
 
 ## 3. Testing Strategy
 
-### A. Acceptance Tests
+### A. Acceptance Tests (Node-level Regression)
 - Runs automatically after Studio completes a task.
 - Stored in \`/dadmin/developer/tests\`
 - Reports stored in Firestore under \`qaRuns\`.
-- Tests only feature-level behaviour.
+- **Important (DGF-413)**: These tests run in a Node.js-only environment and **do not use a browser**. They validate server-side logic (e.g., CMS read/write actions) and data integrity, not the UI.
 
 ### B. Predeploy Smoke Tests
 - Triggered manually by user before pressing Publish.
-- Validate full system integrity.
+- Validate full system integrity (this might involve a browser in other environments).
 
 ### C. Playwright Test Design
 - Each task defines acceptance test cases.
@@ -50,22 +50,25 @@ Task content must be precise, file-safe, and limited in scope.
   - Task → Tests → QA run → Logs.
 - When using \`/dadmin/developer/tests\`, always set the “Current Task ID” to the DGF ID of the task you're validating.
 
-### 3.2 Acceptance Tests (DGF-411)
-- Acceptance test files live in \`/tests/acceptance\`.
-- Naming convention: \`*.acceptance.spec.ts\`.
-- To scope a test to a task, include the task ID in the test title (e.g., "DGF-411 — My test") and set the "Current Task ID" in the dadmin UI before running.
-- **Rule of thumb**: Every new feature larger than a trivial copy change must include at least one acceptance test.
-- **How to run manually**:
-  1. Go to \`/dadmin/developer/tests\`.
-  2. Set "Current Task ID" (e.g., DGF-411).
-  3. Click “Run Studio Acceptance Selftest”.
-  4. Check the summary and JSON details in the "Recent Runs" list.
+### 3.2 DGF-413: Regression tests in Studio (no browser)
+- **Why?** The Studio environment cannot reliably run a real browser for Playwright tests.
+- **What?** The "acceptance" test pipeline now runs Node.js-only regression tests that directly test core backend logic like CMS save/read functions.
+- **Where?** These tests live in \`/tests/acceptance\` and are named like \`*.regression.acceptance.spec.ts\`.
+- **How?** They must not use Playwright's \`page\` or \`browser\` fixtures. They run via the existing Studio selftest flow and provide fast feedback on core logic.
+- **Future:** Full browser-based UI tests can be reintroduced later via a different CI environment (e.g., GitHub Actions) that can reliably launch browsers.
 
 ## 4. Logging & Observability
 
-- All important API routes must log: request, response, path, actor, timestamp.
-- Logs stored under \`/dadmin/developer/logs\`
-- Must have enable/disable toggle per module.
+All important API routes must log:
+- request
+- response
+- path
+- actor
+- timestamp
+
+Logs stored under \`/dadmin/developer/logs\`
+Must have enable/disable toggle per module.
+
 
 ## 5. Firestore Usage
 

@@ -246,7 +246,7 @@ export default function TestsPanel() {
             <div className="space-y-1">
                 <h3 className="text-lg font-semibold">Playwright Test Runs</h3>
                 <p className="text-sm text-muted-foreground">
-                    Manually trigger smoke tests or view results from automated acceptance runs.
+                    Run Node.js regression tests for acceptance, or view results from automated runs.
                 </p>
             </div>
             <div className="flex gap-2 flex-wrap items-end">
@@ -254,7 +254,7 @@ export default function TestsPanel() {
                     <Label htmlFor="task-id-input" className="text-xs">Current Task ID (optional)</Label>
                     <Input
                         id="task-id-input"
-                        placeholder="e.g. DGF-408"
+                        placeholder="e.g. DGF-406"
                         value={currentTaskId}
                         onChange={(e) => setCurrentTaskId(e.target.value)}
                         className="h-9"
