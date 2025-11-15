@@ -15,6 +15,7 @@
     "qa:install": "npx playwright install --with-deps",
     "test:pw": "playwright test --config=playwright.config.ts",
     "test:pw:acceptance": "playwright test --project=acceptance",
+    "test:pw:ui": "playwright test --project=ui",
     "test:pw:acceptance:ci": "playwright test --project=acceptance",
     "test:pw:ci": "BASE_URL=$BASE_URL playwright test --config=playwright.config.ts || true",
     "test:pw:report": "npx playwright show-report qa/report/html",

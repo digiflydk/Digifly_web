@@ -41,6 +41,12 @@ export default defineConfig({
       testDir: "tests/acceptance",
       testMatch: ['**/*.acceptance.spec.ts'],
     },
+    {
+      name: 'ui',
+      testDir: 'src/tests/ui',
+      testMatch: /.*\.ui\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
   outputDir: "qa/artifacts",
 });

@@ -1,5 +1,4 @@
-
-// Acceptance tests for DGF-417 (homepage regression) and DGF-416 (homepage hero)
+// Acceptance tests for DGF-416 (homepage regression) and DGF-406 (initial acceptance)
 import { test, expect } from '@playwright/test';
 import { saveHomepageAction, getHomepage } from '@/lib/cms-api';
 import type { HomePage } from '@/lib/types';
@@ -13,6 +12,7 @@ test.beforeAll(async () => {
   if (result.ok) {
     originalHomepageData = result.data;
   } else {
+    // If reading fails, use defaults as a baseline for restoration.
     originalHomepageData = defaultHomepage;
   }
 });
@@ -23,11 +23,13 @@ test.afterAll(async () => {
   }
 });
 
-test.describe('DGF-417 / DGF-416 — Homepage Regression (Node-only)', () => {
+test.describe('DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
   
-  test('DGF-417 — can write and read hero heading without error', async () => {
-    const markerHeading = `DGF-417 regression test - ${Date.now()}`;
-    const currentData = (await getHomepage()).data || defaultHomepage;
+  test('DGF-406 — can write and read hero heading without error', async () => {
+    const markerHeading = `DGF-416 regression test - ${Date.now()}`;
+    // Fetch current data to avoid overwriting unrelated fields
+    const result = await getHomepage();
+    const currentData = result.ok ? result.data : defaultHomepage;
     
     const updatedPayload = deepmerge(currentData, {
       hero: {
@@ -37,7 +39,7 @@ test.describe('DGF-417 / DGF-416 — Homepage Regression (Node-only)', () => {
       }
     }, {
       // DGF-372: Ensure arrays are overwritten, not merged
-      arrayMerge: (destination, source) => source,
+      arrayMerge: (_destination, source) => source,
     });
     
     await saveHomepageAction(updatedPayload);
@@ -49,7 +51,7 @@ test.describe('DGF-417 / DGF-416 — Homepage Regression (Node-only)', () => {
     expect(readData?.hero?.slides?.[0]?.heading).toBe(markerHeading);
   });
   
-  test('DGF-416 — homepage.read returns expected shape', async () => {
+  test('DGF-416 — homepage.read returns expected data shape', async () => {
     const result = await getHomepage();
     expect(result.ok).toBe(true);
     const data = result.data;
