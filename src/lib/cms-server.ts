@@ -15,7 +15,6 @@ import { getDb } from '@/lib/firebase/admin';
 import type { Navigation, Case, SiteSettings, HomePage } from '@/lib/types';
 import { sanitizeHomepage } from './cms-sanitize';
 
-import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
 import { zodErrorToIssues } from './zod-helpers';
 import { defaultHomepage, defaultNavigation } from '@/data/defaults';
@@ -25,17 +24,33 @@ import { getNavigation as getNavigationAction } from './server/cms-actions';
 import deepmerge from "deepmerge";
 import { logAdminAction } from './dadmin/audit';
 
-// DGF-420: Ensure this file can be loaded in non-Next environments (e.g. Playwright).
+// DGF-423: Ensure this module can be imported in non-Next environments (e.g. Playwright)
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('server-only');
 } catch {
   // In test/Playwright environments, 'server-only' is not available.
-  // Ignore the error so tests can run, the file still behaves as a plain server helper.
+  // Ignore the error so tests can import this file without breaking.
+}
+
+// DGF-425: Safe wrapper around React cache so acceptance tests can run without Next.js runtime.
+let safeCache: <T extends (...args: any[]) => any>(fn: T) => T;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const react = require('react');
+  if (typeof react.cache === 'function') {
+    safeCache = react.cache;
+  } else {
+    // Fallback: no caching, just return the original function.
+    safeCache = ((fn: any) => fn) as any;
+  }
+} catch {
+  // In test / non-Next environments, 'react' or 'react.cache' may not be available.
+  safeCache = ((fn: any) => fn) as any;
 }
 
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+export const getSiteSettings = safeCache(async (): Promise<SiteSettings> => {
     noStore(); // Opt out of caching for this function
     const db = await getDb();
     const settingsSnap = await db.doc(CMS_PATHS.site).get();
@@ -49,36 +64,44 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       return coerceToDefaults({});
     }
     return parsed.data;
-}
+});
 
 
 export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const parsedData = SiteSettingsSchema.parse(data);
   const db = await getDb();
   await db.doc(CMS_PATHS.site).set(parsedData, { merge: true });
-  revalidatePath('/', 'layout');
-  revalidatePath('/robots.txt');
-  revalidatePath('/sitemap.xml');
+  
+  // DGF-422: Dynamically import and call revalidatePath
+  try {
+    const { revalidatePath } = await import('next/cache');
+    revalidatePath('/', 'layout');
+    revalidatePath('/robots.txt');
+    revalidatePath('/sitemap.xml');
+  } catch (e) {
+    // Fails safely in non-Next environments
+  }
+  
   return parsedData;
 }
 
-export async function getNavigation(): Promise<Navigation> {
+export const getNavigation = safeCache(async (): Promise<Navigation> => {
     noStore();
     const navData = await getNavigationAction();
     return navData ?? defaultNavigation;
-}
+});
 
 
-export async function getPageBySlug(slug: string): Promise<any | null> {
+export const getPageBySlug = safeCache(async (slug: string): Promise<any | null> => {
     const db = await getDb();
     const snap = await db.doc(CMS_PATHS.page(slug)).get();
     if (!snap.exists) {
         return null;
     }
     return { id: snap.id, ...snap.data() };
-}
+});
 
-export async function getPublishedPagesList() {
+export const getPublishedPagesList = safeCache(async () => {
     noStore();
     const db = await getDb();
     const snap = await db.collection(CMS_PATHS.pages).where('published', '==', true).get();
@@ -86,7 +109,7 @@ export async function getPublishedPagesList() {
         return [];
     }
     return snap.docs.map(d => ({ id: d.id, title: d.data().title || d.id, path: `/${d.id}` }));
-}
+});
 
 
 type GetHomepageResult = 
@@ -94,7 +117,7 @@ type GetHomepageResult =
   | { ok: false; error: string; data: HomePage; issues: z.ZodIssue[] };
 
 
-export async function getHomepage(options: { debug?: boolean } = {}): Promise<GetHomepageResult> {
+export const getHomepage = safeCache(async (options: { debug?: boolean } = {}): Promise<GetHomepageResult> => {
   noStore();
   let firestoreSnapshot: any = {};
   let responsePayload: any = {};
@@ -134,14 +157,21 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
         responsePayload,
       });
   }
-}
+});
 
 export async function updateHomepage(data: HomePage) {
     const sanitized = sanitizeHomepage(data);
     const parsed = HomepageSchema.parse(sanitized);
     const db = await getDb();
     await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
-    revalidatePath('/');
+
+    // DGF-422: Dynamically import and call revalidatePath
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/');
+    } catch (e) {
+      // Fails safely in non-Next environments
+    }
     return parsed;
 }
 
@@ -150,12 +180,19 @@ export async function saveHomepage(data: unknown) {
   const sanitized = sanitizeHomepage(data);
   const parsed = HomepageSchema.parse(sanitized);
   await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
-  revalidatePath("/", "layout");
+
+  // DGF-422: Dynamically import and call revalidatePath
+  try {
+    const { revalidatePath } = await import('next/cache');
+    revalidatePath("/", "layout");
+  } catch (e) {
+    // Fails safely in non-Next environments
+  }
   return { ok: true };
 }
 
 
-export async function getCasesServer(options: { publishedOnly?: boolean } = { publishedOnly: true }) {
+export const getCasesServer = safeCache(async (options: { publishedOnly?: boolean } = { publishedOnly: true }) => {
   noStore();
   const db = await getDb();
   let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection(CMS_PATHS.cases);
@@ -165,7 +202,7 @@ export async function getCasesServer(options: { publishedOnly?: boolean } = { pu
   const snap = await query.get();
   const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   return z.array(CaseSchema.partial()).parse(rows);
-}
+});
 
 export async function getCases(searchParams?: URLSearchParams): Promise<Case[]> {
     const data = await getCasesServer({ publishedOnly: true });
@@ -178,16 +215,16 @@ export async function getCases(searchParams?: URLSearchParams): Promise<Case[]> 
     return data as Case[];
 }
 
-export async function listCaseSlugs(): Promise<string[]> {
+export const listCaseSlugs = safeCache(async (): Promise<string[]> => {
     const db = await getDb();
     const snap = await db.collection(CMS_PATHS.cases).select('slug').get();
     if (snap.empty) {
         return [];
     }
     return snap.docs.map(d => d.data().slug).filter(Boolean);
-}
+});
 
-export async function getCaseBySlug(slug: string): Promise<Case | null> {
+export const getCaseBySlug = safeCache(async (slug: string): Promise<Case | null> => {
     noStore();
     const db = await getDb();
     const snap = await db.collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
@@ -202,9 +239,9 @@ export async function getCaseBySlug(slug: string): Promise<Case | null> {
       return rawData as Case;
     }
     return parsed.data as Case;
-}
+});
 
-export async function getCaseById(id: string): Promise<Case> {
+export const getCaseById = safeCache(async (id: string): Promise<Case> => {
   noStore();
   const db = await getDb();
   const snap = await db.collection('cases').doc(id).get();
@@ -216,7 +253,7 @@ export async function getCaseById(id: string): Promise<Case> {
   const data = { id: snap.id, ...(snap.data() as any) };
   const parsed = CaseSchema.parse(data);
   return parsed;
-}
+});
 
 export async function createCase(data: Partial<Case>) {
     const { id, ...payload } = data;
@@ -226,7 +263,13 @@ export async function createCase(data: Partial<Case>) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     });
-    revalidatePath('/cases');
+    // DGF-422: Dynamically import and call revalidatePath
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/cases');
+    } catch (e) {
+      // Fails safely in non-Next environments
+    }
     const saved = { id: ref.id, ...payload };
     await logAdminAction({
       action: 'cases.save',
@@ -242,8 +285,14 @@ export async function createCase(data: Partial<Case>) {
 export async function updateCase(id: string, data: Partial<Case>) {
     const db = await getDb();
     await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
-    revalidatePath(`/cases/${id}`);
-    revalidatePath('/cases');
+    // DGF-422: Dynamically import and call revalidatePath
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath(`/cases/${id}`);
+      revalidatePath('/cases');
+    } catch (e) {
+      // Fails safely in non-Next environments
+    }
     const saved = { id, ...data };
      await logAdminAction({
       action: 'cases.save',
@@ -264,45 +313,51 @@ export async function deleteCaseServer(id: string) {
         return { ok: false, status: 404, error: "Not Found" };
     }
     await ref.delete();
-    revalidatePath('/cases');
+    // DGF-422: Dynamically import and call revalidatePath
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/cases');
+    } catch (e) {
+      // Fails safely in non-Next environments
+    }
     return { ok: true, status: 200 };
 }
 
 
-export async function getCaseCount(): Promise<{ count: number }> {
+export const getCaseCount = safeCache(async (): Promise<{ count: number }> => {
     const db = await getDb();
     const snap = await db.collection(CMS_PATHS.cases).count().get();
     return { count: snap.data().count };
-}
-export async function getPageCount(): Promise<{ count: number }> {
+});
+export const getPageCount = safeCache(async (): Promise<{ count: number }> => {
     const db = await getDb();
     const snap = await db.collection('pages').count().get();
     return { count: snap.data().count };
-}
-export async function getNavigationMenuCount(): Promise<{ count: number }> {
+});
+export const getNavigationMenuCount = safeCache(async (): Promise<{ count: number }> => {
     const nav = await getNavigation();
     return { count: (nav.header.length || 0) + (nav.footer.columns[0]?.links.length || 0) };
-}
+});
 
-export async function getAboutPage(): Promise<any> {
+export const getAboutPage = safeCache(async (): Promise<any> => {
     const raw = await getPageBySlug('about');
     return AboutPageSchema.parse(raw || {});
-}
+});
 
-export async function getServicesPage(): Promise<any> {
+export const getServicesPage = safeCache(async (): Promise<any> => {
     const raw = await getPageBySlug('services');
     return ServicesPageSchema.parse(raw || {});
-}
+});
 
-export async function getCasesIndexPage(): Promise<any> {
+export const getCasesIndexPage = safeCache(async (): Promise<any> => {
     const raw = await getPageBySlug('cases-index');
     return CasesIndexSchema.parse(raw || {});
-}
+});
 
-export async function getContactPage(): Promise<any> {
+export const getContactPage = safeCache(async (): Promise<any> => {
     const raw = await getPageBySlug('contact');
     return ContactPageSchema.parse(raw || {});
-}
+});
 
 export async function getCmsData(path: string, searchParams?: URLSearchParams) {
   noStore();

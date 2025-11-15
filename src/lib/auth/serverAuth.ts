@@ -1,3 +1,4 @@
+
 "use server";
 // DGF-421, DGF-423: This file may be imported by tests, so 'server-only' must be guarded.
 try {
@@ -5,12 +6,29 @@ try {
   require('server-only');
 } catch {}
 
+
 import { getAdminApp } from '@/lib/firebase-admin';
 import { getAuth } from 'firebase-admin/auth';
 import { cookies } from 'next/headers';
-import { cache } from 'react';
 import type { Role } from './roles';
 import { SESSION_COOKIE_NAME } from '../constants';
+
+// DGF-425: Safe wrapper around React cache so acceptance tests can run without Next.js runtime.
+let safeCache: <T extends (...args: any[]) => any>(fn: T) => T;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const react = require('react');
+  if (typeof react.cache === 'function') {
+    safeCache = react.cache;
+  } else {
+    // Fallback: no caching, just return the original function.
+    safeCache = ((fn: any) => fn) as any;
+  }
+} catch {
+  // In test / non-Next environments, 'react' or 'react.cache' may not be available.
+  safeCache = ((fn: any) => fn) as any;
+}
+
 
 const SESSION_DURATION_DAYS = 5;
 
@@ -37,7 +55,7 @@ export async function clearSessionCookie(): Promise<void> {
   cookies().set(SESSION_COOKIE_NAME, '', { path: '/', maxAge: 0 });
 }
 
-export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+export const getCurrentUser = safeCache(async (): Promise<CurrentUser | null> => {
   let sessionCookieValue;
   try {
     sessionCookieValue = cookies().get(SESSION_COOKIE_NAME)?.value;
