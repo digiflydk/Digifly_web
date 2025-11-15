@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const taskId = body.taskId || 'DGF-394';
+    const taskId = body.taskId || 'DGF-400';
 
     const result = await runStudioAcceptanceOnce({
       taskId,

@@ -10,50 +10,104 @@ import { db } from '@/lib/firebase-client';
 import { collection, query, orderBy, onSnapshot, limit, Timestamp } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Copy, FileJson } from 'lucide-react';
+
+function JsonViewer({ data }: { data: any }) {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+  const prettyJson = JSON.stringify(data, null, 2);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(prettyJson).then(() => {
+      setCopied(true);
+      toast({ title: "Copied!", description: "Log JSON copied to clipboard." });
+      setTimeout(() => setCopied(false), 2000);
+    }, () => {
+      toast({ title: "Error", description: "Failed to copy.", variant: "destructive" });
+    });
+  };
+
+  return (
+    <div className="relative">
+      <Button variant="outline" size="sm" onClick={handleCopy} className="absolute top-2 right-2 z-10">
+        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+        <span className="ml-2">{copied ? 'Copied' : 'Copy JSON'}</span>
+      </Button>
+      <pre className="bg-slate-900 text-white text-xs p-4 rounded-lg overflow-auto max-h-[60vh]">
+        <code>{prettyJson}</code>
+      </pre>
+    </div>
+  );
+}
 
 function RunCard({ run }: { run: QARun }) {
     const getStatusInfo = (status: QARun['status']) => {
         switch (status) {
-            case 'passed': return { color: 'text-green-600', icon: <CheckCircle className="h-4 w-4" /> };
+            case 'passed': return { color: 'text-green-600 bg-green-50 border-green-200', icon: <CheckCircle className="h-4 w-4" /> };
             case 'failed':
             case 'error':
             case 'timedout':
-                return { color: 'text-red-600', icon: <XCircle className="h-4 w-4" /> };
-            case 'running': return { color: 'text-blue-600', icon: <Loader2 className="h-4 w-4 animate-spin" /> };
-            case 'queued': return { color: 'text-yellow-600', icon: <Clock className="h-4 w-4" /> };
-            default: return { color: 'text-muted-foreground', icon: <AlertTriangle className="h-4 w-4" /> };
+                return { color: 'text-red-600 bg-red-50 border-red-200', icon: <XCircle className="h-4 w-4" /> };
+            case 'running': return { color: 'text-blue-600 bg-blue-50 border-blue-200', icon: <Loader2 className="h-4 w-4 animate-spin" /> };
+            case 'queued': return { color: 'text-yellow-600 bg-yellow-50 border-yellow-200', icon: <Clock className="h-4 w-4" /> };
+            default: return { color: 'text-muted-foreground bg-slate-50 border-slate-200', icon: <AlertTriangle className="h-4 w-4" /> };
         }
     };
     
     const { color, icon } = getStatusInfo(run.status);
+    const startedAt = run.startedAt ? (run.startedAt as unknown as Timestamp).toDate() : null;
     const finishedAt = run.finishedAt ? (run.finishedAt as unknown as Timestamp).toDate() : null;
 
     return (
-        <div className="border rounded-lg p-4 space-y-3">
-            <div className="flex justify-between items-start">
-                <span className={`font-semibold capitalize flex items-center gap-2 ${color}`}>{icon}{run.status}</span>
-                {finishedAt && <span className="text-xs text-muted-foreground" title={finishedAt.toLocaleString()}>{formatDistanceToNow(finishedAt, { addSuffix: true })}</span>}
-            </div>
-            <p className="font-mono text-sm font-medium">{run.runType === 'predeploy' ? 'Pre-deploy Smoke' : `Task: ${run.taskId || 'N/A'}`}</p>
-            {run.totals && (
-                 <div className="text-xs text-muted-foreground flex gap-4 flex-wrap">
-                    <span>Total: {run.totals.total}</span>
-                    <span className="text-green-600">Passed: {run.totals.passed}</span>
-                    <span className="text-red-600">Failed: {run.totals.failed}</span>
-                    <span>Skipped: {run.totals.skipped}</span>
-                 </div>
-            )}
-            <div className="flex items-center gap-2">
-                {run.artifactUrl && (
-                    <Button variant="outline" size="sm" asChild>
-                        <a href={run.artifactUrl} target="_blank" rel="noopener noreferrer">
-                            View Report <ExternalLink className="h-4 w-4 ml-2" />
-                        </a>
-                    </Button>
+      <Dialog>
+        <DialogTrigger asChild>
+            <div className="border rounded-lg p-4 space-y-3 hover:bg-slate-50 cursor-pointer transition-colors">
+                <div className="flex justify-between items-start">
+                    <span className={`font-semibold capitalize flex items-center gap-2 text-sm ${color}`}>{icon}{run.status}</span>
+                    {startedAt && <span className="text-xs text-muted-foreground" title={startedAt.toLocaleString()}>{formatDistanceToNow(startedAt, { addSuffix: true })}</span>}
+                </div>
+                <div className="flex flex-wrap gap-2 items-center">
+                    <Badge variant="outline">{run.runType}</Badge>
+                    {run.taskId && <Badge variant="secondary" className="font-mono">{run.taskId}</Badge>}
+                    <Badge variant="secondary">{run.triggeredBy}</Badge>
+                </div>
+                {run.totals && (
+                    <div className="text-xs text-muted-foreground flex gap-4 flex-wrap border-t pt-3 mt-3">
+                        <span>Total: {run.totals.total}</span>
+                        <span className="text-green-600">Passed: {run.totals.passed}</span>
+                        <span className="text-red-600">Failed: {run.totals.failed}</span>
+                        <span>Skipped: {run.totals.skipped}</span>
+                    </div>
                 )}
-                 {run.commit && <Badge variant="secondary" className="font-mono">{run.commit.slice(0,7)}</Badge>}
+                 {run.errorMessage && (
+                    <p className="text-xs text-red-500 font-mono bg-red-50 p-2 rounded-md">{run.errorMessage}</p>
+                )}
+                 <div className="flex items-center gap-2 pt-2">
+                    {run.artifactUrl && (
+                        <Button variant="outline" size="sm" asChild onClick={(e) => e.stopPropagation()}>
+                            <a href={run.artifactUrl} target="_blank" rel="noopener noreferrer">
+                                View Report <ExternalLink className="h-4 w-4 ml-2" />
+                            </a>
+                        </Button>
+                    )}
+                    {run.commit && <Badge variant="secondary" className="font-mono text-xs">{run.commit.slice(0,7)}</Badge>}
+                </div>
             </div>
-        </div>
+        </DialogTrigger>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Run Details: {run.id}</DialogTitle>
+          </DialogHeader>
+          <JsonViewer data={run} />
+        </DialogContent>
+      </Dialog>
     )
 }
 
@@ -140,7 +194,7 @@ export default function TestsPanel() {
         const res = await fetch('/api/developer/tests/studio-acceptance-selftest', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId: 'DGF-394' }),
+          body: JSON.stringify({ taskId: 'DGF-400' }),
         });
         const data = await res.json();
         if (!res.ok || !data.ok) {
@@ -201,7 +255,9 @@ export default function TestsPanel() {
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Recent Runs</h2>
         {runs.length > 0 ? (
-            runs.map(run => <RunCard key={run.id} run={run} />)
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {runs.map(run => <RunCard key={run.id} run={run} />)}
+            </div>
         ) : (
             <div className="border-2 border-dashed rounded-lg p-12 text-center text-muted-foreground">
                 <p className="font-medium">No test runs found.</p>
