@@ -33,6 +33,7 @@ export default function Hero({ data }: { data?: HeroData | null }) {
     if (!data || visibleSlides.length === 0) {
         return (
              <section
+                data-testid="homepage-hero"
                 className="relative -mt-[var(--header-height,64px)] w-full pt-[var(--header-height,64px)] bg-slate-100"
                 style={{ minHeight: 'var(--hero-desktop-min-h, 70vh)' }}
             >
@@ -67,12 +68,14 @@ export default function Hero({ data }: { data?: HeroData | null }) {
 
     return (
         <section
+            data-testid="homepage-hero"
             className="relative -mt-[var(--header-height,64px)] w-full pt-[var(--header-height,64px)]"
             style={{ minHeight: 'var(--hero-desktop-min-h, 70vh)' }}
         >
             <AnimatePresence>
                 <motion.div
                     key={currentSlide.image?.src || index}
+                    data-testid="homepage-hero-slide"
                     className="absolute inset-0"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -126,7 +129,7 @@ export default function Hero({ data }: { data?: HeroData | null }) {
                     <div className="mt-8 flex flex-wrap gap-4">
                         {href && label && (
                             <Button asChild variant="secondary" className="bg-white text-primary hover:bg-white/90">
-                                <Link href={href} target={target} rel={rel}>{label}</Link>
+                                <Link data-testid="homepage-hero-cta" href={href} target={target} rel={rel}>{label}</Link>
                             </Button>
                         )}
                     </div>
