@@ -39,7 +39,7 @@ export default defineConfig({
     {
       name: "acceptance",
       testDir: "./tests/acceptance",
-      testMatch: "*.acceptance.spec.ts",
+      testMatch: "**/*.acceptance.spec.ts",
       // DGF-413: No browser configuration (`use` block) for this project
       // to ensure it runs in a Node.js-only environment.
     },
