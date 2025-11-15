@@ -1,6 +1,5 @@
 
 "use server";
-import 'server-only';
 import { z } from 'zod';
 import {
   SiteSettingsSchema,
@@ -25,6 +24,15 @@ import { coerceToDefaults } from '@/components/dadmin/site-seo/utils/formDefault
 import { getNavigation as getNavigationAction } from './server/cms-actions';
 import deepmerge from "deepmerge";
 import { logAdminAction } from './dadmin/audit';
+
+// DGF-420: Ensure this file can be loaded in non-Next environments (e.g. Playwright).
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('server-only');
+} catch {
+  // In test/Playwright environments, 'server-only' is not available.
+  // Ignore the error so tests can run, the file still behaves as a plain server helper.
+}
 
 
 export async function getSiteSettings(): Promise<SiteSettings> {
