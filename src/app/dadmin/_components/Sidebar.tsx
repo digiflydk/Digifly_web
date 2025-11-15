@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, Beaker, DownloadCloud, FileJson, Database, History } from "lucide-react";
+import { Home, Search, Link2, LayoutTemplate, Briefcase, FileText, Wrench, Beaker, DownloadCloud, FileJson, Database, History, Book } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -19,6 +19,7 @@ const menuItems = [
 ];
 
 const devMenuItems = [
+    { href: "/dadmin/developer/playbook", label: "Playbook", icon: Book },
     { href: "/dadmin/developer/docs", label: "Docs & Dumps", icon: FileText },
     { href: "/dadmin/developer/tests", label: "Playwright Tests", icon: Beaker },
     { href: "/dadmin/developer/logs", label: "Audit Logs", icon: History },
