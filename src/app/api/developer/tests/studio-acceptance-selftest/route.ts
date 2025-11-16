@@ -1,6 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runStudioAcceptanceOnce } from '@/lib/dadmin/test-runner';
+import type { AcceptanceSuiteId } from '@/lib/dadmin/tests/acceptance-suites';
 
 export async function POST(req: NextRequest) {
   if (process.env.NODE_ENV === 'production') {
@@ -12,21 +13,20 @@ export async function POST(req: NextRequest) {
       ? await req.json().catch(() => null)
       : null;
 
-    const tag =
-      body && typeof body.tag === 'string' && body.tag.trim().length > 0
-        ? body.tag.trim()
+    const suiteId =
+      body && typeof body.suiteId === 'string' && body.suiteId.trim().length > 0
+        ? (body.suiteId.trim() as AcceptanceSuiteId)
         : null;
 
-    // Run a single Studio acceptance run (existing logic encapsulated in the helper).
+    // Run a single Studio acceptance run.
     // Do not await this, as it runs in the background.
-    // The runner uses the tag to find the corresponding taskId from the suite registry
-    runStudioAcceptanceOnce({ taskId: tag, triggerSource: 'studioSelftest' });
+    runStudioAcceptanceOnce({ suiteId, triggerSource: 'studioSelftest' });
 
     return NextResponse.json(
       {
         ok: true,
         message: 'Studio acceptance selftest triggered.',
-        tag: tag,
+        suiteId: suiteId,
       },
       { status: 202 } // 202 Accepted, as the process is running in the background.
     );

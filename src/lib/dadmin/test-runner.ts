@@ -4,15 +4,16 @@ import "server-only";
 
 import { getDb } from "@/lib/firebase/admin";
 import { logAdminAction } from "./audit";
-import type { QARun, QARunTrigger } from "../qa/qa.types";
+import type { QARun, QARunTrigger, AcceptanceSuiteId } from "../qa/qa.types";
 import { FieldValue } from "firebase-admin/firestore";
 import fs from "fs/promises";
 import path from "path";
 import { PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH } from "./playwright-constants";
 import { spawn } from "child_process";
+import { ACCEPTANCE_SUITES } from "./tests/acceptance-suites";
 
 type RunOptions = {
-  taskId: string | null;
+  suiteId: AcceptanceSuiteId | null;
   triggerSource?: QARunTrigger;
 };
 
@@ -68,7 +69,8 @@ type PlaywrightJsonReport = {
 };
 
 type ParsedReport = {
-  summary: QARun['summary'];
+  summary: QARun['totals'];
+  tests: QARun['tests'];
   errorSummary: QARun['errorSummary'];
   status: QARun['status'];
 };
@@ -76,14 +78,15 @@ type ParsedReport = {
 function parsePlaywrightJsonReport(filePath: string, reportContent: string): ParsedReport {
   try {
     const report: PlaywrightJsonReport = JSON.parse(reportContent);
-    const summary: Required<QARun['summary']> = {
+    const summary: Required<NonNullable<QARun['totals']>> = {
       total: 0,
       passed: 0,
       failed: 0,
-      skipped: 0,
       flaky: 0,
+      skipped: 0,
     };
-    const errorSummary: Required<QARun['errorSummary']> = [];
+    const tests: Required<NonNullable<QARun['tests']>> = [];
+    const errorSummary: Required<NonNullable<QARun['errorSummary']>> = [];
 
     function traverseSuites(suites: PlaywrightSuite[]) {
       for (const suite of suites) {
@@ -91,13 +94,20 @@ function parsePlaywrightJsonReport(filePath: string, reportContent: string): Par
           for (const spec of suite.specs) {
             for (const test of spec.tests) {
               summary.total++;
+              const result = test.results[0]; // Using the first result for simplicity
+              tests.push({
+                title: `${spec.title} › ${test.title}`,
+                status: result.status === 'timedOut' ? 'failed' : result.status,
+                durationMs: result.duration,
+              });
+
               if (test.status === 'expected' || test.status === 'passed') {
                 summary.passed++;
               } else if (test.status === 'unexpected' || test.status === 'failed') {
                 summary.failed++;
                 errorSummary.push({
                   testTitle: `${spec.title} › ${test.title}`,
-                  message: test.results[0]?.error?.message?.split('\n')[0] ?? 'Test failed without a message.',
+                  message: result.error?.message?.split('\n')[0] ?? 'Test failed without a message.',
                 });
               } else if (test.status === 'flaky') {
                 summary.flaky++;
@@ -112,51 +122,33 @@ function parsePlaywrightJsonReport(filePath: string, reportContent: string): Par
         }
       }
     }
-    
-    // Fallback logic for flatter structure if needed, but recursive is more robust
-    if (report.suites) {
-        traverseSuites(report.suites);
-    } else if ((report as any).tests) {
-        // Handle older/different report format
-        for (const test of (report as any).tests) {
-             summary.total++;
-            if (test.status === 'expected' || test.status === 'passed') {
-                summary.passed++;
-            } else if (test.status === 'unexpected' || test.status === 'failed') {
-                summary.failed++;
-                errorSummary.push({
-                    testTitle: test.title,
-                    message: test.results[0]?.error?.message?.split('\n')[0] ?? 'Test failed without a message.',
-                });
-            } else {
-                summary.skipped++;
-            }
-        }
-    }
-    
-    // If Playwright ran but found no tests, it's an error condition.
-    if (summary.total === 0 && report.errors.length === 0) {
-      return {
-        status: 'error',
-        summary,
-        errorSummary: [{ testTitle: 'Test Discovery', message: 'No tests were found by Playwright for the "acceptance" project.' }],
-      };
-    }
+
+    traverseSuites(report.suites ?? []);
     
     if (report.errors.length > 0) {
       summary.failed += report.errors.length;
       summary.total += report.errors.length;
       report.errors.forEach(e => errorSummary.push({ testTitle: "Global Error", message: e.message || e.value || 'An unknown error occurred during test setup.' }));
     }
+    
+    if (summary.total === 0 && errorSummary.length === 0) {
+        return {
+            status: 'error',
+            summary,
+            tests,
+            errorSummary: [{ testTitle: 'Test Discovery', message: 'No tests were found by Playwright for the "acceptance" project.' }],
+        };
+    }
 
     const status: QARun['status'] = (summary.failed ?? 0) > 0 || (summary.flaky ?? 0) > 0 ? 'failed' : 'passed';
 
-    return { summary, errorSummary, status };
+    return { summary, errorSummary, tests, status };
   } catch (error: any) {
     console.error("Failed to parse Playwright JSON report:", error);
     return {
       status: 'error',
       summary: { total: 0, passed: 0, failed: 0, skipped: 0, flaky: 0 },
+      tests: [],
       errorSummary: [
         {
           testTitle: "Report Parsing Error",
@@ -178,12 +170,14 @@ async function removeOldReport() {
     }
 }
 
-async function runPlaywrightAcceptance(taskId: string | null): Promise<{
+async function runPlaywrightAcceptance(suiteId: AcceptanceSuiteId | null): Promise<{
   exitCode: number;
   stdout: string;
   stderr: string;
 }> {
-  const grepArg = taskId ? ['--grep', taskId] : [];
+  const suite = suiteId ? ACCEPTANCE_SUITES.find(s => s.id === suiteId) : null;
+  const grepArg = suite ? ['--grep', suite.tag] : [];
+  
   const args = ['playwright', 'test', '--project=acceptance', ...grepArg];
 
   return new Promise((resolve, reject) => {
@@ -191,7 +185,7 @@ async function runPlaywrightAcceptance(taskId: string | null): Promise<{
       shell: process.platform === 'win32',
       env: {
         ...process.env,
-        DGF_TASK_ID: taskId ?? '',
+        PLAYWRIGHT_JSON_OUTPUT_NAME: PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH,
       },
     });
 
@@ -218,17 +212,16 @@ async function runPlaywrightAcceptance(taskId: string | null): Promise<{
 
 
 export async function runStudioAcceptanceOnce({
-  taskId,
+  suiteId,
   triggerSource = 'studioSelftest',
 }: RunOptions): Promise<{ runId: string }> {
   const db = await getDb();
   let runId = "unknown";
   const startedAt = new Date();
 
-  const effectiveTaskId = taskId ?? null;
-
   const runData: Omit<QARun, "id"> = {
-    taskId: effectiveTaskId,
+    taskId: suiteId ? ACCEPTANCE_SUITES.find(s => s.id === suiteId)?.tag ?? null : null,
+    suiteId: suiteId,
     runType: "acceptance",
     environment: "test",
     triggeredBy: triggerSource,
@@ -243,7 +236,7 @@ export async function runStudioAcceptanceOnce({
     action: "playwright.acceptance.studio.start",
     status: "ok",
     path: `qaRuns/${runId}`,
-    taskId: effectiveTaskId,
+    taskId: suiteId,
   });
 
   const reportPath = path.resolve(process.cwd(), PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH);
@@ -251,10 +244,8 @@ export async function runStudioAcceptanceOnce({
   try {
     await removeOldReport();
     
-    const { exitCode, stderr } = await runPlaywrightAcceptance(effectiveTaskId);
+    const { exitCode, stderr } = await runPlaywrightAcceptance(suiteId);
     
-    // Playwright exits with 1 if tests fail, which is expected.
-    // Exit codes other than 0 or 1 indicate a process error.
     if (exitCode !== 0 && exitCode !== 1) {
         throw new Error(`Playwright process exited with code ${exitCode}. Stderr: ${stderr.slice(0, 500)}`);
     }
@@ -264,10 +255,10 @@ export async function runStudioAcceptanceOnce({
         const reportContent = await fs.readFile(reportPath, "utf-8");
         parsedResult = parsePlaywrightJsonReport(reportPath, reportContent);
     } catch (readError: any) {
-        // This case handles when Playwright exits but fails to create a report file
         parsedResult = {
             status: "error",
             summary: { total: 0, passed: 0, failed: 0, skipped: 0, flaky: 0 },
+            tests: [],
             errorSummary: [{
                 testTitle: "Playwright Execution Error",
                 message: `Playwright run finished, but the report file was not found. Stderr: ${stderr.slice(0, 500)}`,
@@ -279,7 +270,8 @@ export async function runStudioAcceptanceOnce({
 
     await runRef.update({
       status: parsedResult.status,
-      summary: parsedResult.summary,
+      totals: parsedResult.summary,
+      tests: parsedResult.tests,
       errorSummary: parsedResult.errorSummary,
       finishedAt: FieldValue.serverTimestamp(),
       durationMs: finishedAt.getTime() - startedAt.getTime(),
@@ -289,7 +281,7 @@ export async function runStudioAcceptanceOnce({
       action: "playwright.acceptance.studio.finish",
       status: parsedResult.status,
       path: `qaRuns/${runId}`,
-      taskId: effectiveTaskId,
+      taskId: suiteId,
       payloadSummary: `Result: ${parsedResult.summary?.passed}/${parsedResult.summary?.total} passed.`,
     });
 
@@ -306,7 +298,7 @@ export async function runStudioAcceptanceOnce({
       action: "playwright.acceptance.studio.error",
       status: "error",
       path: `qaRuns/${runId}`,
-      taskId: effectiveTaskId,
+      taskId: suiteId,
       errorMessage: e.message,
     });
     throw e;

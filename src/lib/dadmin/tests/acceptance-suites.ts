@@ -1,12 +1,9 @@
+
 // src/lib/dadmin/tests/acceptance-suites.ts
+import type { AcceptanceSuiteId as SuiteId, AcceptanceSuiteTag as SuiteTag } from '@/lib/qa/qa.types';
 
-export type AcceptanceSuiteId =
-  | 'homepage-cms-core'
-  | 'hero-banner-colors';
-
-export type AcceptanceSuiteTag =
-  | '@suite:homepage-cms-core'
-  | '@suite:hero-banner-colors';
+export type AcceptanceSuiteId = SuiteId;
+export type AcceptanceSuiteTag = SuiteTag;
 
 export interface AcceptanceSuite {
   id: AcceptanceSuiteId;

@@ -9,6 +9,15 @@
         { "fieldPath": "taskId", "order": "ASCENDING" },
         { "fieldPath": "startedAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "qaRuns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "runType", "order": "ASCENDING" },
+        { "fieldPath": "suiteId", "order": "ASCENDING" },
+        { "fieldPath": "startedAt", "order": "DESCENDING" }
+      ]
     }
   ]
 }

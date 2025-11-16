@@ -4,34 +4,34 @@
 import * as React from "react";
 import { onSnapshot, query, collection, where, orderBy, limit, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase-client";
-import type { QARun } from "@/lib/qa/qa.types";
+import type { QARun, AcceptanceSuiteId } from "@/lib/qa/qa.types";
 
 type UseAcceptanceRunsResult = {
-  [taskId: string]: {
+  [suiteId in AcceptanceSuiteId]?: {
     lastRun?: QARun;
     loading: boolean;
   };
 };
 
-export function useAcceptanceRuns(taskIds: (string | null | undefined)[]) {
+export function useAcceptanceRuns(suiteIds: AcceptanceSuiteId[]) {
   const [runs, setRuns] = React.useState<UseAcceptanceRunsResult>({});
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    const validTaskIds = taskIds.filter((id): id is string => !!id);
-    if (!validTaskIds.length) return;
+    const validSuiteIds = suiteIds.filter((id): id is AcceptanceSuiteId => !!id);
+    if (!validSuiteIds.length) return;
 
     const unsubscribers: (() => void)[] = [];
     setError(null);
 
-    validTaskIds.forEach(taskId => {
-      setRuns(prev => ({ ...prev, [taskId]: { ...prev[taskId], loading: true } }));
+    validSuiteIds.forEach(suiteId => {
+      setRuns(prev => ({ ...prev, [suiteId]: { ...prev[suiteId], loading: true } }));
 
       try {
         const q = query(
           collection(db, "qaRuns"),
           where("runType", "==", "acceptance"),
-          where("taskId", "==", taskId),
+          where("suiteId", "==", suiteId),
           orderBy("startedAt", "desc"),
           limit(1)
         );
@@ -39,21 +39,21 @@ export function useAcceptanceRuns(taskIds: (string | null | undefined)[]) {
         const unsub = onSnapshot(q,
           (snapshot) => {
             const lastRun = snapshot.empty ? undefined : { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as QARun;
-            setRuns(prev => ({ ...prev, [taskId]: { lastRun, loading: false } }));
+            setRuns(prev => ({ ...prev, [suiteId]: { lastRun, loading: false } }));
           },
           (err: any) => {
-            console.error(`[useAcceptanceRuns] Firestore error for taskId ${taskId}:`, err);
-            const friendlyError = err.message.includes('requires an index') 
-              ? "Firestore requires an index for the QA runs query. Create a composite index for qaRuns (runType asc, taskId asc, startedAt desc) and redeploy." 
-              : `Failed to subscribe to updates for task ${taskId}.`;
+            console.error(`[useAcceptanceRuns] Firestore error for suiteId ${suiteId}:`, err);
+            const friendlyError = err.message.includes('requires an index')
+              ? "Firestore requires an index for this query. Create a composite index for qaRuns (runType asc, suiteId asc, startedAt desc)."
+              : `Failed to subscribe to updates for suite ${suiteId}.`;
             setError(prev => prev ? `${prev}\n${friendlyError}` : friendlyError);
-            setRuns(prev => ({ ...prev, [taskId]: { ...prev[taskId], loading: false } }));
+            setRuns(prev => ({ ...prev, [suiteId]: { ...prev[suiteId], loading: false } }));
           }
         );
         unsubscribers.push(unsub);
       } catch (e: any) {
-        console.error(`[useAcceptanceRuns] Failed to create subscription for ${taskId}:`, e);
-        setError(`Client-side error setting up Firestore listener for task ${taskId}.`);
+        console.error(`[useAcceptanceRuns] Failed to create subscription for ${suiteId}:`, e);
+        setError(`Client-side error setting up Firestore listener for suite ${suiteId}.`);
       }
     });
 
@@ -64,7 +64,7 @@ export function useAcceptanceRuns(taskIds: (string | null | undefined)[]) {
         }
       });
     };
-  }, [JSON.stringify(taskIds)]); // Effect dependency on a stable representation of the taskIds array
+  }, [JSON.stringify(suiteIds)]); // Effect dependency on a stable representation of the suiteIds array
 
   return { runs, error };
 }

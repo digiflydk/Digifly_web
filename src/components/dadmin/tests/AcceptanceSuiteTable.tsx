@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { useAcceptanceRuns } from "@/lib/dadmin/tests/useAcceptanceRuns";
+import { useAcceptanceRuns } from "@/hooks/use-acceptance-runs";
 import type { AcceptanceSuite } from "@/lib/dadmin/tests/acceptance-suites";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,12 +11,11 @@ import { FileJson, Play, Loader2, CheckCircle, XCircle, Clock, AlertTriangle } f
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { JsonViewer } from "./JsonViewer"; // Assuming JsonViewer is extracted
+import { JsonViewer } from "./JsonViewer";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import type { QARun } from "@/lib/qa/qa.types";
 
-type Status = 'passed' | 'failed' | 'running' | 'queued' | 'not_executed' | 'error' | 'timedout';
-
-function getStatusInfo(status: Status) {
+function getStatusInfo(status?: QARun['status'] | 'loading') {
     switch (status) {
         case 'passed': return { text: 'Passed', color: 'text-green-600 bg-green-50 border-green-200', icon: <CheckCircle className="h-4 w-4" /> };
         case 'failed':
@@ -25,18 +24,19 @@ function getStatusInfo(status: Status) {
             return { text: 'Failed', color: 'text-red-600 bg-red-50 border-red-200', icon: <XCircle className="h-4 w-4" /> };
         case 'running': return { text: 'Running', color: 'text-blue-600 bg-blue-50 border-blue-200', icon: <Loader2 className="h-4 w-4 animate-spin" /> };
         case 'queued': return { text: 'Queued', color: 'text-yellow-600 bg-yellow-50 border-yellow-200', icon: <Clock className="h-4 w-4" /> };
+        case 'loading': return { text: 'Loading...', color: 'text-slate-500 bg-slate-100 border-slate-200', icon: <Loader2 className="h-4 w-4 animate-spin" /> };
         default: return { text: 'Not Executed', color: 'text-slate-500 bg-slate-100 border-slate-200', icon: null };
     }
 }
 
 function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
-  const { runs, error } = useAcceptanceRuns(suite.taskIds);
+  const { runs } = useAcceptanceRuns([suite.id]);
   const [isTriggering, setIsTriggering] = React.useState(false);
   const { toast } = useToast();
 
-  const runState = runs[suite.taskIds[0]]; // Use first taskId for state
+  const runState = runs[suite.id];
   const lastRun = runState?.lastRun;
-  const status = runState?.loading ? 'running' : lastRun?.status ?? 'not_executed';
+  const status = runState?.loading ? 'loading' : lastRun?.status;
   const { color, icon, text } = getStatusInfo(status);
 
   const handleRun = async () => {
@@ -45,7 +45,7 @@ function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
       const res = await fetch('/api/developer/tests/studio-acceptance-selftest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tag: suite.tag }),
+        body: JSON.stringify({ suiteId: suite.id }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to trigger run.");
@@ -67,7 +67,7 @@ function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
         <Badge variant="outline" className={color}>{icon && <span className="mr-1.5">{icon}</span>}{text}</Badge>
       </TableCell>
       <TableCell className="text-muted-foreground text-xs">
-        {lastRun?.startedAt ? formatDistanceToNow(new Date(lastRun.startedAt.seconds * 1000), { addSuffix: true }) : '—'}
+        {lastRun?.finishedAt ? formatDistanceToNow(new Date((lastRun.finishedAt as any).seconds * 1000), { addSuffix: true }) : '—'}
       </TableCell>
       <TableCell className="text-muted-foreground text-xs">
         {typeof lastRun?.durationMs === 'number' ? `${(lastRun.durationMs / 1000).toFixed(1)}s` : '—'}
@@ -86,7 +86,7 @@ function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
             </Dialog>
           )}
           <Button onClick={handleRun} disabled={isTriggering} size="sm">
-            {isTriggering ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
+            {isTriggering || status === 'running' || status === 'loading' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
             Run
           </Button>
         </div>
@@ -96,7 +96,7 @@ function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
 }
 
 export function AcceptanceSuiteTable({ suites }: { suites: AcceptanceSuite[] }) {
-  const { error } = useAcceptanceRuns(suites.map(s => s.taskIds).flat());
+  const { error } = useAcceptanceRuns(suites.map(s => s.id));
 
   if (!suites.length) return null;
 

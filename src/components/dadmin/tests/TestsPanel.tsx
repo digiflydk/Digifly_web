@@ -51,11 +51,8 @@ function RunCard({ run }: { run: QARun }) {
                 </div>
                 <div className="flex flex-wrap gap-2 items-center">
                     <Badge variant="outline">{run.runType}</Badge>
-                    <Badge variant="secondary" title="Task ID">
+                    <Badge variant="secondary" title="Task/Suite ID">
                       Task: {run.taskId ?? '—'}
-                    </Badge>
-                    <Badge variant="secondary" title={`Triggered by: ${run.triggeredBy}`}>
-                        {getTriggerLabel(run.triggeredBy, run.taskId)}
                     </Badge>
                 </div>
                 {run.totals && (
@@ -106,17 +103,19 @@ export default function TestsPanel() {
   useEffect(() => {
     if (!isClient) return;
     
-    let unsubscribe: any;
+    let unsubscribe: (() => void) | undefined;
     try {
         const q = query(collection(db, "qaRuns"), orderBy("startedAt", "desc"), limit(50));
-        unsubscribe = onSnapshot(q, (querySnapshot) => {
+        unsubscribe = onSnapshot(q, 
+          (querySnapshot) => {
             const runsData: QARun[] = [];
             querySnapshot.forEach((doc) => {
                 runsData.push({ id: doc.id, ...doc.data() } as QARun);
             });
             setRuns(runsData);
             setError(null);
-        }, (err: any) => {
+          },
+          (err: any) => {
             console.error("Error fetching test runs:", err);
             const friendlyError = err.message.includes('requires an index') 
                 ? "Firestore requires an index for the QA runs query. Create a composite index for qaRuns (runType asc, taskId asc, startedAt desc) and redeploy." 
@@ -129,7 +128,7 @@ export default function TestsPanel() {
     }
 
     return () => {
-        if (unsubscribe && typeof unsubscribe === 'function') {
+        if (unsubscribe) {
             try { unsubscribe(); } catch (err) { console.error('[TestsPanel] Error during unsubscribe', err); }
         }
     };
