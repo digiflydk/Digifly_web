@@ -1,8 +1,8 @@
-<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="4.532754999999999">
-<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-16T14:48:37.150Z" hostname="acceptance" tests="2" failures="0" skipped="0" time="0.638" errors="0">
-<testcase name="@suite:hero-banner-colors DGF-429 — Hero overlay &amp; text color acceptance (Node-only) › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.334">
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="6.1900900000000005">
+<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-16T15:12:57.913Z" hostname="acceptance" tests="2" failures="0" skipped="0" time="0.475" errors="0">
+<testcase name="@suite:hero-banner-colors DGF-429 — Hero overlay &amp; text color acceptance (Node-only) › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.263">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 — Hero overlay &amp; text color acceptance (Node-only) › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.304">
+<testcase name="@suite:hero-banner-colors DGF-429 — Hero overlay &amp; text color acceptance (Node-only) › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.212">
 </testcase>
 </testsuite>
 </testsuites>

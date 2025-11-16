@@ -3,8 +3,8 @@
 // They are intended for a CI environment like GitHub Actions that has browser support.
 import { test, expect } from '@playwright/test';
 
-test.describe('DGF-406 — Homepage UI (browser)', () => {
-  test('DGF-406 - renders primary hero slide with visible CTA', async ({ page }) => {
+test.describe('DGF-406 - Homepage UI (browser)', () => {
+  test('renders primary hero slide with visible CTA', async ({ page }) => {
     await page.goto('/');
 
     const hero = page.getByTestId('homepage-hero');

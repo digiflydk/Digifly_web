@@ -34,7 +34,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] } 
     },
     {
-      name: "predeploy-smoke",
+      name: "predeploy",
       testDir: "./tests/smoke",
       testMatch: /predeploy\\.spec\\.ts/,
       retries: 0,
@@ -42,13 +42,13 @@ export default defineConfig({
     {
       name: "acceptance",
       testDir: "tests/acceptance",
-      testMatch: /.*\.acceptance\.spec\.ts/,
+      testMatch: /.*\\.acceptance\\.spec\\.ts/,
       grep: acceptanceGrep,
     },
     {
       name: 'ui',
-      testDir: 'src/tests/ui',
-      testMatch: /.*\.ui\.spec\.ts/,
+      testDir: 'tests/ui',
+      testMatch: /.*\\.ui\\.spec\\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
   ],

@@ -76,7 +76,7 @@ async function parsePlaywrightReport(reportPath: string): Promise<QARun> {
 async function run() {
   const suiteArg = process.argv[2];
   if (!suiteArg) {
-    console.error('Usage: ts-node scripts/run-acceptance.ts <suiteId_or_suiteTag>');
+    console.error('Usage: tsx scripts/run-acceptance.ts <suiteId_or_suiteTag>');
     process.exit(1);
   }
 

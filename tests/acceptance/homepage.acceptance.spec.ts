@@ -1,16 +1,18 @@
+
 // Acceptance tests for DGF-406, DGF-416 & DGF-429 (homepage regression)
 import { test, expect } from '@playwright/test';
 import { getHomepage, saveHomepage } from '@/lib/cms-api';
 import type { HomePage } from '@/lib/types';
 import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
-import deepmerge from 'deepmerge';
+import deepmerge from "deepmerge";
 
 let originalHomepageData: HomePage;
 
 test.beforeAll(async () => {
   // Backup original data once before all tests in this file
   try {
-    originalHomepageData = await getHomepage();
+    const result = await getHomepage();
+    originalHomepageData = result.ok && result.data ? result.data : defaultHomepage;
   } catch (e) {
     console.warn("Could not read original homepage data, will restore with defaults.", e);
     originalHomepageData = defaultHomepage;
@@ -24,11 +26,11 @@ test.afterAll(async () => {
   }
 });
 
-test.describe('@suite:homepage-cms-core DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
+test.describe('@suite:homepage-cms-core DGF-416 / DGF-417 — Homepage CMS core', () => {
   
   test('DGF-406 — can write and read hero heading without error', async () => {
     const markerHeading = `DGF-416 regression test - ${Date.now()}`;
-    const currentData = await getHomepage();
+    const currentData = await getHomepage().then(r => r.data);
     
     const updatedPayload: HomePage = deepmerge(currentData, {
       hero: {
@@ -42,13 +44,13 @@ test.describe('@suite:homepage-cms-core DGF-416 / DGF-406 — Homepage Regressio
     
     await saveHomepage(updatedPayload);
 
-    const readData = await getHomepage();
+    const readData = await getHomepage().then(r => r.data);
     
     expect(readData?.hero?.slides?.[0]?.heading).toBe(markerHeading);
   });
   
   test('DGF-416 — homepage.read returns expected data shape', async () => {
-    const data = await getHomepage();
+    const data = await getHomepage().then(r => r.data);
     
     expect(data).toHaveProperty('hero');
     expect(data).toHaveProperty('whatWeDo');
@@ -63,10 +65,10 @@ test.describe('@suite:homepage-cms-core DGF-416 / DGF-406 — Homepage Regressio
   });
 });
 
-test.describe('@suite:hero-banner-colors DGF-429 — Hero overlay & text color acceptance (Node-only)', () => {
+test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors', () => {
 
     test('DGF-429 — can save hero overlay color & opacity and read it back', async () => {
-        const currentData = await getHomepage();
+        const currentData = await getHomepage().then(r => r.data);
 
         const updatedPayload: HomePage = deepmerge(currentData, {
             hero: {
@@ -84,7 +86,7 @@ test.describe('@suite:hero-banner-colors DGF-429 — Hero overlay & text color a
         }, { arrayMerge: (_d, s) => s });
 
         await saveHomepage(updatedPayload);
-        const readData = await getHomepage();
+        const readData = await getHomepage().then(r => r.data);
 
         const slide0 = readData?.hero?.slides?.[0];
         expect(slide0?.overlay?.enabled).toBe(true);
@@ -93,7 +95,7 @@ test.describe('@suite:hero-banner-colors DGF-429 — Hero overlay & text color a
     });
 
     test('DGF-429 — can save hero text colors and read them back', async () => {
-        const currentData = await getHomepage();
+        const currentData = await getHomepage().then(r => r.data);
         const updatedPayload: HomePage = deepmerge(currentData, {
             hero: {
                 slides: [
@@ -106,7 +108,7 @@ test.describe('@suite:hero-banner-colors DGF-429 — Hero overlay & text color a
         }, { arrayMerge: (_d, s) => s });
 
         await saveHomepage(updatedPayload);
-        const readData = await getHomepage();
+        const readData = await getHomepage().then(r => r.data);
 
         const slide0 = readData?.hero?.slides?.[0];
         expect(slide0?.textColor).toBe('#123456');

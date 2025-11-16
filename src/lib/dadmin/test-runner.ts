@@ -219,8 +219,11 @@ export async function runStudioAcceptanceOnce({
   let runId = "unknown";
   const startedAt = new Date();
 
+  const suite = suiteId ? ACCEPTANCE_SUITES.find(s => s.id === suiteId) : null;
+  const taskId = suite ? suite.tag : null;
+
   const runData: Omit<QARun, "id"> = {
-    taskId: suiteId ? ACCEPTANCE_SUITES.find(s => s.id === suiteId)?.tag ?? null : null,
+    taskId,
     suiteId: suiteId,
     runType: "acceptance",
     environment: "test",
