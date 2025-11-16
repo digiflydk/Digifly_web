@@ -243,7 +243,7 @@ export async function runStudioAcceptanceOnce({
   try {
     await removeOldReport();
     
-    // Diagnostic logging for DGF-449
+    // DGF-449: Diagnostic logging
     if (suiteId === 'hero-banner-colors') {
         const specFiles = await fg('tests/acceptance/**/*.spec.ts', { absolute: true });
         await logAdminAction({
@@ -293,17 +293,19 @@ export async function runStudioAcceptanceOnce({
       durationMs: finishedAt.getTime() - startedAt.getTime(),
     });
 
-    await logAdminAction({
-      action: "playwright.acceptance.selftest.diagnostics",
-      status: parsedResult.status,
-      path: `qaRuns/${runId}`,
-      taskId: suiteId,
-      payloadSummary: `Result: ${parsedResult.summary?.passed}/${parsedResult.summary?.total} passed.`,
-      afterSaveSnapshot: { // For DGF-449
-          playwrightArgs: args,
-          report: parsedResult
-      }
-    });
+    if (suiteId === 'hero-banner-colors') {
+        await logAdminAction({
+          action: 'playwright.acceptance.selftest.diagnostics',
+          status: parsedResult.status,
+          path: `qaRuns/${runId}`,
+          taskId: suiteId,
+          payloadSummary: `Result: ${parsedResult.summary?.passed}/${parsedResult.summary?.total} passed.`,
+          afterSaveSnapshot: { 
+              playwrightArgs: args,
+              report: parsedResult
+          }
+        });
+    }
 
   } catch (e: any) {
     console.error(`[runStudioAcceptanceOnce] Error for runId ${runId}:`, e);
@@ -314,8 +316,11 @@ export async function runStudioAcceptanceOnce({
       finishedAt: FieldValue.serverTimestamp(),
       durationMs: finishedAt.getTime() - startedAt.getTime(),
     });
+    
+    // Use the correct action key for error logging
+    const actionKey = suiteId === 'hero-banner-colors' ? 'playwright.acceptance.selftest.diagnostics' : 'playwright.acceptance.studio.error';
     await logAdminAction({
-      action: "playwright.acceptance.studio.error",
+      action: actionKey,
       status: "error",
       path: `qaRuns/${runId}`,
       taskId: suiteId,
