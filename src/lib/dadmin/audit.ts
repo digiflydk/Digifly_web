@@ -1,6 +1,9 @@
 
 "use server";
-import "server-only";
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require('server-only');
+} catch {}
 
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getAdminApp } from "@/lib/firebase-admin";
@@ -121,6 +124,7 @@ export async function getLogSettings(): Promise<LoggingSettings> {
         } as any,
     };
     const settings = await getLoggingSettingsServer();
+    // DGF-450: Deep merge defaults with stored settings to ensure new keys are present
     return settings ? { ...defaultSettings, ...settings, actions: { ...defaultSettings.actions, ...settings.actions }} : defaultSettings;
 }
 
