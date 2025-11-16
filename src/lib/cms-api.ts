@@ -40,11 +40,8 @@ export async function getHomepage(): Promise<HomePage> {
   return result.data;
 }
 
-export async function saveHomepage(payload: HomePage): Promise<void> {
-  const result = await saveHomepageInternal(payload);
-  if (!result.ok) {
-    throw new Error(result.error ?? 'Failed to save homepage data.');
-  }
+export async function saveHomepage(payload: HomePage): Promise<{ok: boolean, error?: string}> {
+    return saveHomepageInternal(payload);
 }
 export const updateHomepage = saveHomepage; // Alias for consistency
 

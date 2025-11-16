@@ -11,14 +11,14 @@ export const ACCEPTANCE_SUITES: AcceptanceSuite[] = [
   {
     id: 'DGF-406',
     key: 'homepage-io',
-    title: 'Homepage Read/Write',
-    description: 'Core regression test for homepage CMS data integrity.',
+    title: 'Homepage CMS core',
+    description: 'Regression tests for homepage read/write.',
     taskId: 'DGF-406',
   },
   {
     id: 'DGF-429',
-    key: 'hero-homepage',
-    title: 'Hero Banner Colors & Overlay',
+    key: 'hero-config',
+    title: 'Hero banner colors & overlay',
     description: 'Acceptance tests for hero overlay and text color configuration.',
     taskId: 'DGF-429',
   },

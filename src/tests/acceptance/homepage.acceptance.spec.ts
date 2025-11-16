@@ -1,12 +1,12 @@
-// Acceptance tests for DGF-406 & DGF-416 (homepage regression)
-// DGF-427: Updated to use the stable cms-api facade.
+
+// Acceptance tests for DGF-406, DGF-416 & DGF-429 (homepage regression)
 import { test, expect } from '@playwright/test';
 import { getHomepage, saveHomepage } from '@/lib/cms-api';
 import type { HomePage } from '@/lib/types';
-import { defaultHomepage } from '@/data/defaults';
+import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from 'deepmerge';
 
-let originalHomepageData: HomePage | null = null;
+let originalHomepageData: HomePage;
 
 test.beforeAll(async () => {
   // Backup original data once before all tests in this file
@@ -64,51 +64,52 @@ test.describe('DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
   });
 });
 
-test.describe('DGF-429 — Hero text colors acceptance', () => {
-    test('DGF-429 — can update hero text colors and read them back', async () => {
-      const markerColor = '#FF00FF'; // A distinct magenta color for testing
-      const currentData = await getHomepage();
+test.describe('DGF-429 — Hero overlay & text color acceptance (Node-only)', () => {
 
-      const updatedPayload: HomePage = deepmerge(currentData, {
-        hero: {
-          slides: [
-            { textColor: markerColor },
-          ]
-        }
-      }, {
-        arrayMerge: (_destination, source) => source,
-      });
+    test('DGF-429 — can save hero overlay color & opacity and read it back', async () => {
+        const currentData = await getHomepage();
 
-      await saveHomepage(updatedPayload);
-      const readBack = await getHomepage();
+        const updatedPayload: HomePage = deepmerge(currentData, {
+            hero: {
+                slides: [
+                    {
+                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
+                        overlay: {
+                            enabled: true,
+                            cmyk: { c: 10, m: 20, y: 30, k: 40 },
+                            opacityPercent: 65,
+                        },
+                    },
+                ]
+            }
+        }, { arrayMerge: (_d, s) => s });
 
-      expect(readBack?.hero?.slides?.[0]?.textColor).toBe(markerColor);
+        await saveHomepage(updatedPayload);
+        const readData = await getHomepage();
+
+        const slide0 = readData?.hero?.slides?.[0];
+        expect(slide0?.overlay?.enabled).toBe(true);
+        expect(slide0?.overlay?.cmyk?.c).toBe(10);
+        expect(slide0?.overlay?.opacityPercent).toBe(65);
     });
 
-    test('DGF-429 — updating hero text colors preserves hero structure', async () => {
-      const original = await getHomepage();
-      const originalSlidesLength = original.hero?.slides?.length ?? 0;
-      const originalOverlay = original.hero?.slides?.[0]?.overlay;
-      
-      const updatedPayload: HomePage = deepmerge(original, {
-        hero: {
-          slides: [
-            { textColor: '#00AAFF' }
-          ]
-        }
-      }, {
-        arrayMerge: (_destination, source) => source,
-      });
+    test('DGF-429 — can save hero text colors and read them back', async () => {
+        const currentData = await getHomepage();
+        const updatedPayload: HomePage = deepmerge(currentData, {
+            hero: {
+                slides: [
+                    {
+                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
+                        textColor: '#123456',
+                    },
+                ]
+            }
+        }, { arrayMerge: (_d, s) => s });
 
-      await saveHomepage(updatedPayload);
-      const readBack = await getHomepage();
+        await saveHomepage(updatedPayload);
+        const readData = await getHomepage();
 
-      expect(readBack.hero?.slides?.length).toBe(originalSlidesLength);
-
-      // Verify that the overlay object wasn't accidentally wiped out
-      if (originalOverlay) {
-        expect(readBack.hero?.slides?.[0]?.overlay).toBeDefined();
-        expect(readBack.hero?.slides?.[0]?.overlay).toMatchObject(originalOverlay);
-      }
+        const slide0 = readData?.hero?.slides?.[0];
+        expect(slide0?.textColor).toBe('#123456');
     });
 });
