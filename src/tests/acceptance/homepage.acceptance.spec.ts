@@ -1,4 +1,3 @@
-
 // Acceptance tests for DGF-406, DGF-416 & DGF-429 (homepage regression)
 import { test, expect } from '@playwright/test';
 import { getHomepage, saveHomepage } from '@/lib/cms-api';
@@ -25,7 +24,7 @@ test.afterAll(async () => {
   }
 });
 
-test.describe('DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
+test.describe('@suite:homepage-cms-core DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
   
   test('DGF-406 — can write and read hero heading without error', async () => {
     const markerHeading = `DGF-416 regression test - ${Date.now()}`;
@@ -64,7 +63,7 @@ test.describe('DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
   });
 });
 
-test.describe('DGF-429 — Hero overlay & text color acceptance (Node-only)', () => {
+test.describe('@suite:hero-banner-colors DGF-429 — Hero overlay & text color acceptance (Node-only)', () => {
 
     test('DGF-429 — can save hero overlay color & opacity and read it back', async () => {
         const currentData = await getHomepage();
