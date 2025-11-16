@@ -14,7 +14,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "qa:install": "npx playwright install --with-deps",
-    "test:pw": "playwright test --config=playwright.config.ts",
+    "test:pw": "playwright test",
     "test:pw:acceptance": "playwright test --project=acceptance",
     "test:pw:ui": "playwright test --project=ui",
     "test:acceptance": "tsx scripts/run-acceptance.ts",
