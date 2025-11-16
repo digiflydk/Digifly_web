@@ -1,8 +1,2 @@
-<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="9.055939">
-<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-15T21:11:40.648Z" hostname="acceptance" tests="2" failures="0" skipped="0" time="0.355" errors="0">
-<testcase name="DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-406 — can write and read hero heading without error" classname="acceptance/homepage.acceptance.spec.ts" time="0.251">
-</testcase>
-<testcase name="DGF-416 / DGF-406 — Homepage Regression (Node-only) › DGF-416 — homepage.read returns expected data shape" classname="acceptance/homepage.acceptance.spec.ts" time="0.104">
-</testcase>
-</testsuite>
+<testsuites id="" name="" tests="0" failures="0" skipped="0" errors="0" time="0.5722959999999998">
 </testsuites>

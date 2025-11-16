@@ -1,55 +1,17 @@
-
 'use client';
-import { useEffect, useState, useCallback, useTransition } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock, FileJson, Copy, Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from 'react';
+import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock, FileJson } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { QARun, QARunTrigger } from '@/lib/qa/qa.types';
+import { QARun } from '@/lib/qa/qa.types';
 import { db } from '@/lib/firebase-client';
 import { collection, query, orderBy, onSnapshot, limit, Timestamp } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
-import { format, formatDistanceToNow } from 'date-fns';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { formatDistanceToNow } from 'date-fns';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
+import { JsonViewer } from './JsonViewer';
 
-function JsonViewer({ data }: { data: any }) {
-  const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
-  const prettyJson = JSON.stringify(data, null, 2);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(prettyJson).then(() => {
-      setCopied(true);
-      toast({ title: "Copied!", description: "Log JSON copied to clipboard." });
-      setTimeout(() => setCopied(false), 2000);
-    }, () => {
-      toast({ title: "Error", description: "Failed to copy.", variant: "destructive" });
-    });
-  };
-
-  return (
-    <div className="relative">
-      <Button variant="outline" size="sm" onClick={handleCopy} className="absolute top-2 right-2 z-10">
-        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-        <span className="ml-2">{copied ? 'Copied' : 'Copy JSON'}</span>
-      </Button>
-      <pre className="bg-slate-900 text-white text-xs p-4 rounded-lg overflow-auto max-h-[70vh]">
-        <code>{prettyJson}</code>
-      </pre>
-    </div>
-  );
-}
-
-
-function getTriggerLabel(trigger?: QARunTrigger, taskId?: string | null) {
+function getTriggerLabel(trigger?: QARun['triggeredBy'], taskId?: string | null) {
     switch (trigger) {
         case 'studio': return `Auto for task ${taskId || 'Unknown'}`;
         case 'studioSelftest': return 'Manual Selftest';
@@ -63,14 +25,14 @@ function getTriggerLabel(trigger?: QARunTrigger, taskId?: string | null) {
 function RunCard({ run }: { run: QARun }) {
     const getStatusInfo = (status: QARun['status']) => {
         switch (status) {
-            case 'passed': return { color: 'text-green-700 bg-green-50 border-green-200', icon: <CheckCircle className="h-4 w-4" /> };
+            case 'passed': return { icon: <CheckCircle className="h-4 w-4" />, color: 'text-green-700 bg-green-50 border-green-200' };
             case 'failed':
             case 'error':
             case 'timedout':
-                return { color: 'text-red-700 bg-red-50 border-red-200', icon: <XCircle className="h-4 w-4" /> };
-            case 'running': return { color: 'text-blue-700 bg-blue-50 border-blue-200', icon: <Loader2 className="h-4 w-4 animate-spin" /> };
-            case 'queued': return { color: 'text-yellow-700 bg-yellow-50 border-yellow-200', icon: <Clock className="h-4 w-4" /> };
-            default: return { color: 'text-muted-foreground bg-slate-50 border-slate-200', icon: <AlertTriangle className="h-4 w-4" /> };
+                return { icon: <XCircle className="h-4 w-4" />, color: 'text-red-700 bg-red-50 border-red-200' };
+            case 'running': return { icon: <Loader2 className="h-4 w-4 animate-spin" />, color: 'text-blue-700 bg-blue-50 border-blue-200' };
+            case 'queued': return { icon: <Clock className="h-4 w-4" />, color: 'text-yellow-700 bg-yellow-50 border-yellow-200' };
+            default: return { icon: <AlertTriangle className="h-4 w-4" />, color: 'text-muted-foreground bg-slate-50 border-slate-200' };
         }
     };
     
@@ -136,13 +98,7 @@ export default function TestsPanel() {
   const [runs, setRuns] = useState<QARun[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentTaskId, setCurrentTaskId] = useState<string>('');
   
-  const [isSmokePending, startSmokeTransition] = useTransition();
-  const [isDebugPending, startDebugTransition] = useTransition();
-  const [isStudioSelftestPending, startStudioSelftestTransition] = useTransition();
-
-
   useEffect(() => setIsClient(true), []);
 
   useEffect(() => {
@@ -162,111 +118,12 @@ export default function TestsPanel() {
     return () => unsubscribe();
   }, [isClient]);
 
-  const { toast } = useToast();
-
-  const triggerSmokeTests = useCallback(async () => {
-    startSmokeTransition(async () => {
-      setError(null);
-      console.info("[TestsPanel] Triggering pre-deploy smoke test...");
-      
-      try {
-        const res = await fetch('/api/developer/tests/run', { method: 'POST' });
-        const data = await res.json();
-        
-        if (!res.ok || !data.ok) {
-          throw new Error(data.error || 'Failed to trigger run.');
-        }
-
-        toast({ title: 'Success', description: `Smoke test run queued (ID: ${data.runId}).` });
-      } catch (e: any) {
-        console.error("[TestsPanel] API call failed:", e);
-        setError(e.message);
-        toast({ title: 'Error Triggering Run', description: e.message, variant: 'destructive' });
-      }
-    });
-  }, [toast]);
-  
-  const triggerDebugRun = useCallback(async () => {
-    startDebugTransition(async () => {
-      setError(null);
-      console.info("[TestsPanel] Triggering debug acceptance run...");
-      
-      try {
-        const res = await fetch('/api/developer/tests/debug-acceptance', { method: 'POST' });
-        const data = await res.json();
-        
-        if (!res.ok || !data.ok) {
-          throw new Error(data.error || 'Failed to trigger debug run.');
-        }
-
-        toast({ title: 'Success', description: `Debug run created (ID: ${data.runId}).` });
-      } catch (e: any) {
-        console.error("[TestsPanel] Debug API call failed:", e);
-        setError(e.message);
-        toast({ title: 'Error Triggering Debug Run', description: e.message, variant: 'destructive' });
-      }
-    });
-  }, [toast]);
-
-  const triggerStudioSelftest = useCallback(async () => {
-    startStudioSelftestTransition(async () => {
-      setError(null);
-      console.info("[TestsPanel] Triggering Studio acceptance selftest...");
-
-      try {
-        const res = await fetch('/api/developer/tests/studio-acceptance-selftest', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId: currentTaskId.trim() || null }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.ok) {
-          throw new Error(data.error || 'Failed to trigger selftest.');
-        }
-        toast({ title: 'Success', description: `Studio acceptance selftest queued.` });
-      } catch (e: any) {
-        console.error("[TestsPanel] Selftest API call failed:", e);
-        setError(e.message);
-        toast({ title: 'Error Triggering Selftest', description: e.message, variant: 'destructive' });
-      }
-    });
-  }, [toast, currentTaskId]);
-
   if (!isClient) {
       return <div className="p-8 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
   }
   
-  const isPending = isSmokePending || isDebugPending || isStudioSelftestPending;
-  const isProd = process.env.NODE_ENV === 'production';
-
   return (
     <div className="space-y-6">
-      <div className="p-4 rounded-lg border bg-card">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="space-y-1">
-                <h3 className="text-lg font-semibold">Playwright Test Runs</h3>
-                <p className="text-sm text-muted-foreground">
-                    Run Node.js regression tests for acceptance, or view results from automated runs.
-                </p>
-            </div>
-            <div className="flex gap-2 flex-wrap items-end">
-                <div className="grid gap-1.5">
-                    <Label htmlFor="task-id-input" className="text-xs">Current Task ID (optional)</Label>
-                    <Input
-                        id="task-id-input"
-                        placeholder="e.g. DGF-406"
-                        value={currentTaskId}
-                        onChange={(e) => setCurrentTaskId(e.target.value)}
-                        className="h-9"
-                    />
-                </div>
-                <Button onClick={triggerStudioSelftest} disabled={isPending}>
-                    {isStudioSelftestPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running...</> : <><Play className="mr-2 h-4 w-4" />Run Studio Acceptance Selftest</>}
-                </Button>
-            </div>
-        </div>
-      </div>
-      
       {error && (
         <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
@@ -276,7 +133,6 @@ export default function TestsPanel() {
       )}
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Recent Runs</h2>
         {runs.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {runs.map(run => <RunCard key={run.id} run={run} />)}
