@@ -8,6 +8,7 @@ try {
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getAdminApp } from "@/lib/firebase-admin";
 import { getCurrentUser } from "@/lib/auth/serverAuth";
+import deepmerge from 'deepmerge';
 
 export type AdminAction = 
     | "homepage.save" | "homepage.read" 
@@ -125,7 +126,7 @@ export async function getLogSettings(): Promise<LoggingSettings> {
     };
     const settings = await getLoggingSettingsServer();
     // DGF-450: Deep merge defaults with stored settings to ensure new keys are present
-    return settings ? { ...defaultSettings, ...settings, actions: { ...defaultSettings.actions, ...settings.actions }} : defaultSettings;
+    return settings ? deepmerge(defaultSettings, settings) : defaultSettings;
 }
 
 export async function saveLogSettings(settings: Partial<LoggingSettings>): Promise<{ok: boolean}> {
