@@ -66,7 +66,7 @@ const TOOLS = [
     {
         title: "Audit Logs",
         description: "View a stream of recent administrative actions, such as saving content or running tests.",
-        href: "/dadmin/developer/audit-logs",
+        href: "/dadmin/developer/logs",
         icon: History,
         label: "View Logs"
     },
