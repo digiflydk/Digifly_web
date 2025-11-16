@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import * as React from "react";
-import { useAcceptanceRuns } from "@/lib/dadmin/tests/use-acceptance-runs";
-import type { AcceptanceSuite } from "@/lib/dadmin/tests/acceptance-config";
+import { useAcceptanceRuns } from "@/lib/dadmin/tests/useAcceptanceRuns";
+import type { AcceptanceSuite } from "@/lib/dadmin/tests/acceptance-suites";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -30,11 +31,11 @@ function getStatusInfo(status: Status) {
 }
 
 function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
-  const { runs, error } = useAcceptanceRuns([suite.taskId]);
+  const { runs, error } = useAcceptanceRuns(suite.taskIds);
   const [isTriggering, setIsTriggering] = React.useState(false);
   const { toast } = useToast();
 
-  const runState = runs[suite.taskId];
+  const runState = runs[suite.taskIds[0]]; // Use first taskId for state
   const lastRun = runState?.lastRun;
   const status = runState?.loading ? 'running' : lastRun?.status ?? 'not_executed';
   const { color, icon, text } = getStatusInfo(status);
@@ -45,7 +46,7 @@ function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
       const res = await fetch('/api/developer/tests/studio-acceptance-selftest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId: suite.taskId }),
+        body: JSON.stringify({ tag: suite.tag }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to trigger run.");
@@ -96,7 +97,7 @@ function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
 }
 
 export function AcceptanceSuiteTable({ suites }: { suites: AcceptanceSuite[] }) {
-  const { error } = useAcceptanceRuns(suites.map(s => s.taskId));
+  const { error } = useAcceptanceRuns(suites.map(s => s.taskIds).flat());
 
   if (!suites.length) return null;
 

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useEffect, useState } from 'react';
 import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock, FileJson } from 'lucide-react';
@@ -105,7 +106,7 @@ export default function TestsPanel() {
   useEffect(() => {
     if (!isClient) return;
     
-    let unsubscribe: Unsubscribe | undefined;
+    let unsubscribe: any;
     try {
         const q = query(collection(db, "qaRuns"), orderBy("startedAt", "desc"), limit(50));
         unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -115,7 +116,7 @@ export default function TestsPanel() {
             });
             setRuns(runsData);
             setError(null);
-        }, (err) => {
+        }, (err: any) => {
             console.error("Error fetching test runs:", err);
             const friendlyError = err.message.includes('requires an index') 
                 ? "Firestore requires an index for the QA runs query. Create a composite index for qaRuns (runType asc, taskId asc, startedAt desc) and redeploy." 
@@ -128,7 +129,7 @@ export default function TestsPanel() {
     }
 
     return () => {
-        if (unsubscribe) {
+        if (unsubscribe && typeof unsubscribe === 'function') {
             try { unsubscribe(); } catch (err) { console.error('[TestsPanel] Error during unsubscribe', err); }
         }
     };

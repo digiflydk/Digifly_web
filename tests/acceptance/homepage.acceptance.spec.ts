@@ -1,13 +1,11 @@
-
-// Acceptance tests for DGF-406 & DGF-416 (homepage regression)
-// DGF-427: Updated to use the stable cms-api facade.
+// Acceptance tests for DGF-406, DGF-416 & DGF-429 (homepage regression)
 import { test, expect } from '@playwright/test';
 import { getHomepage, saveHomepage } from '@/lib/cms-api';
 import type { HomePage } from '@/lib/types';
-import { defaultHomepage } from '@/data/defaults';
+import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from 'deepmerge';
 
-let originalHomepageData: HomePage | null = null;
+let originalHomepageData: HomePage;
 
 test.beforeAll(async () => {
   // Backup original data once before all tests in this file
@@ -26,7 +24,7 @@ test.afterAll(async () => {
   }
 });
 
-test.describe('DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
+test.describe('@suite:homepage-cms-core DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
   
   test('DGF-406 — can write and read hero heading without error', async () => {
     const markerHeading = `DGF-416 regression test - ${Date.now()}`;
@@ -42,12 +40,10 @@ test.describe('DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
       arrayMerge: (_destination, source) => source,
     });
     
-    // ACT: Use the new stable facade function
     await saveHomepage(updatedPayload);
 
     const readData = await getHomepage();
     
-    // ASSERT
     expect(readData?.hero?.slides?.[0]?.heading).toBe(markerHeading);
   });
   
@@ -65,4 +61,54 @@ test.describe('DGF-416 / DGF-406 — Homepage Regression (Node-only)', () => {
     expect(typeof data.hero?.rotationDelaySec).toBe('number');
     expect(Array.isArray(data.hero?.slides)).toBe(true);
   });
+});
+
+test.describe('@suite:hero-banner-colors DGF-429 — Hero overlay & text color acceptance (Node-only)', () => {
+
+    test('DGF-429 — can save hero overlay color & opacity and read it back', async () => {
+        const currentData = await getHomepage();
+
+        const updatedPayload: HomePage = deepmerge(currentData, {
+            hero: {
+                slides: [
+                    {
+                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
+                        overlay: {
+                            enabled: true,
+                            cmyk: { c: 10, m: 20, y: 30, k: 40 },
+                            opacityPercent: 65,
+                        },
+                    },
+                ]
+            }
+        }, { arrayMerge: (_d, s) => s });
+
+        await saveHomepage(updatedPayload);
+        const readData = await getHomepage();
+
+        const slide0 = readData?.hero?.slides?.[0];
+        expect(slide0?.overlay?.enabled).toBe(true);
+        expect(slide0?.overlay?.cmyk?.c).toBe(10);
+        expect(slide0?.overlay?.opacityPercent).toBe(65);
+    });
+
+    test('DGF-429 — can save hero text colors and read them back', async () => {
+        const currentData = await getHomepage();
+        const updatedPayload: HomePage = deepmerge(currentData, {
+            hero: {
+                slides: [
+                    {
+                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
+                        textColor: '#123456',
+                    },
+                ]
+            }
+        }, { arrayMerge: (_d, s) => s });
+
+        await saveHomepage(updatedPayload);
+        const readData = await getHomepage();
+
+        const slide0 = readData?.hero?.slides?.[0];
+        expect(slide0?.textColor).toBe('#123456');
+    });
 });

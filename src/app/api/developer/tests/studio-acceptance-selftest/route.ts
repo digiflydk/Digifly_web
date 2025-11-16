@@ -12,20 +12,21 @@ export async function POST(req: NextRequest) {
       ? await req.json().catch(() => null)
       : null;
 
-    const taskId =
-      body && typeof body.taskId === 'string' && body.taskId.trim().length > 0
-        ? body.taskId.trim()
+    const tag =
+      body && typeof body.tag === 'string' && body.tag.trim().length > 0
+        ? body.tag.trim()
         : null;
 
     // Run a single Studio acceptance run (existing logic encapsulated in the helper).
     // Do not await this, as it runs in the background.
-    runStudioAcceptanceOnce({ taskId, triggerSource: 'studioSelftest' });
+    // The runner uses the tag to find the corresponding taskId from the suite registry
+    runStudioAcceptanceOnce({ taskId: tag, triggerSource: 'studioSelftest' });
 
     return NextResponse.json(
       {
         ok: true,
         message: 'Studio acceptance selftest triggered.',
-        taskId: taskId,
+        tag: tag,
       },
       { status: 202 } // 202 Accepted, as the process is running in the background.
     );
