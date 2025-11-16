@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -8,9 +9,10 @@ import type { QARun } from '@/lib/qa/qa.types';
 type RunState = {
   lastRun?: QARun;
   loading: boolean;
+  error?: string;
 };
 
-export function useAcceptanceRuns(taskIds: string[]): { runs: Record<string, RunState> } {
+export function useAcceptanceRuns(taskIds: string[]): { runs: Record<string, RunState>, error?: string } {
   const [runs, setRuns] = useState<Record<string, RunState>>(() => {
     const initialState: Record<string, RunState> = {};
     taskIds.forEach(id => {
@@ -18,6 +20,7 @@ export function useAcceptanceRuns(taskIds: string[]): { runs: Record<string, Run
     });
     return initialState;
   });
+  const [globalError, setGlobalError] = useState<string | undefined>();
 
   useEffect(() => {
     const unsubscribers: Unsubscribe[] = [];
@@ -38,21 +41,34 @@ export function useAcceptanceRuns(taskIds: string[]): { runs: Record<string, Run
           ...prev,
           [taskId]: { lastRun, loading: false }
         }));
+        if(globalError) setGlobalError(undefined); // Clear global error on success
       }, (error) => {
         console.error(`Error fetching run for taskId ${taskId}:`, error);
+        const errorMessage = error.message.includes('requires an index') 
+          ? 'Firestore query requires a composite index. Please create it in your Firebase console or configuration.' 
+          : error.message;
+
         setRuns(prev => ({
           ...prev,
-          [taskId]: { loading: false, lastRun: undefined }
+          [taskId]: { loading: false, lastRun: undefined, error: errorMessage }
         }));
+        if(!globalError) setGlobalError(errorMessage);
       });
 
       unsubscribers.push(unsubscribe);
     });
 
     return () => {
-      unsubscribers.forEach(unsub => unsub());
+      unsubscribers.forEach(unsub => {
+        try {
+          if (typeof unsub === 'function') unsub();
+        } catch (err) {
+          console.error('[QA Acceptance Runs] Error during unsubscribe', err);
+        }
+      });
     };
-  }, [taskIds]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(taskIds)]);
 
-  return { runs };
+  return { runs, error: globalError };
 }

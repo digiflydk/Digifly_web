@@ -54,6 +54,15 @@ Task content must be precise, file-safe, and limited in scope.
 - **Where?** These tests live in \`src/tests/acceptance\` and are named like \`*.acceptance.spec.ts\`.
 - **How?** They must not use Playwright's \`page\` or \`browser\` fixtures. They run via the existing Studio selftest flow and provide fast feedback on core logic.
 
+### 3.3 Firestore indexes for QA runs (DGF-431)
+- **Why?** Firestore queries that filter on multiple fields and sort by another require a composite index. Without it, queries will fail.
+- **What?** All indexes must be defined in the \`firestore.indexes.json\` file in the project root.
+- **Current Index:** The main query for QA runs requires this index:
+  - Collection: \`qaRuns\`
+  - Fields: \`runType\` (asc), \`taskId\` (asc), \`startedAt\` (desc)
+- **Rule of Thumb:** If Firestore throws "The query requires an index", do not ignore it. Add the required index to the config file to ensure it's deployed everywhere.
+
+
 ## 4. Acceptance Testing Template (DGF-406 pattern)
 
 ### 4.1 Purpose

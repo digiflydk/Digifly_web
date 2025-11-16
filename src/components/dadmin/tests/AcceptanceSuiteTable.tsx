@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -6,11 +7,12 @@ import type { AcceptanceSuite } from "@/lib/dadmin/tests/acceptance-config";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FileJson, Play, Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { FileJson, Play, Loader2, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { JsonViewer } from "./JsonViewer"; // Assuming JsonViewer is extracted
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type Status = 'passed' | 'failed' | 'running' | 'queued' | 'not_executed' | 'error' | 'timedout';
 
@@ -28,7 +30,7 @@ function getStatusInfo(status: Status) {
 }
 
 function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
-  const { runs } = useAcceptanceRuns([suite.taskId]);
+  const { runs, error } = useAcceptanceRuns([suite.taskId]);
   const [isTriggering, setIsTriggering] = React.useState(false);
   const { toast } = useToast();
 
@@ -94,11 +96,23 @@ function SuiteRow({ suite }: { suite: AcceptanceSuite }) {
 }
 
 export function AcceptanceSuiteTable({ suites }: { suites: AcceptanceSuite[] }) {
+  const { error } = useAcceptanceRuns(suites.map(s => s.taskId));
+
   if (!suites.length) return null;
 
   return (
     <div>
         <h2 className="text-lg font-semibold mb-2">Acceptance Suites</h2>
+        {error && (
+            <Alert variant="destructive" className="mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Firestore Error</AlertTitle>
+                <AlertDescription>
+                    Could not load acceptance test results. Check Firestore indexes and console for details. <br/>
+                    <code className="text-xs mt-2 block bg-red-900/10 p-2 rounded">{error}</code>
+                </AlertDescription>
+            </Alert>
+        )}
         <div className="border rounded-lg">
         <Table>
             <TableHeader>

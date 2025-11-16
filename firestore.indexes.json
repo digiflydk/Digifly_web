@@ -1,0 +1,14 @@
+
+{
+  "indexes": [
+    {
+      "collectionGroup": "qaRuns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "runType", "order": "ASCENDING" },
+        { "fieldPath": "taskId", "order": "ASCENDING" },
+        { "fieldPath": "startedAt", "order": "DESCENDING" }
+      ]
+    }
+  ]
+}

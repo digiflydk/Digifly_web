@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import { Loader2, ExternalLink, AlertTriangle, Play, CheckCircle, XCircle, Clock, FileJson } from 'lucide-react';
@@ -103,19 +104,34 @@ export default function TestsPanel() {
 
   useEffect(() => {
     if (!isClient) return;
-    const q = query(collection(db, "qaRuns"), orderBy("startedAt", "desc"), limit(50));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const runsData: QARun[] = [];
-        querySnapshot.forEach((doc) => {
-            runsData.push({ id: doc.id, ...doc.data() } as QARun);
+    
+    let unsubscribe: Unsubscribe | undefined;
+    try {
+        const q = query(collection(db, "qaRuns"), orderBy("startedAt", "desc"), limit(50));
+        unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const runsData: QARun[] = [];
+            querySnapshot.forEach((doc) => {
+                runsData.push({ id: doc.id, ...doc.data() } as QARun);
+            });
+            setRuns(runsData);
+            setError(null);
+        }, (err) => {
+            console.error("Error fetching test runs:", err);
+            const friendlyError = err.message.includes('requires an index') 
+                ? "Firestore requires an index for the QA runs query. Create a composite index for qaRuns (runType asc, taskId asc, startedAt desc) and redeploy." 
+                : "Failed to subscribe to test run updates. Check Firestore rules and network connection.";
+            setError(friendlyError);
         });
-        setRuns(runsData);
-        setError(null);
-    }, (err) => {
-        console.error("Error fetching test runs:", err);
-        setError("Failed to subscribe to test run updates. Check Firestore rules and network connection.");
-    });
-    return () => unsubscribe();
+    } catch(err: any) {
+        console.error('[TestsPanel] Failed to init Firestore subscription', err);
+        setError('Failed to subscribe to test run updates. Check Firestore indexes and rules.');
+    }
+
+    return () => {
+        if (unsubscribe) {
+            try { unsubscribe(); } catch (err) { console.error('[TestsPanel] Error during unsubscribe', err); }
+        }
+    };
   }, [isClient]);
 
   if (!isClient) {
@@ -137,7 +153,7 @@ export default function TestsPanel() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {runs.map(run => <RunCard key={run.id} run={run} />)}
             </div>
-        ) : (
+        ) : !error && (
             <div className="border-2 border-dashed rounded-lg p-12 text-center text-muted-foreground">
                 <p className="font-medium">No test runs found.</p>
                 <p className="text-sm mt-2">Trigger a run or push a commit to see results here.</p>
