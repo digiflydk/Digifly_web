@@ -1,3 +1,4 @@
+
 import { defineConfig, devices } from "@playwright/test";
 import { PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH } from "./src/lib/dadmin/playwright-constants";
 
@@ -5,6 +6,8 @@ const baseURL =
   process.env.E2E_BASE_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
   "http://localhost:3000";
+
+const acceptanceGrep = process.env.TASK_ID ? new RegExp(process.env.TASK_ID, 'i') : undefined;
 
 export default defineConfig({
   timeout: 30_000,
@@ -39,7 +42,8 @@ export default defineConfig({
     {
       name: "acceptance",
       testDir: "tests/acceptance",
-      testMatch: ['**/*.acceptance.spec.ts'],
+      testMatch: /.*\.acceptance\.spec\.ts/,
+      grep: acceptanceGrep,
     },
     {
       name: 'ui',
