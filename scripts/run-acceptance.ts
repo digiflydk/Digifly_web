@@ -1,4 +1,3 @@
-
 // scripts/run-acceptance.ts
 
 import { spawnSync } from 'child_process';
@@ -7,9 +6,10 @@ import fs from 'fs/promises';
 import {
   ACCEPTANCE_SUITES,
   type AcceptanceSuiteId,
-  type AcceptanceSuite
+  type AcceptanceSuite,
 } from '../src/lib/dadmin/tests/acceptance-suites';
 import type { QARun } from '../src/lib/qa/qa.types';
+import { PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH } from '@/lib/dadmin/playwright-constants';
 
 function findSuiteByArg(arg: string): { suite: AcceptanceSuite | null; type: 'id' | 'tag' | null } {
   if (arg.startsWith('@suite:')) {
@@ -87,17 +87,14 @@ async function run() {
     process.exit(1);
   }
   
-  const reportPath = path.join(process.cwd(), 'playwright-report', 'acceptance-results.json');
+  const reportPath = path.join(process.cwd(), PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH);
   try {
-    await fs.unlink(reportPath);
+    await fs.unlink(reportPath).catch(() => {}); // ignore if not found
   } catch {}
 
 
   const args = ['playwright', 'test', 'tests/acceptance', '--reporter=json', `--output=${path.dirname(reportPath)}`];
-  if (type === 'tag') {
-    args.push('--grep', suite.tag);
-  } else {
-    // If running by ID, we assume the tests are tagged correctly with the suite tag
+  if (type === 'tag' || type === 'id') {
     args.push('--grep', suite.tag);
   }
 
