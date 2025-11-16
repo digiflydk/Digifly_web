@@ -11,11 +11,7 @@ import path from "path";
 import { PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH } from "./playwright-constants";
 import { spawn } from "child_process";
 import { ACCEPTANCE_SUITES } from "./tests/acceptance-suites";
-
-type RunOptions = {
-  suiteId: AcceptanceSuiteId | null;
-  triggerSource?: QARunTrigger;
-};
+import fg from "fast-glob";
 
 // --- START: DGF-412 Playwright JSON Report Parsing Logic ---
 
@@ -174,11 +170,12 @@ async function runPlaywrightAcceptance(suiteId: AcceptanceSuiteId | null): Promi
   exitCode: number;
   stdout: string;
   stderr: string;
+  args: string[];
 }> {
   const suite = suiteId ? ACCEPTANCE_SUITES.find(s => s.id === suiteId) : null;
   const grepArg = suite ? ['--grep', suite.tag] : [];
   
-  const args = ['playwright', 'test', '--project=acceptance', ...grepArg];
+  const args = ['playwright', 'test', ...grepArg, '--project=acceptance'];
 
   return new Promise((resolve, reject) => {
     const child = spawn('npx', args, {
@@ -205,7 +202,7 @@ async function runPlaywrightAcceptance(suiteId: AcceptanceSuiteId | null): Promi
     });
 
     child.on('close', (code) => {
-      resolve({ exitCode: code ?? 1, stdout, stderr });
+      resolve({ exitCode: code ?? 1, stdout, stderr, args });
     });
   });
 }
@@ -235,19 +232,29 @@ export async function runStudioAcceptanceOnce({
   const runRef = await db.collection("qaRuns").add(runData);
   runId = runRef.id;
 
-  await logAdminAction({
-    action: "playwright.acceptance.studio.start",
-    status: "ok",
-    path: `qaRuns/${runId}`,
-    taskId: suiteId,
-  });
-
   const reportPath = path.resolve(process.cwd(), PLAYWRIGHT_ACCEPTANCE_JSON_REPORT_PATH);
-
+  
   try {
     await removeOldReport();
     
-    const { exitCode, stderr } = await runPlaywrightAcceptance(suiteId);
+    // Diagnostic logging for DGF-449
+    if (suiteId === 'hero-banner-colors') {
+        const specFiles = await fg('tests/acceptance/**/*.spec.ts', { absolute: true });
+        await logAdminAction({
+            action: 'playwright.acceptance.studio.start',
+            status: 'ok',
+            path: `qaRuns/${runId}`,
+            taskId: suiteId,
+            payloadSummary: `Starting run for ${suiteId}. Grep: ${suite?.tag}`,
+            receivedPayload: {
+                testDir: './tests/acceptance', // This is what the runner will effectively use
+                grepApplied: suite?.tag,
+                resolvedSpecFiles: specFiles,
+            }
+        });
+    }
+
+    const { exitCode, stderr, args } = await runPlaywrightAcceptance(suiteId);
     
     if (exitCode !== 0 && exitCode !== 1) {
         throw new Error(`Playwright process exited with code ${exitCode}. Stderr: ${stderr.slice(0, 500)}`);
@@ -286,6 +293,10 @@ export async function runStudioAcceptanceOnce({
       path: `qaRuns/${runId}`,
       taskId: suiteId,
       payloadSummary: `Result: ${parsedResult.summary?.passed}/${parsedResult.summary?.total} passed.`,
+      afterSaveSnapshot: { // For DGF-449
+          playwrightArgs: args,
+          report: parsedResult
+      }
     });
 
   } catch (e: any) {

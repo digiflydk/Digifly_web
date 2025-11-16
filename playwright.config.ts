@@ -41,7 +41,6 @@ export default defineConfig({
     },
     {
       name: "acceptance",
-      testMatch: /.*\\.acceptance\\.spec\\.ts/,
       grep: acceptanceGrep,
     },
     {

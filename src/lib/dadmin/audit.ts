@@ -70,7 +70,7 @@ async function getLoggingSettingsServer(): Promise<LoggingSettings | null> {
 export async function logAdminAction(
   input: Omit<AuditLog, "ts" | "actorUid" | "actorEmail">
 ) {
-  const loggingSettings = await getLoggingSettingsServer();
+  const loggingSettings = await getLogSettings();
 
   // Check if logging is globally disabled or disabled for this specific action
   if (!loggingSettings?.enabled || !loggingSettings.actions[input.action]) {
@@ -95,22 +95,22 @@ export async function logAdminAction(
 
 export async function getLogSettings(): Promise<LoggingSettings> {
     const defaultSettings: LoggingSettings = {
-        enabled: false,
+        enabled: true, // Default to enabled for easier debugging
         actions: {
-            'homepage.save': false,
-            'homepage.read': false,
-            'site-seo.save': false,
+            'homepage.save': true,
+            'homepage.read': false, // READ actions can be noisy
+            'site-seo.save': true,
             'site-seo.read': false,
-            'cases.save': false,
+            'cases.save': true,
             'cases.read': false,
-            'navigation.save': false,
+            'navigation.save': true,
             'navigation.read': false,
-            'pages.save': false,
+            'pages.save': true,
             'pages.read': false,
-            'services.save': false,
+            'services.save': true,
             'services.read': false,
-            'playwright.run': false,
-            'playwright.acceptance.debug.start': true, // default to on
+            'playwright.run': true,
+            'playwright.acceptance.debug.start': true,
             'playwright.acceptance.debug.finish': true,
             'playwright.acceptance.debug.error': true,
             'playwright.acceptance.studio.start': true,
