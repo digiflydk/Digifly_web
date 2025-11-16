@@ -208,6 +208,12 @@ async function runPlaywrightAcceptance(suiteId: AcceptanceSuiteId | null): Promi
 }
 
 
+type RunOptions = {
+    suiteId: AcceptanceSuiteId | null;
+    triggerSource: QARunTrigger;
+}
+
+
 export async function runStudioAcceptanceOnce({
   suiteId,
   triggerSource = 'studioSelftest',
@@ -241,7 +247,7 @@ export async function runStudioAcceptanceOnce({
     if (suiteId === 'hero-banner-colors') {
         const specFiles = await fg('tests/acceptance/**/*.spec.ts', { absolute: true });
         await logAdminAction({
-            action: 'playwright.acceptance.studio.start',
+            action: 'playwright.acceptance.selftest.diagnostics',
             status: 'ok',
             path: `qaRuns/${runId}`,
             taskId: suiteId,
@@ -288,7 +294,7 @@ export async function runStudioAcceptanceOnce({
     });
 
     await logAdminAction({
-      action: "playwright.acceptance.studio.finish",
+      action: "playwright.acceptance.selftest.diagnostics",
       status: parsedResult.status,
       path: `qaRuns/${runId}`,
       taskId: suiteId,

@@ -19,7 +19,8 @@ export type AdminAction =
     | "playwright.acceptance.debug.error"
     | "playwright.acceptance.studio.start"
     | "playwright.acceptance.studio.finish"
-    | "playwright.acceptance.studio.error";
+    | "playwright.acceptance.studio.error"
+    | "playwright.acceptance.selftest.diagnostics";
 
 export interface AuditLog {
   action: AdminAction;
@@ -116,6 +117,7 @@ export async function getLogSettings(): Promise<LoggingSettings> {
             'playwright.acceptance.studio.start': true,
             'playwright.acceptance.studio.finish': true,
             'playwright.acceptance.studio.error': true,
+            'playwright.acceptance.selftest.diagnostics': true,
         } as any,
     };
     const settings = await getLoggingSettingsServer();
