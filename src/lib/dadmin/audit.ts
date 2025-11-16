@@ -1,8 +1,6 @@
-// DGF-423: This file may be imported by tests, so 'server-only' must be guarded.
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  require('server-only');
-} catch {}
+
+"use server";
+import "server-only";
 
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getAdminApp } from "@/lib/firebase-admin";
@@ -48,7 +46,7 @@ export interface LoggingSettings {
 let settingsCache: { settings: LoggingSettings; timestamp: number } | null = null;
 const CACHE_TTL_MS = 1000 * 30; // 30 seconds
 
-async function getLoggingSettings(): Promise<LoggingSettings | null> {
+async function getLoggingSettingsServer(): Promise<LoggingSettings | null> {
   const now = Date.now();
   if (settingsCache && (now - settingsCache.timestamp < CACHE_TTL_MS)) {
     return settingsCache.settings;
@@ -72,7 +70,7 @@ async function getLoggingSettings(): Promise<LoggingSettings | null> {
 export async function logAdminAction(
   input: Omit<AuditLog, "ts" | "actorUid" | "actorEmail">
 ) {
-  const loggingSettings = await getLoggingSettings();
+  const loggingSettings = await getLoggingSettingsServer();
 
   // Check if logging is globally disabled or disabled for this specific action
   if (!loggingSettings?.enabled || !loggingSettings.actions[input.action]) {
@@ -120,7 +118,7 @@ export async function getLogSettings(): Promise<LoggingSettings> {
             'playwright.acceptance.studio.error': true,
         } as any,
     };
-    const settings = await getLoggingSettings();
+    const settings = await getLoggingSettingsServer();
     return settings ? { ...defaultSettings, ...settings, actions: { ...defaultSettings.actions, ...settings.actions }} : defaultSettings;
 }
 

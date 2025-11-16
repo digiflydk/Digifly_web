@@ -2,7 +2,8 @@
 "use client";
 
 import { useEffect, useState, useTransition } from 'react';
-import { getLogSettings, saveLogSettings, type LoggingSettings } from '@/lib/dadmin/audit';
+import { getLogSettings, saveLogSettings } from './actions';
+import type { LoggingSettings } from '@/lib/dadmin/audit';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
