@@ -1,2 +1,44 @@
-<testsuites id="" name="" tests="0" failures="0" skipped="0" errors="0" time="0.03828999999999996">
+<testsuites id="" name="" tests="2" failures="2" skipped="0" errors="0" time="12.486759">
+<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-16T23:02:18.410Z" hostname="acceptance" tests="2" failures="2" skipped="0" time="0.491" errors="0">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.24">
+<failure message="homepage.acceptance.spec.ts:73:9 DGF-429 — can save hero overlay color &amp; opacity and read it back" type="FAILURE">
+<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:73:9 › @suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color & opacity and read it back 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: undefined
+
+       95 |
+       96 |         const slide0 = readData?.hero?.slides?.[0];
+    >  97 |         expect(slide0?.overlay?.enabled).toBe(true);
+          |                                          ^
+       98 |         expect(slide0?.overlay?.cmyk?.c).toBe(10);
+       99 |         expect(slide0?.overlay?.opacityPercent).toBe(65);
+      100 |     });
+        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:97:42
+]]>
+</failure>
+</testcase>
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.251">
+<failure message="homepage.acceptance.spec.ts:102:9 DGF-429 — can save hero text colors and read them back" type="FAILURE">
+<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:102:9 › @suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "#123456"
+    Received: undefined
+
+      119 |
+      120 |         const slide0 = readData?.hero?.slides?.[0];
+    > 121 |         expect(slide0?.textColor).toBe('#123456');
+          |                                   ^
+      122 |     });
+      123 | });
+      124 |
+        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:121:35
+]]>
+</failure>
+</testcase>
+</testsuite>
 </testsuites>
