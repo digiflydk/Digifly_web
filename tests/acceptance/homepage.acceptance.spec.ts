@@ -1,10 +1,11 @@
 
-// Acceptance tests for DGF-406, DGF-416 & DGF-429 (homepage regression)
+// Acceptance tests for DGF-406, DGF-416, DGF-429 (homepage regression)
 import { test, expect } from '@playwright/test';
 import { getHomepage, saveHomepage } from '@/lib/cms-api';
 import type { HomePage } from '@/lib/types';
 import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from "deepmerge";
+import { cmykToRgba } from '@/lib/utils';
 
 let originalHomepageData: HomePage;
 
@@ -111,5 +112,45 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
 
         const slide0 = readData?.hero?.slides?.[0];
         expect(slide0?.textColor).toBe('#123456');
+    });
+
+    test('DGF-429 — hero overlay color & opacity is rendered on the homepage', async ({ page }) => {
+        const currentData = await getHomepage();
+        const overlaySettings = {
+            enabled: true,
+            cmyk: { c: 10, m: 20, y: 30, k: 40 },
+            opacityPercent: 65,
+        };
+
+        const updatedPayload: HomePage = deepmerge(currentData, {
+            hero: {
+                slides: [ { overlay: overlaySettings } ]
+            }
+        }, { arrayMerge: (_d, s) => s });
+
+        await saveHomepage(updatedPayload);
+        await page.goto('/');
+
+        const hero = page.getByTestId('homepage-hero');
+        // The overlay is the div immediately after the animated image div
+        const overlay = hero.locator('div').nth(1);
+
+        const expectedColor = cmykToRgba(10, 20, 30, 40, 0.65);
+        await expect(overlay).toHaveCSS('background-color', expectedColor);
+    });
+
+    test('DGF-429 — hero text color is rendered on the homepage', async ({ page }) => {
+        const currentData = await getHomepage();
+        const updatedPayload: HomePage = deepmerge(currentData, {
+            hero: {
+                slides: [ { textColor: '#123456' } ]
+            }
+        }, { arrayMerge: (_d, s) => s });
+
+        await saveHomepage(updatedPayload);
+        await page.goto('/');
+
+        const heroHeading = page.getByTestId('homepage-hero').locator('h1');
+        await expect(heroHeading).toHaveCSS('color', 'rgb(18, 52, 86)');
     });
 });
