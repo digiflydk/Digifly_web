@@ -7,6 +7,9 @@ import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from "deepmerge";
 import { cmykToRgba } from '@/lib/utils';
 import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import Hero from '@/components/sections/hero';
 
 let originalHomepageData: HomePage;
 
@@ -75,7 +78,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
             hero: {
                 slides: [
                     {
-                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
+                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
                         overlay: {
                             enabled: true,
                             cmyk: { c: 10, m: 20, y: 30, k: 40 },
@@ -101,7 +104,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
             hero: {
                 slides: [
                     {
-                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
+                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
                         textColor: '#123456',
                     },
                 ]
@@ -139,7 +142,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         expect(vm.shouldRenderOverlay).toBe(true);
         expect(vm.overlayColor).toBe(expectedRgba);
     });
-
+    
     // Node-only test for frontend logic
     test('DGF-457 — hero text color is mapped correctly for frontend', async () => {
         const currentData = await getHomepage();
@@ -155,5 +158,44 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
 
         expect(vm.textColor).toBe('#abcdef');
+    });
+
+    test('DGF-460 — hero text color from CMS is applied in rendered hero markup', async () => {
+        const TEST_TEXT_COLOR = '#f1f1f1';
+
+        // 1) Read current homepage data as base
+        const currentData = await getHomepage();
+
+        // 2) Create new payload with specific textColor on the first hero slide
+        const updatedPayload: HomePage = deepmerge(currentData, {
+            hero: {
+                slides: [
+                    {
+                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
+                        textColor: TEST_TEXT_COLOR,
+                    },
+                ],
+            },
+        }, {
+            arrayMerge: (_destination, source) => source,
+        });
+
+        await saveHomepage(updatedPayload);
+
+        // 3) Read homepage again so we use the same code path as the frontend
+        const readData = await getHomepage();
+        const slide0 = readData?.hero?.slides?.[0] as HeroSlide;
+        expect(slide0).toBeTruthy();
+
+        // 4) Map the slide to the same view model the Hero component uses
+        const vm = mapHeroSlideToViewModel(slide0);
+
+        // 5) Render the real Hero component (SSR, no browser)
+        const html = renderToString(
+            <Hero data={{ slides: [vm] }} />
+        );
+
+        // 6) Assert that the rendered markup contains the CMS text color
+        expect(html).toContain(TEST_TEXT_COLOR);
     });
 });
