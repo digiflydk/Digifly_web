@@ -103,19 +103,19 @@ export default function Hero({ data }: { data?: HeroData | null }) {
             )}
             
             <div className="container relative flex items-center py-24 md:py-28 h-full">
-                <div className="max-w-2xl text-white">
+                <div className="max-w-2xl">
                     {currentSlide.eyebrow && (
-                        <p className="text-sm font-semibold tracking-wide text-white/80 mb-2" style={textStyle}>
+                        <p className="text-sm font-semibold tracking-wide mb-2 opacity-80" style={textStyle}>
                             {currentSlide.eyebrow}
                         </p>
                     )}
                     {currentSlide.heading && (
-                        <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-white" style={textStyle}>
+                        <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight" style={textStyle}>
                             {currentSlide.heading}
                         </h1>
                     )}
                     {currentSlide.body && (
-                        <div className="prose prose-lg mt-4 max-w-none text-white/90" style={textStyle}>
+                        <div className="prose prose-lg mt-4 max-w-none opacity-90" style={textStyle}>
                             <p>{currentSlide.body}</p>
                         </div>
                     )}
