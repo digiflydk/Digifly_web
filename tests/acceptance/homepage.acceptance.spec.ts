@@ -191,9 +191,8 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         const vm = mapHeroSlideToViewModel(slide0);
 
         // 5) Render the real Hero component (SSR, no browser)
-        const html = renderToString(
-            <Hero data={{ slides: [vm] }} />
-        );
+const html = renderToString(
+  React.createElement(Hero, { data: { slides: [vm] } });
 
         // 6) Assert that the rendered markup contains the CMS text color
         expect(html).toContain(TEST_TEXT_COLOR);
