@@ -78,7 +78,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
             hero: {
                 slides: [
                     {
-                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
+                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
                         overlay: {
                             enabled: true,
                             cmyk: { c: 10, m: 20, y: 30, k: 40 },
@@ -104,7 +104,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
             hero: {
                 slides: [
                     {
-                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
+                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
                         textColor: '#123456',
                     },
                 ]
@@ -166,7 +166,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         // 1) Read current homepage data as base
         const currentData = await getHomepage();
 
-        // 2) Create a new payload with a specific textColor on the first hero slide
+        // 2) Create new payload with specific textColor on the first hero slide
         const updatedPayload: HomePage = deepmerge(currentData, {
             hero: {
                 slides: [
@@ -192,7 +192,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
 
         // 5) Render the real Hero component (SSR, no browser)
         const html = renderToString(
-            React.createElement(Hero, { data: { slides: [vm as HeroSlide] } })
+            <Hero data={{ slides: [vm as HeroSlide] }} />
         );
 
         // 6) Assert that the rendered markup contains the CMS text color
