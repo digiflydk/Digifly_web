@@ -11,8 +11,7 @@ let originalHomepageData: HomePage;
 test.beforeAll(async () => {
   // Backup original data once before all tests in this file
   try {
-    const result = await getHomepage();
-    originalHomepageData = result.ok && result.data ? result.data : defaultHomepage;
+    originalHomepageData = await getHomepage();
   } catch (e) {
     console.warn("Could not read original homepage data, will restore with defaults.", e);
     originalHomepageData = defaultHomepage;
@@ -30,8 +29,7 @@ test.describe('@suite:homepage-cms-core DGF-416 / DGF-417 — Homepage CMS core'
   
   test('DGF-406 — can write and read hero heading without error', async () => {
     const markerHeading = `DGF-416 regression test - ${Date.now()}`;
-    const currentDataResult = await getHomepage();
-    const currentData = currentDataResult.ok ? currentDataResult.data : defaultHomepage;
+    const currentData = await getHomepage();
     
     const updatedPayload: HomePage = deepmerge(currentData, {
       hero: {
@@ -45,15 +43,13 @@ test.describe('@suite:homepage-cms-core DGF-416 / DGF-417 — Homepage CMS core'
     
     await saveHomepage(updatedPayload);
 
-    const readDataResult = await getHomepage();
-    const readData = readDataResult.ok ? readDataResult.data : null;
+    const readData = await getHomepage();
     
     expect(readData?.hero?.slides?.[0]?.heading).toBe(markerHeading);
   });
   
   test('DGF-416 — homepage.read returns expected data shape', async () => {
-    const result = await getHomepage();
-    const data = result.ok ? result.data : null;
+    const data = await getHomepage();
     
     expect(data).toHaveProperty('hero');
     expect(data).toHaveProperty('whatWeDo');
@@ -71,8 +67,7 @@ test.describe('@suite:homepage-cms-core DGF-416 / DGF-417 — Homepage CMS core'
 test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors', () => {
 
     test('DGF-429 — can save hero overlay color & opacity and read it back', async () => {
-        const currentDataResult = await getHomepage();
-        const currentData = currentDataResult.ok ? currentDataResult.data : defaultHomepage;
+        const currentData = await getHomepage();
 
         const updatedPayload: HomePage = deepmerge(currentData, {
             hero: {
@@ -90,8 +85,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         }, { arrayMerge: (_d, s) => s });
 
         await saveHomepage(updatedPayload);
-        const readDataResult = await getHomepage();
-        const readData = readDataResult.ok ? readDataResult.data : null;
+        const readData = await getHomepage();
 
         const slide0 = readData?.hero?.slides?.[0];
         expect(slide0?.overlay?.enabled).toBe(true);
@@ -100,8 +94,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
     });
 
     test('DGF-429 — can save hero text colors and read them back', async () => {
-        const currentDataResult = await getHomepage();
-        const currentData = currentDataResult.ok ? currentDataResult.data : defaultHomepage;
+        const currentData = await getHomepage();
         const updatedPayload: HomePage = deepmerge(currentData, {
             hero: {
                 slides: [
@@ -114,8 +107,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         }, { arrayMerge: (_d, s) => s });
 
         await saveHomepage(updatedPayload);
-        const readDataResult = await getHomepage();
-        const readData = readDataResult.ok ? readDataResult.data : null;
+        const readData = await getHomepage();
 
         const slide0 = readData?.hero?.slides?.[0];
         expect(slide0?.textColor).toBe('#123456');
