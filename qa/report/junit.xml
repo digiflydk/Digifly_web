@@ -1,14 +1,14 @@
-<testsuites id="" name="" tests="5" failures="1" skipped="0" errors="0" time="7.6189589999999985">
-<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-17T14:29:19.402Z" hostname="acceptance" tests="5" failures="1" skipped="0" time="1.792" errors="0">
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.285">
+<testsuites id="" name="" tests="5" failures="1" skipped="0" errors="0" time="6.765656999999999">
+<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-17T16:31:19.093Z" hostname="acceptance" tests="5" failures="1" skipped="0" time="1.075" errors="0">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.292">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.233">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.208">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero overlay color &amp; opacity is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.286">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero overlay color &amp; opacity is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.194">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero text color is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.383">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero text color is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.185">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-460 — hero text color from CMS is applied in rendered hero markup" classname="acceptance/homepage.acceptance.spec.ts" time="0.605">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-460 — hero text color from CMS is applied in rendered hero markup" classname="acceptance/homepage.acceptance.spec.ts" time="0.196">
 <failure message="homepage.acceptance.spec.ts:196:9 DGF-460 — hero text color from CMS is applied in rendered hero markup" type="FAILURE">
 <![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:196:9 › @suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-460 — hero text color from CMS is applied in rendered hero markup 
 

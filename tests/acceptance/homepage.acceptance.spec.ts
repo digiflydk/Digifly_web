@@ -215,6 +215,7 @@ test.describe(
             },
           },
           {
+            // Replace the slides array instead of merging element by element
             arrayMerge: (_destination, source) => source,
           },
         );
@@ -223,16 +224,28 @@ test.describe(
 
         // 3) Read homepage again so we use the same code path as the frontend
         const readData = await getHomepage();
-        const heroData = readData.hero;
-        expect(heroData).toBeTruthy();
-        expect(heroData.slides?.[0]?.textColor).toBe(TEST_TEXT_COLOR);
+        const heroCms = readData.hero;
+        expect(heroCms).toBeTruthy();
+        expect(heroCms.slides?.[0]?.textColor).toBe(TEST_TEXT_COLOR);
 
-        // 4) Render the real Hero component (SSR, no browser)
+        // 4) Map CMS slides to the SAME view model the Hero component uses
+        const heroViewModel = {
+          ...heroCms,
+          slides:
+            heroCms.slides?.map((slide) =>
+              mapHeroSlideToViewModel(slide as HeroSlide),
+            ) ?? [],
+        };
+
+        // 5) Deep-clone the view model to remove any Playwright metadata
+        const cleanVm = JSON.parse(JSON.stringify(heroViewModel));
+
+        // 6) Render the real Hero component (SSR, no browser)
         const html = renderToString(
-          React.createElement(Hero, { data: heroData }),
+          React.createElement(Hero, { data: cleanVm }),
         );
 
-        // 5) Assert that the rendered markup contains the CMS text color
+        // 7) Assert that the rendered markup contains the CMS text color
         expect(html).toContain(TEST_TEXT_COLOR);
       },
     );
