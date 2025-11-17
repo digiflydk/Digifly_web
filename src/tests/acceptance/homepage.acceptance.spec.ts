@@ -1,3 +1,4 @@
+
 // Acceptance tests for DGF-406, DGF-416, DGF-429 (homepage regression)
 import { test, expect } from '@playwright/test';
 import React from 'react';
@@ -7,7 +8,7 @@ import type { HomePage, HeroSlide } from '@/lib/types';
 import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from "deepmerge";
 import { cmykToRgba } from '@/lib/utils';
-import { mapHeroSlideToViewModel, type HeroViewModel } from '@/lib/hero-style-utils';
+import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
 import Hero from '@/components/sections/hero';
 
 let originalHomepageData: HomePage;
@@ -77,7 +78,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
             hero: {
                 slides: [
                     {
-                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
+                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
                         overlay: {
                             enabled: true,
                             cmyk: { c: 10, m: 20, y: 30, k: 40 },
@@ -103,7 +104,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
             hero: {
                 slides: [
                     {
-                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
+                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
                         textColor: '#123456',
                     },
                 ]
@@ -117,7 +118,6 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         expect(slide0?.textColor).toBe('#123456');
     });
 
-    // Node-only test for frontend logic
     test('DGF-457 — hero overlay color & opacity is mapped correctly for frontend', async () => {
         const currentData = await getHomepage();
         const overlaySettings = {
@@ -142,7 +142,24 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         expect(vm.overlayColor).toBe(expectedRgba);
     });
 
-    // Node-only test for frontend logic, strengthened to check markup
+    // Node-only test for frontend logic mapping
+    test('DGF-457 — hero text color is mapped correctly for frontend', async () => {
+        const currentData = await getHomepage();
+        const updatedPayload: HomePage = deepmerge(currentData, {
+            hero: { slides: [{ textColor: '#abcdef' }] }
+        }, { arrayMerge: (_d, s) => s });
+
+        await saveHomepage(updatedPayload);
+        const readData = await getHomepage();
+        const slide0 = readData?.hero?.slides?.[0];
+
+        // Test the mapping logic directly
+        const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
+
+        expect(vm.textColor).toBe('#abcdef');
+    });
+    
+    // Strengthened test to check actual rendered output
     test('DGF-460 — hero text color from CMS is applied in rendered hero markup', async () => {
         const TEST_TEXT_COLOR = '#f1f1f1';
         const currentData = await getHomepage();
@@ -151,7 +168,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
             hero: {
                 slides: [
                     {
-                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
+                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
                         textColor: TEST_TEXT_COLOR,
                     },
                 ]
@@ -164,7 +181,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
 
         expect(slide0).toBeTruthy();
         
-        // Render the actual Hero component with this view model (SSR, no browser)
+        // Render the actual Hero component with this data (SSR, no browser)
         const html = renderToString(
             <Hero data={readData.hero} />
         );
