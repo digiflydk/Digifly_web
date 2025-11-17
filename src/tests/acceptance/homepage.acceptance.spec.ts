@@ -1,14 +1,14 @@
 
 // Acceptance tests for DGF-406, DGF-416, DGF-429 (homepage regression)
 import { test, expect } from '@playwright/test';
-import React from 'react';
-import { renderToString } from 'react-dom/server';
 import { getHomepage, saveHomepage } from '@/lib/cms-api';
 import type { HomePage, HeroSlide } from '@/lib/types';
 import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from "deepmerge";
 import { cmykToRgba } from '@/lib/utils';
 import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
 import Hero from '@/components/sections/hero';
 
 let originalHomepageData: HomePage;
@@ -143,7 +143,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         expect(vm.overlayColor).toBe(expectedRgba);
     });
     
-    // Node-only test for frontend logic mapping
+    // Node-only test for frontend logic
     test('DGF-457 — hero text color is mapped correctly for frontend', async () => {
         const currentData = await getHomepage();
         const updatedPayload: HomePage = deepmerge(currentData, {
@@ -171,7 +171,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
             hero: {
                 slides: [
                     {
-                        ...(currentData.hero.slides?.[0] ?? defaultHeroSlide),
+                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
                         textColor: TEST_TEXT_COLOR,
                     },
                 ],
@@ -192,7 +192,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
 
         // 5) Render the real Hero component (SSR, no browser)
         const html = renderToString(
-            <Hero data={{ slides: [vm as HeroSlide] }} />
+            React.createElement(Hero, { data: { slides: [vm as HeroSlide] }})
         );
 
         // 6) Assert that the rendered markup contains the CMS text color
