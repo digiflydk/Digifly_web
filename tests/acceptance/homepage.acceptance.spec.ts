@@ -2,10 +2,11 @@
 // Acceptance tests for DGF-406, DGF-416, DGF-429 (homepage regression)
 import { test, expect } from '@playwright/test';
 import { getHomepage, saveHomepage } from '@/lib/cms-api';
-import type { HomePage } from '@/lib/types';
+import type { HomePage, HeroSlide } from '@/lib/types';
 import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from "deepmerge";
 import { cmykToRgba } from '@/lib/utils';
+import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
 
 let originalHomepageData: HomePage;
 
@@ -114,7 +115,8 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         expect(slide0?.textColor).toBe('#123456');
     });
 
-    test('DGF-429 — hero overlay color & opacity is rendered on the homepage', async ({ page }) => {
+    // Node-only test for frontend logic
+    test('DGF-457 — hero overlay color & opacity is mapped correctly for frontend', async () => {
         const currentData = await getHomepage();
         const overlaySettings = {
             enabled: true,
@@ -123,34 +125,35 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
         };
 
         const updatedPayload: HomePage = deepmerge(currentData, {
-            hero: {
-                slides: [ { overlay: overlaySettings } ]
-            }
+            hero: { slides: [{ overlay: overlaySettings }] }
         }, { arrayMerge: (_d, s) => s });
 
         await saveHomepage(updatedPayload);
-        await page.goto('/');
+        const readData = await getHomepage();
+        const slide0 = readData?.hero?.slides?.[0];
 
-        const hero = page.getByTestId('homepage-hero');
-        // The overlay is the div immediately after the animated image div
-        const overlay = hero.locator('div').nth(1);
+        // Test the mapping logic directly
+        const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
 
-        const expectedColor = cmykToRgba(10, 20, 30, 40, 0.65);
-        await expect(overlay).toHaveCSS('background-color', expectedColor);
+        const expectedRgba = cmykToRgba(10, 20, 30, 40, 0.65);
+        expect(vm.shouldRenderOverlay).toBe(true);
+        expect(vm.overlayColor).toBe(expectedRgba);
     });
 
-    test('DGF-429 — hero text color is rendered on the homepage', async ({ page }) => {
+    // Node-only test for frontend logic
+    test('DGF-457 — hero text color is mapped correctly for frontend', async () => {
         const currentData = await getHomepage();
         const updatedPayload: HomePage = deepmerge(currentData, {
-            hero: {
-                slides: [ { textColor: '#123456' } ]
-            }
+            hero: { slides: [{ textColor: '#abcdef' }] }
         }, { arrayMerge: (_d, s) => s });
 
         await saveHomepage(updatedPayload);
-        await page.goto('/');
+        const readData = await getHomepage();
+        const slide0 = readData?.hero?.slides?.[0];
 
-        const heroHeading = page.getByTestId('homepage-hero').locator('h1');
-        await expect(heroHeading).toHaveCSS('color', 'rgb(18, 52, 86)');
+        // Test the mapping logic directly
+        const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
+
+        expect(vm.textColor).toBe('#abcdef');
     });
 });

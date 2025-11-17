@@ -9,7 +9,7 @@ import { MediaImage } from "../ui/media-image";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { resolveCmsLink } from '@/lib/links';
-import { cmykToRgba } from '@/lib/utils';
+import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
 
 type HeroData = HomePage["hero"];
 
@@ -55,16 +55,9 @@ export default function Hero({ data }: { data?: HeroData | null }) {
 
     const { href, label, target, rel } = resolveCmsLink(currentSlide.cta);
 
-    const overlayEnabled = currentSlide.overlay?.enabled ?? true;
-    const cmyk = currentSlide.overlay?.cmyk ?? { c: 0, m: 0, y: 0, k: 80 };
-    const opacity = (currentSlide.overlay?.opacityPercent ?? 60) / 100;
-    const overlayColor = cmykToRgba(cmyk.c, cmyk.m, cmyk.y, cmyk.k, opacity);
-    
-    // Explicitly check for false, as undefined/null should default to true for legacy data
-    const shouldRenderOverlay = currentSlide.overlay?.enabled !== false;
-
-    const textStyle = currentSlide.textColor ? { color: currentSlide.textColor } : {};
-
+    // Use the mapping helper for style logic
+    const { overlayColor, textColor, shouldRenderOverlay } = mapHeroSlideToViewModel(currentSlide);
+    const textStyle = { color: textColor };
 
     return (
         <section

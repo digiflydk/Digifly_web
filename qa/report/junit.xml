@@ -1,8 +1,76 @@
-<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="10.152196">
-<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-17T08:19:49.393Z" hostname="acceptance" tests="2" failures="0" skipped="0" time="0.452" errors="0">
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.23">
+<testsuites id="" name="" tests="4" failures="2" skipped="0" errors="0" time="9.326713000000002">
+<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-17T08:43:34.854Z" hostname="acceptance" tests="4" failures="2" skipped="0" time="0.537" errors="0">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.276">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.222">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.232">
+</testcase>
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — hero overlay color &amp; opacity is rendered on the homepage" classname="acceptance/homepage.acceptance.spec.ts" time="0.02">
+<failure message="homepage.acceptance.spec.ts:117:9 DGF-429 — hero overlay color &amp; opacity is rendered on the homepage" type="FAILURE">
+<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:117:9 › @suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — hero overlay color & opacity is rendered on the homepage 
+
+    Error: browserType.launch: 
+    ╔══════════════════════════════════════════════════════╗
+    ║ Host system is missing dependencies to run browsers. ║
+    ║ Missing libraries:                                   ║
+    ║     libglib-2.0.so.0                                 ║
+    ║     libgobject-2.0.so.0                              ║
+    ║     libnspr4.so                                      ║
+    ║     libnss3.so                                       ║
+    ║     libnssutil3.so                                   ║
+    ║     libdbus-1.so.3                                   ║
+    ║     libgio-2.0.so.0                                  ║
+    ║     libatk-1.0.so.0                                  ║
+    ║     libatk-bridge-2.0.so.0                           ║
+    ║     libexpat.so.1                                    ║
+    ║     libatspi.so.0                                    ║
+    ║     libX11.so.6                                      ║
+    ║     libXcomposite.so.1                               ║
+    ║     libXdamage.so.1                                  ║
+    ║     libXext.so.6                                     ║
+    ║     libXfixes.so.3                                   ║
+    ║     libXrandr.so.2                                   ║
+    ║     libgbm.so.1                                      ║
+    ║     libxcb.so.1                                      ║
+    ║     libxkbcommon.so.0                                ║
+    ║     libudev.so.1                                     ║
+    ║     libasound.so.2                                   ║
+    ╚══════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — hero text color is rendered on the homepage" classname="acceptance/homepage.acceptance.spec.ts" time="0.009">
+<failure message="homepage.acceptance.spec.ts:142:9 DGF-429 — hero text color is rendered on the homepage" type="FAILURE">
+<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:142:9 › @suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — hero text color is rendered on the homepage 
+
+    Error: browserType.launch: 
+    ╔══════════════════════════════════════════════════════╗
+    ║ Host system is missing dependencies to run browsers. ║
+    ║ Missing libraries:                                   ║
+    ║     libglib-2.0.so.0                                 ║
+    ║     libgobject-2.0.so.0                              ║
+    ║     libnspr4.so                                      ║
+    ║     libnss3.so                                       ║
+    ║     libnssutil3.so                                   ║
+    ║     libdbus-1.so.3                                   ║
+    ║     libgio-2.0.so.0                                  ║
+    ║     libatk-1.0.so.0                                  ║
+    ║     libatk-bridge-2.0.so.0                           ║
+    ║     libexpat.so.1                                    ║
+    ║     libatspi.so.0                                    ║
+    ║     libX11.so.6                                      ║
+    ║     libXcomposite.so.1                               ║
+    ║     libXdamage.so.1                                  ║
+    ║     libXext.so.6                                     ║
+    ║     libXfixes.so.3                                   ║
+    ║     libXrandr.so.2                                   ║
+    ║     libgbm.so.1                                      ║
+    ║     libxcb.so.1                                      ║
+    ║     libxkbcommon.so.0                                ║
+    ║     libudev.so.1                                     ║
+    ║     libasound.so.2                                   ║
+    ╚══════════════════════════════════════════════════════╝
+]]>
+</failure>
 </testcase>
 </testsuite>
 </testsuites>
