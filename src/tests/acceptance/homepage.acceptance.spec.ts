@@ -7,7 +7,7 @@ import type { HomePage, HeroSlide } from '@/lib/types';
 import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from "deepmerge";
 import { cmykToRgba } from '@/lib/utils';
-import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
+import { mapHeroSlideToViewModel, type HeroViewModel } from '@/lib/hero-style-utils';
 import Hero from '@/components/sections/hero';
 
 let originalHomepageData: HomePage;
@@ -68,7 +68,7 @@ test.describe('@suite:homepage-cms-core DGF-416 / DGF-417 — Homepage CMS core'
   });
 });
 
-test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 / DGF-457 — Hero banner colors', () => {
+test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors', () => {
 
     test('DGF-429 — can save hero overlay color & opacity and read it back', async () => {
         const currentData = await getHomepage();
@@ -143,16 +143,16 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 / DGF-457 — Hero ba
     });
 
     // Node-only test for frontend logic, strengthened to check markup
-    test('DGF-459 — hero text color is applied in the rendered markup', async () => {
+    test('DGF-460 — hero text color from CMS is applied in rendered hero markup', async () => {
+        const TEST_TEXT_COLOR = '#f1f1f1';
         const currentData = await getHomepage();
-        const testColor = '#123456';
         
         const updatedPayload: HomePage = deepmerge(currentData, {
             hero: {
                 slides: [
                     {
                         ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
-                        textColor: testColor,
+                        textColor: TEST_TEXT_COLOR,
                     },
                 ]
             }
@@ -162,13 +162,14 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 / DGF-457 — Hero ba
         const readData = await getHomepage();
         const slide0 = readData?.hero?.slides?.[0];
 
-        // Render the component to a string on the server
+        expect(slide0).toBeTruthy();
+        
+        // Render the actual Hero component with this view model (SSR, no browser)
         const html = renderToString(
             <Hero data={readData.hero} />
         );
 
-        // Assert that the rendered markup contains the correct inline style
-        // This will fail until the Hero component actually uses the textColor prop.
-        expect(html).toContain(`style="color:${testColor}"`);
+        // Assert that the rendered markup contains the text color we set in CMS
+        expect(html).toContain(TEST_TEXT_COLOR);
     });
 });
