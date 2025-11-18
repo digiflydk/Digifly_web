@@ -1,7 +1,7 @@
 
 'use server';
 
-import { deleteCase as deleteCaseServer } from '@/lib/cms-server';
+import { deleteCaseServer } from '@/lib/cms-server';
 import { logAdminAction } from '@/lib/dadmin/audit';
 import { revalidatePath } from 'next/cache';
 
