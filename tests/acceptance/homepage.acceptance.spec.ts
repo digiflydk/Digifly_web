@@ -198,5 +198,41 @@ test.describe(
         expect(vm.textColor).toBe(TEST_TEXT_COLOR);
       },
     );
+
+    test('DGF-467 — hero textColor from CMS matches the color returned by /api/cms/home', async () => {
+        const TEST_COLOR = '#ff22aa';
+
+        // Step 1: read current CMS data
+        const currentData = await getHomepage();
+
+        // Step 2: update CMS with controlled test color
+        const updatedPayload: HomePage = deepmerge(currentData, {
+            hero: {
+                slides: [
+                    {
+                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
+                        textColor: TEST_COLOR,
+                    },
+                ],
+            },
+        }, { arrayMerge: (_d, s) => s });
+
+        await saveHomepage(updatedPayload);
+
+        // Step 3: read back via cms-api (Firestore)
+        const cmsData = await getHomepage();
+        const cmsColor = cmsData?.hero?.slides?.[0]?.textColor;
+        expect(cmsColor).toBe(TEST_COLOR);
+
+        // Step 4: call the real API endpoint (same as frontend)
+        const res = await fetch('http://localhost:3000/api/cms/pages/home');
+        const apiJson = await res.json();
+        
+        // The API returns { ok, data } so we need to access data
+        const apiColor = apiJson?.data?.hero?.slides?.[0]?.textColor;
+
+        // Step 5: verify API matches CMS and test color
+        expect(apiColor).toBe(TEST_COLOR);
+    });
   },
 );

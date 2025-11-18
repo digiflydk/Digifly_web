@@ -1,34 +1,17 @@
 
-export const runtime = 'nodejs';
-import { getHomepage, updateHomepage } from "@/lib/cms-api";
-import { NextResponse, NextRequest } from "next/server";
-import { ZodError } from "zod";
+import { getHomepage } from "@/lib/cms-api";
+import { NextResponse } from "next/server";
 
-const json = (data: any, status = 200) => NextResponse.json(data, { status });
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  try {
-    const result = await getHomepage();
-    return json({ ok: true, data: result.data }, 200);
-  } catch (error: any) {
-    console.error(`[GET /api/cms/pages/home]`, error);
-    return json({ ok: false, error: "Failed to load homepage" }, 500);
-  }
-}
+  const homepage = await getHomepage();
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const updated = await updateHomepage(body);
-    return json({ ok: true, data: updated }, 200);
-  } catch (error: any) {
-    if (error instanceof ZodError) {
-      return json(
-        { ok: false, error: "Validation failed", issues: error.issues },
-        400
-      );
+  return NextResponse.json(homepage, {
+    status: 200,
+    headers: {
+      'Cache-Control': 'public, s-maxage=0, stale-while-revalidate=0'
     }
-    console.error(`[POST /api/cms/pages/home]`, error);
-    return json({ ok: false, error: "Failed to update homepage" }, 500);
-  }
+  });
 }
