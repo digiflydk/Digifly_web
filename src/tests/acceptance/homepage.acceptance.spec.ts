@@ -1,4 +1,3 @@
-
 // Acceptance tests for DGF-406, DGF-416, DGF-429, DGF-457, DGF-467, DGF-471 (homepage regression)
 import { test, expect } from '@playwright/test';
 import { getHomepage, saveHomepage } from '@/lib/cms-api';
@@ -105,6 +104,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
 
   test('DGF-429 — can save hero text colors and read them back', async () => {
     const currentData = await getHomepage();
+
     const updatedPayload: HomePage = deepmerge(
       currentData,
       {
@@ -148,6 +148,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
     const readData = await getHomepage();
     const slide0 = readData?.hero?.slides?.[0];
 
+    // Test the mapping logic directly
     const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
 
     const expectedRgba = cmykToRgba(10, 20, 30, 40, 0.65);
@@ -169,6 +170,7 @@ test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner color
     const readData = await getHomepage();
     const slide0 = readData?.hero?.slides?.[0];
 
+    // Test the mapping logic directly
     const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
 
     expect(vm.textColor).toBe('#abcdef');
