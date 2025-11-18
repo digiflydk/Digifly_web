@@ -1,12 +1,30 @@
-<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="6.829577">
-<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-18T07:09:54.245Z" hostname="acceptance" tests="4" failures="0" skipped="0" time="0.815" errors="0">
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.244">
+<testsuites id="" name="" tests="5" failures="1" skipped="0" errors="0" time="6.2953850000000005">
+<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-18T18:15:56.307Z" hostname="acceptance" tests="5" failures="1" skipped="0" time="0.882" errors="0">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.212">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.198">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.179">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero overlay color &amp; opacity is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.202">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero overlay color &amp; opacity is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.158">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero text color is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.171">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero text color is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.169">
+</testcase>
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-467 — hero textColor from CMS matches the color returned by /api/cms/home" classname="acceptance/homepage.acceptance.spec.ts" time="0.164">
+<failure message="homepage.acceptance.spec.ts:202:9 DGF-467 — hero textColor from CMS matches the color returned by /api/cms/home" type="FAILURE">
+<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:202:9 › @suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-467 — hero textColor from CMS matches the color returned by /api/cms/home 
+
+    TypeError: fetch failed
+
+      226 |
+      227 |         // Step 4: call the real API endpoint (same as frontend)
+    > 228 |         const res = await fetch('http://localhost:3000/api/cms/pages/home');
+          |                     ^
+      229 |         const apiJson = await res.json();
+      230 |         
+      231 |         // The API returns { ok, data } so we need to access data
+        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:228:21
+    [cause]: Error: connect ECONNREFUSED 127.0.0.1:3000
+]]>
+</failure>
 </testcase>
 </testsuite>
 </testsuites>

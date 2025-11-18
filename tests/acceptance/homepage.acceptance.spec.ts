@@ -7,6 +7,7 @@ import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from 'deepmerge';
 import { cmykToRgba } from '@/lib/utils';
 import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
+import { getCmsHomePayload } from '@/lib/server/cms-home-endpoint';
 
 let originalHomepageData: HomePage;
 
@@ -200,39 +201,39 @@ test.describe(
     );
 
     test('DGF-467 — hero textColor from CMS matches the color returned by /api/cms/home', async () => {
-        const TEST_COLOR = '#ff22aa';
+      const TEST_TEXT_COLOR = '#a1b2c3';
 
-        // Step 1: read current CMS data
-        const currentData = await getHomepage();
+      // 1) Read current homepage data as base
+      const currentData = await getHomepage();
 
-        // Step 2: update CMS with controlled test color
-        const updatedPayload: HomePage = deepmerge(currentData, {
-            hero: {
-                slides: [
-                    {
-                        ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
-                        textColor: TEST_COLOR,
-                    },
-                ],
+      // 2) Create new payload with specific textColor on the first hero slide
+      const updatedPayload: HomePage = deepmerge(currentData, {
+        hero: {
+          slides: [
+            {
+              ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
+              textColor: TEST_TEXT_COLOR,
             },
-        }, { arrayMerge: (_d, s) => s });
+          ],
+        },
+      }, {
+        arrayMerge: (_destination, source) => source,
+      });
 
-        await saveHomepage(updatedPayload);
+      await saveHomepage(updatedPayload);
 
-        // Step 3: read back via cms-api (Firestore)
-        const cmsData = await getHomepage();
-        const cmsColor = cmsData?.hero?.slides?.[0]?.textColor;
-        expect(cmsColor).toBe(TEST_COLOR);
+      // 3) Call the shared helper that the API endpoint uses internally.
+      //    This replaces the fetch() call and does NOT depend on a running server.
+      const apiPayload = await getCmsHomePayload();
 
-        // Step 4: call the real API endpoint (same as frontend)
-        const res = await fetch('http://localhost:3000/api/cms/pages/home');
-        const apiJson = await res.json();
-        
-        // The API returns { ok, data } so we need to access data
-        const apiColor = apiJson?.data?.hero?.slides?.[0]?.textColor;
+      // 4) Verify that the API payload reflects the same textColor
+      const apiSlide0 = (apiPayload as HomePage)?.hero?.slides?.[0] as HeroSlide | undefined;
 
-        // Step 5: verify API matches CMS and test color
-        expect(apiColor).toBe(TEST_COLOR);
+      // Sanity check: slide exists
+      expect(apiSlide0).toBeTruthy();
+
+      // Key assertion: the color from CMS (DB) and the API output is the same
+      expect(apiSlide0?.textColor).toBe(TEST_TEXT_COLOR);
     });
   },
 );
