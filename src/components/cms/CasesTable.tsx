@@ -1,7 +1,6 @@
 
 "use client";
 import React, { useState } from "react";
-import { deleteCase } from "@/lib/cms-api";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, PlusCircle, Trash2 } from "lucide-react";
@@ -16,6 +15,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import type { CaseDoc } from "@/lib/types";
+import { deleteCaseAction } from "@/app/dadmin/cases/actions";
 
 export default function CasesTable({ initialRows }: { initialRows: Partial<CaseDoc>[] }) {
   const [rows, setRows] = useState(initialRows);
@@ -33,7 +33,10 @@ export default function CasesTable({ initialRows }: { initialRows: Partial<CaseD
     setRows(currentCases => currentCases.filter(c => c.id !== deleteCandidate.id));
     
     try {
-      await deleteCase(deleteCandidate.id);
+      const result = await deleteCaseAction(deleteCandidate.id);
+      if (!result.ok) {
+        throw new Error(result.error || "Could not delete case study.");
+      }
       toast({ title: "Success", description: "Case study deleted." });
     } catch (e: any) {
       // Rollback on error
