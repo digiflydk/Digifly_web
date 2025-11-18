@@ -4,8 +4,19 @@
 import type { HeroSlide } from "@/lib/types";
 import { cmykToRgba } from "@/lib/utils";
 
-// This helper is safe for server or client.
-// It maps CMS data to frontend view model properties.
+const DEFAULT_HERO_TEXT_COLOR = '#ffffff';
+
+export function getHeroTextColorFromSlide(slide: HeroSlide | null | undefined): string {
+  if (!slide) return DEFAULT_HERO_TEXT_COLOR;
+
+  // If CMS textColor is set, always prefer it
+  if (slide.textColor && slide.textColor.trim().length > 0) {
+    return slide.textColor;
+  }
+
+  // Otherwise fall back to the existing default behaviour
+  return DEFAULT_HERO_TEXT_COLOR;
+}
 
 export type HeroViewModel = {
   overlayColor: string;
@@ -22,7 +33,7 @@ export function mapHeroSlideToViewModel(slide: HeroSlide): HeroViewModel {
   
   const shouldRenderOverlay = overlayEnabled !== false;
 
-  const textColor = slide.textColor || '#FFFFFF';
+  const textColor = getHeroTextColorFromSlide(slide);
   
   return {
     overlayColor,

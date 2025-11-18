@@ -1,42 +1,12 @@
-<testsuites id="" name="" tests="5" failures="1" skipped="0" errors="0" time="4.746643">
-<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-17T16:40:49.038Z" hostname="acceptance" tests="5" failures="1" skipped="0" time="0.985" errors="0">
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.199">
+<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="8.563914">
+<testsuite name="acceptance/homepage.acceptance.spec.ts" timestamp="2025-11-18T06:43:41.731Z" hostname="acceptance" tests="4" failures="0" skipped="0" time="0.852" errors="0">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero overlay color &amp; opacity and read it back" classname="acceptance/homepage.acceptance.spec.ts" time="0.266">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.227">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-429 — can save hero text colors and read them back" classname="acceptance/homepage.acceptance.spec.ts" time="0.189">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero overlay color &amp; opacity is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.176">
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero overlay color &amp; opacity is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.189">
 </testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero text color is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.17">
-</testcase>
-<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-460 — hero text color from CMS is applied in rendered hero markup" classname="acceptance/homepage.acceptance.spec.ts" time="0.213">
-<failure message="homepage.acceptance.spec.ts:196:9 DGF-460 — hero text color from CMS is applied in rendered hero markup" type="FAILURE">
-<![CDATA[  [acceptance] › acceptance/homepage.acceptance.spec.ts:196:9 › @suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-460 — hero text color from CMS is applied in rendered hero markup 
-
-    Error: Objects are not valid as a React child (found: object with keys {__pw_type, type, props, key}). If you meant to render a collection of children, use an array instead.
-
-      242 |
-      243 |         // 6) Render the real Hero component (SSR, no browser)
-    > 244 |         const html = renderToString(
-          |                                    ^
-      245 |           React.createElement(Hero, { data: cleanVm }),
-      246 |         );
-      247 |
-        at renderNodeDestructiveImpl (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:6194:11)
-        at renderNodeDestructive (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:6091:14)
-        at renderIndeterminateComponent (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:5790:7)
-        at renderElement (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:5961:7)
-        at renderNodeDestructiveImpl (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:6119:11)
-        at renderNodeDestructive (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:6091:14)
-        at retryTask (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:6543:5)
-        at performWork (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:6591:7)
-        at /home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:6915:12
-        at scheduleWork (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:78:3)
-        at startWork (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:6914:3)
-        at renderToStringImpl (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:6988:3)
-        at renderToString (/home/user/studio/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js:7080:10)
-        at /home/user/studio/tests/acceptance/homepage.acceptance.spec.ts:244:36
-]]>
-</failure>
+<testcase name="@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors › DGF-457 — hero text color is mapped correctly for frontend" classname="acceptance/homepage.acceptance.spec.ts" time="0.208">
 </testcase>
 </testsuite>
 </testsuites>

@@ -57,6 +57,7 @@ export default function Hero({ data }: { data?: HeroData | null }) {
 
     // Use the mapping helper for style logic
     const { overlayColor, textColor, shouldRenderOverlay } = mapHeroSlideToViewModel(currentSlide);
+    const textStyle = textColor ? { color: textColor } : undefined;
 
     return (
         <section
@@ -104,17 +105,17 @@ export default function Hero({ data }: { data?: HeroData | null }) {
             <div className="container relative flex items-center py-24 md:py-28 h-full">
                 <div className="max-w-2xl">
                     {currentSlide.eyebrow && (
-                        <p className="text-sm font-semibold tracking-wide mb-2 opacity-80" style={{ color: textColor }}>
+                        <p className="text-sm font-semibold tracking-wide mb-2 opacity-80" style={textStyle}>
                             {currentSlide.eyebrow}
                         </p>
                     )}
                     {currentSlide.heading && (
-                        <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight" style={{ color: textColor }}>
+                        <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight" style={textStyle}>
                             {currentSlide.heading}
                         </h1>
                     )}
                     {currentSlide.body && (
-                        <div className="prose prose-lg mt-4 max-w-none opacity-90" style={{ color: textColor }}>
+                        <div className="prose prose-lg mt-4 max-w-none opacity-90" style={textStyle}>
                             <p>{currentSlide.body}</p>
                         </div>
                     )}
