@@ -223,17 +223,124 @@ test.describe(
       await saveHomepage(updatedPayload);
 
       // 3) Call the shared helper that the API endpoint uses internally.
-      //    This replaces the fetch() call and does NOT depend on a running server.
       const apiPayload = await getCmsHomePayload();
 
       // 4) Verify that the API payload reflects the same textColor
       const apiSlide0 = (apiPayload as HomePage)?.hero?.slides?.[0] as HeroSlide | undefined;
 
-      // Sanity check: slide exists
       expect(apiSlide0).toBeTruthy();
-
-      // Key assertion: the color from CMS (DB) and the API output is the same
       expect(apiSlide0?.textColor).toBe(TEST_TEXT_COLOR);
+    });
+
+    test('DGF-470 — hero slide core fields from CMS match /api/cms/home view model', async () => {
+        // Use a marker so we know we are reading our own data
+        const marker = `DGF-470-${Date.now()}`;
+
+        const TEST_VALUES = {
+          eyebrow: `Eyebrow ${marker}`,
+          heading: `Heading ${marker}`,
+          body: `Body ${marker}`,
+          ctaLabel: `CTA ${marker}`,
+          ctaInternalRef: 'contact',
+          textColor: '#112233',
+          imageSrc: 'https://example.com/dgf-470-test.png',
+          imageAlt: `Alt ${marker}`,
+          overlay: {
+            enabled: true,
+            cmyk: { c: 5, m: 10, y: 15, k: 20 },
+            opacityPercent: 55,
+          },
+        };
+
+        // 1) Read current homepage as base
+        const currentData = await getHomepage();
+
+        // 2) Write a single slide with our known marker values
+        const updatedPayload: HomePage = deepmerge(
+          currentData,
+          {
+            hero: {
+              slides: [
+                {
+                  ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
+                  eyebrow: TEST_VALUES.eyebrow,
+                  heading: TEST_VALUES.heading,
+                  body: TEST_VALUES.body,
+                  cta: {
+                    label: TEST_VALUES.ctaLabel,
+                    type: 'internal',
+                    internalRef: TEST_VALUES.ctaInternalRef,
+                    newTab: false,
+                  },
+                  textColor: TEST_VALUES.textColor,
+                  image: {
+                      src: TEST_VALUES.imageSrc,
+                      alt: TEST_VALUES.imageAlt
+                  },
+                  overlay: {
+                    enabled: TEST_VALUES.overlay.enabled,
+                    cmyk: TEST_VALUES.overlay.cmyk,
+                    opacityPercent: TEST_VALUES.overlay.opacityPercent,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            arrayMerge: (_destination, source) => source,
+          },
+        );
+
+        await saveHomepage(updatedPayload);
+
+        // 3) Read back from CMS to confirm Firestore write
+        const readData = await getHomepage();
+        const slide0 = readData?.hero?.slides?.[0] as HeroSlide;
+        expect(slide0).toBeTruthy();
+        
+        expect(slide0.eyebrow).toBe(TEST_VALUES.eyebrow);
+        expect(slide0.heading).toBe(TEST_VALUES.heading);
+        expect(slide0.body).toBe(TEST_VALUES.body);
+        expect(slide0.cta?.label).toBe(TEST_VALUES.ctaLabel);
+        expect(slide0.cta?.internalRef).toBe(TEST_VALUES.ctaInternalRef);
+        expect(slide0.cta?.type).toBe('internal');
+        expect(slide0.cta?.newTab).toBe(false);
+        expect(slide0.textColor).toBe(TEST_VALUES.textColor);
+        expect(slide0.image?.src).toBe(TEST_VALUES.imageSrc);
+        expect(slide0.image?.alt).toBe(TEST_VALUES.imageAlt);
+        expect(slide0.overlay?.enabled).toBe(TEST_VALUES.overlay.enabled);
+        expect(slide0.overlay?.cmyk?.c).toBe(TEST_VALUES.overlay.cmyk.c);
+        expect(slide0.overlay?.opacityPercent).toBe(TEST_VALUES.overlay.opacityPercent);
+
+        // 4) Fetch the public homepage view model and assert the same values there
+        const vmJson = await getCmsHomePayload();
+
+        // The shape can vary slightly, but we expect hero.slides[0] to exist
+        const vmHero = vmJson?.hero;
+        expect(vmHero).toBeTruthy();
+
+        const vmSlide0 = vmHero.slides?.[0];
+        expect(vmSlide0).toBeTruthy();
+
+        // Text content
+        expect(vmSlide0.eyebrow).toBe(TEST_VALUES.eyebrow);
+        expect(vmSlide0.heading).toBe(TEST_VALUES.heading);
+        expect(vmSlide0.body).toBe(TEST_VALUES.body);
+
+        // CTA
+        expect(vmSlide0.cta?.label).toBe(TEST_VALUES.ctaLabel);
+        expect(vmSlide0.cta?.internalRef).toBe(TEST_VALUES.ctaInternalRef);
+        
+        // Text color
+        expect(vmSlide0.textColor).toBe(TEST_VALUES.textColor);
+
+        // Image and alt text
+        expect(vmSlide0.image?.src).toBe(TEST_VALUES.imageSrc);
+        expect(vmSlide0.image?.alt).toBe(TEST_VALUES.imageAlt);
+
+        if ('overlay' in vmSlide0) {
+            expect(vmSlide0.overlay?.enabled).toBe(true);
+        }
     });
   },
 );
