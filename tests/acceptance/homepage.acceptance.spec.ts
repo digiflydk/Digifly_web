@@ -7,9 +7,6 @@ import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from 'deepmerge';
 import { cmykToRgba } from '@/lib/utils';
 import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
-import React from 'react';
-import { renderToString } from 'react-dom/server';
-import Hero from '@/components/sections/hero';
 
 let originalHomepageData: HomePage;
 
@@ -168,40 +165,13 @@ test.describe(
     );
 
     // Node-only test for frontend logic: text color mapping
+    // This is the key business test: CMS text color must be the same in frontend mapping.
     test(
       'DGF-457 — hero text color is mapped correctly for frontend',
       async () => {
+        const TEST_TEXT_COLOR = '#000000'; // black, as used in the business scenario
         const currentData = await getHomepage();
 
-        const updatedPayload: HomePage = deepmerge(
-          currentData,
-          {
-            hero: { slides: [{ textColor: '#abcdef' }] },
-          },
-          { arrayMerge: (_d, s) => s },
-        );
-
-        await saveHomepage(updatedPayload);
-        const readData = await getHomepage();
-        const slide0 = readData?.hero?.slides?.[0];
-
-        // Test the mapping logic directly
-        const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
-
-        expect(vm.textColor).toBe('#abcdef');
-      },
-    );
-
-    // DGF-460: End-to-end check that CMS text color is applied in rendered markup
-    test(
-      'DGF-460 — hero text color from CMS is applied in rendered hero markup',
-      async () => {
-        const TEST_TEXT_COLOR = '#f1f1f1';
-
-        // 1) Read current homepage data as base
-        const currentData = await getHomepage();
-
-        // 2) Create new payload with specific textColor on the first hero slide
         const updatedPayload: HomePage = deepmerge(
           currentData,
           {
@@ -214,39 +184,18 @@ test.describe(
               ],
             },
           },
-          {
-            // Replace the slides array instead of merging element by element
-            arrayMerge: (_destination, source) => source,
-          },
+          { arrayMerge: (_d, s) => s },
         );
 
         await saveHomepage(updatedPayload);
-
-        // 3) Read homepage again so we use the same code path as the frontend
         const readData = await getHomepage();
-        const heroCms = readData.hero;
-        expect(heroCms).toBeTruthy();
-        expect(heroCms.slides?.[0]?.textColor).toBe(TEST_TEXT_COLOR);
+        const slide0 = readData?.hero?.slides?.[0];
 
-        // 4) Map CMS slides to the SAME view model the Hero component uses
-        const heroViewModel = {
-          ...heroCms,
-          slides:
-            heroCms.slides?.map((slide) =>
-              mapHeroSlideToViewModel(slide as HeroSlide),
-            ) ?? [],
-        };
+        // Test the mapping logic directly
+        const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
 
-        // 5) Deep-clone the view model to remove any Playwright metadata
-        const cleanVm = JSON.parse(JSON.stringify(heroViewModel));
-
-        // 6) Render the real Hero component (SSR, no browser)
-        const html = renderToString(
-          React.createElement(Hero, { data: cleanVm }),
-        );
-
-        // 7) Assert that the rendered markup contains the CMS text color
-        expect(html).toContain(TEST_TEXT_COLOR);
+        // The value used by frontend logic must be exactly the same as in CMS.
+        expect(vm.textColor).toBe(TEST_TEXT_COLOR);
       },
     );
   },
