@@ -13,9 +13,9 @@ import { defaultHomepage } from '@/lib/defaults/siteDefaults';
 import CasesGrid from '@/components/sections/cases-grid';
 import CtaBanner from '@/components/sections/cta-banner';
 import { logHomepageHeroSnapshot } from '@/lib/dadmin/audit';
-import { resolveCmsLink } from '@/lib/links';
 import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
 import React from 'react';
+import { buildHeroViewModelForLogging } from "@/lib/homepage-view-model";
 
 export const dynamic = 'force-dynamic';
 
@@ -34,27 +34,20 @@ export default async function HomePage() {
   const pageResult = await getHomepage().catch(() => ({ ok: false, data: defaultHomepage }));
   const page: HomePage = pageResult?.ok ? pageResult.data : defaultHomepage;
   
-  // DGF-474: Map the first slide to the view model the Hero component expects
   const firstSlide = page.hero?.slides?.[0];
-  const heroViewModel = firstSlide ? mapHeroSlideToViewModel(firstSlide) : null;
+  
+  // The client component <Hero> will do its own mapping
+  const heroViewModelForClient = firstSlide ? mapHeroSlideToViewModel(firstSlide) : null;
+  
+  // For logging, we use the new server-safe helper
+  if (firstSlide) {
+      const heroLogPayload = buildHeroViewModelForLogging(firstSlide);
+      const environment = process.env.NODE_ENV ?? 'unknown';
 
-  if (heroViewModel) {
-      // DGF-473: Log the view model data that will be rendered
       logHomepageHeroSnapshot({
-          source: 'homepage-view-model',
-          environment: process.env.NODE_ENV ?? 'unknown',
-          hero: {
-            heading: heroViewModel.heading,
-            body: heroViewModel.body,
-            textColor: heroViewModel.textColor,
-            imageUrl: heroViewModel.imageUrl,
-            imageAlt: heroViewModel.imageAlt,
-            ctaLabel: heroViewModel.cta?.label ?? null,
-            ctaHref: heroViewModel.cta ? resolveCmsLink(heroViewModel.cta).href : null,
-            overlayEnabled: heroViewModel.overlayEnabled,
-            overlayCmyk: heroViewModel.overlayCmyk,
-            overlayOpacityPercent: heroViewModel.overlayOpacityPercent,
-          },
+        source: 'homepage-view-model',
+        environment,
+        hero: heroLogPayload,
       }).catch(err => console.warn('Failed to log homepage hero snapshot', err));
   }
 
@@ -72,7 +65,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero data={heroViewModel} />
+      <Hero data={heroViewModelForClient} />
       
       {page.whatWeDo?.enabled !== false && page.whatWeDo && (
         <WhatWeDo data={page.whatWeDo} />

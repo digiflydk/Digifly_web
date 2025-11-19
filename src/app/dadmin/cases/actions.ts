@@ -1,4 +1,3 @@
-
 'use server';
 
 import { deleteCaseServer } from '@/lib/cms-server';
@@ -18,6 +17,7 @@ export async function deleteCaseAction(id: string) {
       payloadSummary: `Deleted case: ${id}`,
     });
     revalidatePath('/dadmin/cases');
+    revalidatePath('/cases');
     return { ok: true };
   } catch (err: any) {
     console.error(`[deleteCaseAction]`, err);
