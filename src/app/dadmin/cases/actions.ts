@@ -12,7 +12,7 @@ export async function deleteCaseAction(id: string) {
       throw new Error(result.error || 'Failed to delete from server.');
     }
     await logAdminAction({
-      action: 'cases.save',
+      action: 'cases.save', // Assuming 'save' covers delete for logging purposes
       status: 'ok',
       path: `cases/${id}`,
       payloadSummary: `Deleted case: ${id}`,

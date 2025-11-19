@@ -14,6 +14,8 @@ import CasesGrid from '@/components/sections/cases-grid';
 import CtaBanner from '@/components/sections/cta-banner';
 import { logHomepageHeroSnapshot } from '@/lib/dadmin/audit';
 import { resolveCmsLink } from '@/lib/links';
+import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
+import React from 'react';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,32 +33,28 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   const pageResult = await getHomepage().catch(() => ({ ok: false, data: defaultHomepage }));
   const page: HomePage = pageResult?.ok ? pageResult.data : defaultHomepage;
+  
+  // DGF-474: Map the first slide to the view model the Hero component expects
+  const firstSlide = page.hero?.slides?.[0];
+  const heroViewModel = firstSlide ? mapHeroSlideToViewModel(firstSlide) : null;
 
-  // DGF-473: Log the hero data snapshot
-  const firstSlide = page.hero?.slides?.[0] as HeroSlide | undefined;
-  if (firstSlide) {
-      const { href: ctaHref } = resolveCmsLink(firstSlide.cta);
-      const heroSnapshot = {
-        heading: firstSlide.heading ?? null,
-        body: firstSlide.body ?? null,
-        textColor: firstSlide.textColor ?? null,
-        imageUrl: firstSlide.image?.src ?? null,
-        imageAlt: firstSlide.image?.alt ?? null,
-        ctaLabel: firstSlide.cta?.label ?? null,
-        ctaHref: ctaHref ?? null,
-        overlayEnabled: !!firstSlide.overlay?.enabled,
-        overlayCmyk: {
-          c: firstSlide.overlay?.cmyk?.c ?? null,
-          m: firstSlide.overlay?.cmyk?.m ?? null,
-          y: firstSlide.overlay?.cmyk?.y ?? null,
-          k: firstSlide.overlay?.cmyk?.k ?? null,
-        },
-        overlayOpacityPercent: firstSlide.overlay?.opacityPercent ?? null,
-      };
+  if (heroViewModel) {
+      // DGF-473: Log the view model data that will be rendered
       logHomepageHeroSnapshot({
           source: 'homepage-view-model',
           environment: process.env.NODE_ENV ?? 'unknown',
-          hero: heroSnapshot,
+          hero: {
+            heading: heroViewModel.heading,
+            body: heroViewModel.body,
+            textColor: heroViewModel.textColor,
+            imageUrl: heroViewModel.imageUrl,
+            imageAlt: heroViewModel.imageAlt,
+            ctaLabel: heroViewModel.cta?.label ?? null,
+            ctaHref: heroViewModel.cta ? resolveCmsLink(heroViewModel.cta).href : null,
+            overlayEnabled: heroViewModel.overlayEnabled,
+            overlayCmyk: heroViewModel.overlayCmyk,
+            overlayOpacityPercent: heroViewModel.overlayOpacityPercent,
+          },
       }).catch(err => console.warn('Failed to log homepage hero snapshot', err));
   }
 
@@ -74,7 +72,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero data={page.hero} />
+      <Hero data={heroViewModel} />
       
       {page.whatWeDo?.enabled !== false && page.whatWeDo && (
         <WhatWeDo data={page.whatWeDo} />
@@ -92,7 +90,7 @@ export default async function HomePage() {
             showAllLink
         />
       )}
-      {page.cta?.button?.link && (
+      {page.cta?.button?.label && (
         <CtaBanner text={page.cta.text} button={page.cta.button} />
       )}
     </>

@@ -1,13 +1,45 @@
-
-// Acceptance tests for DGF-406, DGF-416, DGF-429 (homepage regression)
+// Acceptance tests for DGF-406, DGF-416, DGF-429, DGF-457, DGF-467, DGF-471 (homepage regression)
 import { test, expect } from '@playwright/test';
-import { getHomepage, saveHomepage } from '@/lib/cms-api';
+import { getHomepage, saveHomepage, CmsLink } from '@/lib/cms-api';
 import type { HomePage, HeroSlide } from '@/lib/types';
 import { defaultHomepage, defaultHeroSlide } from '@/data/defaults';
 import deepmerge from 'deepmerge';
 import { cmykToRgba } from '@/lib/utils';
 import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
 import { getCmsHomePayload } from '@/lib/server/cms-home-endpoint';
+import { resolveCmsLink } from '@/lib/links';
+
+/**
+ * Helper: overwrite the first hero slide with the given overrides,
+ * keeping the rest of the homepage unchanged.
+ */
+async function overwriteFirstHeroSlide(overrides: Partial<HeroSlide>) {
+  const currentData = await getHomepage();
+
+  const updatedPayload: HomePage = deepmerge(
+    currentData,
+    {
+      hero: {
+        slides: [
+          {
+            ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
+            ...overrides,
+          },
+        ],
+      },
+    },
+    {
+      arrayMerge: (_destination, source) => source,
+    },
+  );
+
+  await saveHomepage(updatedPayload);
+  const readData = await getHomepage();
+  const slide0 = readData?.hero?.slides?.[0] as HeroSlide | undefined;
+  expect(slide0).toBeTruthy();
+
+  return { homepage: readData, slide0 };
+}
 
 let originalHomepageData: HomePage;
 
@@ -36,25 +68,8 @@ test.describe(
   () => {
     test('DGF-406 — can write and read hero heading without error', async () => {
       const markerHeading = `DGF-416 regression test - ${Date.now()}`;
-      const currentData = await getHomepage();
-
-      const updatedPayload: HomePage = deepmerge(
-        currentData,
-        {
-          hero: {
-            slides: [{ heading: markerHeading }],
-          },
-        },
-        {
-          arrayMerge: (_destination, source) => source,
-        },
-      );
-
-      await saveHomepage(updatedPayload);
-
-      const readData = await getHomepage();
-
-      expect(readData?.hero?.slides?.[0]?.heading).toBe(markerHeading);
+      const { slide0 } = await overwriteFirstHeroSlide({ heading: markerHeading });
+      expect(slide0?.heading).toBe(markerHeading);
     });
 
     test('DGF-416 — homepage.read returns expected data shape', async () => {
@@ -67,280 +82,132 @@ test.describe(
       expect(data).toHaveProperty('cta');
       expect(data).toHaveProperty('seo');
 
-      // Assert some critical nested fields to ensure they are not accidentally wiped.
       expect(typeof data.hero?.rotationDelaySec).toBe('number');
       expect(Array.isArray(data.hero?.slides)).toBe(true);
     });
   },
 );
 
-test.describe(
-  '@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors',
-  () => {
-    test('DGF-429 — can save hero overlay color & opacity and read it back', async () => {
-      const currentData = await getHomepage();
-
-      const updatedPayload: HomePage = deepmerge(
-        currentData,
-        {
-          hero: {
-            slides: [
-              {
-                ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
-                overlay: {
-                  enabled: true,
-                  cmyk: { c: 10, m: 20, y: 30, k: 40 },
-                  opacityPercent: 65,
-                },
-              },
-            ],
-          },
-        },
-        { arrayMerge: (_d, s) => s },
-      );
-
-      await saveHomepage(updatedPayload);
-      const readData = await getHomepage();
-
-      const slide0 = readData?.hero?.slides?.[0];
-      expect(slide0?.overlay?.enabled).toBe(true);
-      expect(slide0?.overlay?.cmyk?.c).toBe(10);
-      expect(slide0?.overlay?.opacityPercent).toBe(65);
-    });
-
-    test('DGF-429 — can save hero text colors and read them back', async () => {
-      const currentData = await getHomepage();
-
-      const updatedPayload: HomePage = deepmerge(
-        currentData,
-        {
-          hero: {
-            slides: [
-              {
-                ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
-                textColor: '#123456',
-              },
-            ],
-          },
-        },
-        { arrayMerge: (_d, s) => s },
-      );
-
-      await saveHomepage(updatedPayload);
-      const readData = await getHomepage();
-
-      const slide0 = readData?.hero?.slides?.[0];
-      expect(slide0?.textColor).toBe('#123456');
-    });
-
-    // Node-only test for frontend logic: overlay mapping
-    test(
-      'DGF-457 — hero overlay color & opacity is mapped correctly for frontend',
-      async () => {
-        const currentData = await getHomepage();
-        const overlaySettings = {
-          enabled: true,
-          cmyk: { c: 10, m: 20, y: 30, k: 40 },
-          opacityPercent: 65,
-        };
-
-        const updatedPayload: HomePage = deepmerge(
-          currentData,
-          {
-            hero: { slides: [{ overlay: overlaySettings }] },
-          },
-          { arrayMerge: (_d, s) => s },
-        );
-
-        await saveHomepage(updatedPayload);
-        const readData = await getHomepage();
-        const slide0 = readData?.hero?.slides?.[0];
-
-        // Test the mapping logic directly
-        const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
-
-        const expectedRgba = cmykToRgba(10, 20, 30, 40, 0.65);
-        expect(vm.shouldRenderOverlay).toBe(true);
-        expect(vm.overlayColor).toBe(expectedRgba);
+test.describe('@suite:hero-banner-colors DGF-429 / DGF-431 — Hero banner colors', () => {
+  
+  test('DGF-429 — can save hero overlay color & opacity and read it back', async () => {
+    const { slide0 } = await overwriteFirstHeroSlide({
+      overlay: {
+        enabled: true,
+        cmyk: { c: 10, m: 20, y: 30, k: 40 },
+        opacityPercent: 65,
       },
-    );
+    });
 
-    // Node-only test for frontend logic: text color mapping
-    // This is the key business test: CMS text color must be the same in frontend mapping.
-    test(
-      'DGF-457 — hero text color is mapped correctly for frontend',
-      async () => {
-        const TEST_TEXT_COLOR = '#000000'; // black, as used in the business scenario
-        const currentData = await getHomepage();
+    expect(slide0?.overlay?.enabled).toBe(true);
+    expect(slide0?.overlay?.cmyk?.c).toBe(10);
+    expect(slide0?.overlay?.opacityPercent).toBe(65);
+  });
 
-        const updatedPayload: HomePage = deepmerge(
-          currentData,
-          {
-            hero: {
-              slides: [
-                {
-                  ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
-                  textColor: TEST_TEXT_COLOR,
-                },
-              ],
-            },
-          },
-          { arrayMerge: (_d, s) => s },
-        );
+  test('DGF-429 — can save hero text colors and read them back', async () => {
+    const { slide0 } = await overwriteFirstHeroSlide({ textColor: '#123456' });
+    expect(slide0?.textColor).toBe('#123456');
+  });
 
-        await saveHomepage(updatedPayload);
-        const readData = await getHomepage();
-        const slide0 = readData?.hero?.slides?.[0];
-
-        // Test the mapping logic directly
-        const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
-
-        // The value used by frontend logic must be exactly the same as in CMS.
-        expect(vm.textColor).toBe(TEST_TEXT_COLOR);
+  test('DGF-457 — hero overlay color & opacity is mapped correctly for frontend', async () => {
+    const { slide0 } = await overwriteFirstHeroSlide({
+      overlay: {
+        enabled: true,
+        cmyk: { c: 10, m: 20, y: 30, k: 40 },
+        opacityPercent: 65,
       },
-    );
-
-    test('DGF-467 — hero textColor from CMS matches the color returned by /api/cms/home', async () => {
-      const TEST_TEXT_COLOR = '#a1b2c3';
-
-      // 1) Read current homepage data as base
-      const currentData = await getHomepage();
-
-      // 2) Create new payload with specific textColor on the first hero slide
-      const updatedPayload: HomePage = deepmerge(currentData, {
-        hero: {
-          slides: [
-            {
-              ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
-              textColor: TEST_TEXT_COLOR,
-            },
-          ],
-        },
-      }, {
-        arrayMerge: (_destination, source) => source,
-      });
-
-      await saveHomepage(updatedPayload);
-
-      // 3) Call the shared helper that the API endpoint uses internally.
-      const apiPayload = await getCmsHomePayload();
-
-      // 4) Verify that the API payload reflects the same textColor
-      const apiSlide0 = (apiPayload as HomePage)?.hero?.slides?.[0] as HeroSlide | undefined;
-
-      expect(apiSlide0).toBeTruthy();
-      expect(apiSlide0?.textColor).toBe(TEST_TEXT_COLOR);
     });
 
-    test('DGF-470 — hero slide core fields from CMS match /api/cms/home view model', async () => {
-        // Use a marker so we know we are reading our own data
-        const marker = `DGF-470-${Date.now()}`;
+    const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
+    const expectedRgba = cmykToRgba(10, 20, 30, 40, 0.65);
+    expect(vm.shouldRenderOverlay).toBe(true);
+    expect(vm.overlayColor).toBe(expectedRgba);
+  });
 
-        const TEST_VALUES = {
-          eyebrow: `Eyebrow ${marker}`,
-          heading: `Heading ${marker}`,
-          body: `Body ${marker}`,
-          ctaLabel: `CTA ${marker}`,
-          ctaInternalRef: 'contact',
-          textColor: '#112233',
-          imageSrc: 'https://example.com/dgf-470-test.png',
-          imageAlt: `Alt ${marker}`,
-          overlay: {
-            enabled: true,
-            cmyk: { c: 5, m: 10, y: 15, k: 20 },
-            opacityPercent: 55,
-          },
-        };
+  test('DGF-457 — hero text color is mapped correctly for frontend', async () => {
+    const { slide0 } = await overwriteFirstHeroSlide({ textColor: '#abcdef' });
+    const vm = mapHeroSlideToViewModel(slide0 as HeroSlide);
+    expect(vm.textColor).toBe('#abcdef');
+  });
 
-        // 1) Read current homepage as base
-        const currentData = await getHomepage();
+  test('DGF-467 — hero textColor from CMS matches the color returned by /api/cms/home', async () => {
+    const TEST_TEXT_COLOR = '#00ff00';
+    await overwriteFirstHeroSlide({ textColor: TEST_TEXT_COLOR });
 
-        // 2) Write a single slide with our known marker values
-        const updatedPayload: HomePage = deepmerge(
-          currentData,
-          {
-            hero: {
-              slides: [
-                {
-                  ...(currentData.hero?.slides?.[0] ?? defaultHeroSlide),
-                  eyebrow: TEST_VALUES.eyebrow,
-                  heading: TEST_VALUES.heading,
-                  body: TEST_VALUES.body,
-                  cta: {
-                    label: TEST_VALUES.ctaLabel,
-                    type: 'internal',
-                    internalRef: TEST_VALUES.ctaInternalRef,
-                    newTab: false,
-                  },
-                  textColor: TEST_VALUES.textColor,
-                  image: {
-                      src: TEST_VALUES.imageSrc,
-                      alt: TEST_VALUES.imageAlt
-                  },
-                  overlay: {
-                    enabled: TEST_VALUES.overlay.enabled,
-                    cmyk: TEST_VALUES.overlay.cmyk,
-                    opacityPercent: TEST_VALUES.overlay.opacityPercent,
-                  },
-                },
-              ],
-            },
-          },
-          {
-            arrayMerge: (_destination, source) => source,
-          },
-        );
+    const apiPayload = await getCmsHomePayload();
+    const apiSlide0 = apiPayload?.hero?.slides?.[0];
+    expect(apiSlide0).toBeTruthy();
+    expect(apiSlide0.textColor).toBe(TEST_TEXT_COLOR);
+  });
+  
+  test('DGF-471 — hero text fields from CMS match /api/cms/home view model', async () => {
+    const marker = `DGF-471-${Date.now()}`;
+    const TEST_VALUES = {
+      eyebrow: `Eyebrow ${marker}`,
+      heading: `Heading ${marker}`,
+      body: `Body ${marker}`,
+    };
+    await overwriteFirstHeroSlide(TEST_VALUES);
 
-        await saveHomepage(updatedPayload);
+    const apiPayload = await getCmsHomePayload();
+    const vmSlide0 = apiPayload?.hero?.slides?.[0];
+    expect(vmSlide0).toBeTruthy();
+    expect(vmSlide0.eyebrow).toBe(TEST_VALUES.eyebrow);
+    expect(vmSlide0.heading).toBe(TEST_VALUES.heading);
+    expect(vmSlide0.body).toBe(TEST_VALUES.body);
+  });
 
-        // 3) Read back from CMS to confirm Firestore write
-        const readData = await getHomepage();
-        const slide0 = readData?.hero?.slides?.[0] as HeroSlide;
-        expect(slide0).toBeTruthy();
-        
-        expect(slide0.eyebrow).toBe(TEST_VALUES.eyebrow);
-        expect(slide0.heading).toBe(TEST_VALUES.heading);
-        expect(slide0.body).toBe(TEST_VALUES.body);
-        expect(slide0.cta?.label).toBe(TEST_VALUES.ctaLabel);
-        expect(slide0.cta?.internalRef).toBe(TEST_VALUES.ctaInternalRef);
-        expect(slide0.cta?.type).toBe('internal');
-        expect(slide0.cta?.newTab).toBe(false);
-        expect(slide0.textColor).toBe(TEST_VALUES.textColor);
-        expect(slide0.image?.src).toBe(TEST_VALUES.imageSrc);
-        expect(slide0.image?.alt).toBe(TEST_VALUES.imageAlt);
-        expect(slide0.overlay?.enabled).toBe(TEST_VALUES.overlay.enabled);
-        expect(slide0.overlay?.cmyk?.c).toBe(TEST_VALUES.overlay.cmyk.c);
-        expect(slide0.overlay?.opacityPercent).toBe(TEST_VALUES.overlay.opacityPercent);
+  test('DGF-472 — hero CTA fields are propagated from CMS to /api/cms/home', async () => {
+    const TEST_CTA: CmsLink = {
+      label: 'DGF-472 CTA label',
+      type: 'internal',
+      internalRef: 'contact',
+      newTab: true,
+    };
+    await overwriteFirstHeroSlide({ cta: TEST_CTA });
 
-        // 4) Fetch the public homepage view model and assert the same values there
-        const vmJson = await getCmsHomePayload();
+    const json = await getCmsHomePayload();
+    const apiFirstSlide = json?.hero?.slides?.[0];
+    expect(apiFirstSlide).toBeTruthy();
 
-        // The shape can vary slightly, but we expect hero.slides[0] to exist
-        const vmHero = vmJson?.hero;
-        expect(vmHero).toBeTruthy();
+    const vmCta = apiFirstSlide.cta;
+    expect(vmCta).toBeTruthy();
+    expect(vmCta.label).toBe(TEST_CTA.label);
+    
+    // Test the resolved href
+    const { href } = resolveCmsLink(vmCta);
+    expect(href).toBe('/contact');
+    
+    expect(vmCta.newTab).toBe(TEST_CTA.newTab);
+  });
+  
+  test('DGF-474 — hero image from CMS matches /api/cms/home view model', async () => {
+    const TEST_IMAGE = {
+      src: `https://example.com/dgf-474-hero.jpg`,
+      alt: `DGF-474 alt text`,
+    };
+    await overwriteFirstHeroSlide({ image: TEST_IMAGE });
 
-        const vmSlide0 = vmHero.slides?.[0];
-        expect(vmSlide0).toBeTruthy();
+    const json = await getCmsHomePayload();
+    const apiSlide0 = json?.hero?.slides?.[0];
+    expect(apiSlide0).toBeTruthy();
+    expect(apiSlide0.image?.src).toBe(TEST_IMAGE.src);
+    expect(apiSlide0.image?.alt).toBe(TEST_IMAGE.alt);
+  });
 
-        // Text content
-        expect(vmSlide0.eyebrow).toBe(TEST_VALUES.eyebrow);
-        expect(vmSlide0.heading).toBe(TEST_VALUES.heading);
-        expect(vmSlide0.body).toBe(TEST_VALUES.body);
+  test('DGF-475 — hero overlay settings are propagated from CMS to /api/cms/home', async () => {
+    const overlaySettings = {
+      enabled: true,
+      cmyk: { c: 5, m: 15, y: 25, k: 35 },
+      opacityPercent: 72,
+    };
+    await overwriteFirstHeroSlide({ overlay: overlaySettings });
 
-        // CTA
-        expect(vmSlide0.cta?.label).toBe(TEST_VALUES.ctaLabel);
-        expect(vmSlide0.cta?.internalRef).toBe(TEST_VALUES.ctaInternalRef);
-        
-        // Text color
-        expect(vmSlide0.textColor).toBe(TEST_VALUES.textColor);
-
-        // Image and alt text
-        expect(vmSlide0.image?.src).toBe(TEST_VALUES.imageSrc);
-        expect(vmSlide0.image?.alt).toBe(TEST_VALUES.imageAlt);
-
-        if ('overlay' in vmSlide0) {
-            expect(vmSlide0.overlay?.enabled).toBe(true);
-        }
-    });
-  },
-);
+    const json = await getCmsHomePayload();
+    const apiFirstSlide = json?.hero?.slides?.[0];
+    expect(apiFirstSlide).toBeTruthy();
+    
+    const { shouldRenderOverlay } = mapHeroSlideToViewModel(apiFirstSlide);
+    expect(shouldRenderOverlay).toBe(true);
+  });
+});

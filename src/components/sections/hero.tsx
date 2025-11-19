@@ -1,149 +1,113 @@
+'use client';
 
-"use client";
-
-import { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Button } from "@/components/ui/button";
-import type { HomePage, HeroSlide } from "@/lib/types";
-import { MediaImage } from "../ui/media-image";
+import { Button } from '@/components/ui/button';
+import { MediaImage } from '../ui/media-image';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import { resolveCmsLink } from '@/lib/links';
-import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
+import type { HeroViewModel } from '@/lib/hero-style-utils';
+import { CmsLink } from '@/lib/types';
 
-type HeroData = HomePage["hero"];
+// This is the new, simplified HeroProps type.
+// It receives a single, already-mapped slide object.
+type HeroProps = {
+  data: HeroViewModel;
+};
 
-export default function Hero({ data }: { data?: HeroData | null }) {
-    const { slides = [], rotationDelaySec = 5 } = data || {};
-    const [index, setIndex] = useState(0);
-    
-    const visibleSlides = slides.filter(slide => slide.visible !== false);
-    const hasMultipleImages = visibleSlides.length > 1;
-
-    useEffect(() => {
-        if (!hasMultipleImages) return;
-
-        const interval = setInterval(() => {
-            setIndex((prevIndex) => (prevIndex + 1) % visibleSlides.length);
-        }, Number(rotationDelaySec) * 1000);
-
-        return () => clearInterval(interval);
-    }, [visibleSlides.length, rotationDelaySec, hasMultipleImages]);
-    
-    if (!data || visibleSlides.length === 0) {
-        return (
-             <section
-                data-testid="homepage-hero"
-                className="relative -mt-[var(--header-height,64px)] w-full pt-[var(--header-height,64px)] bg-slate-100"
-                style={{ minHeight: 'var(--hero-desktop-min-h, 70vh)' }}
-            >
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-                <div className="container relative flex items-center py-24 md:py-28 h-full">
-                    <div className="max-w-2xl">
-                         <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
-                           Hero Content Missing
-                        </h1>
-                        <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">The hero section data is not configured or is empty. Please add at least one visible slide in the CMS.</p>
-                    </div>
-                </div>
-            </section>
-        )
-    }
-
-    const currentSlide = visibleSlides[index] as HeroSlide;
-    if (!currentSlide) return null;
-
-    const { href, label, target, rel } = resolveCmsLink(currentSlide.cta);
-
-    // Use the mapping helper for style logic
-    const { overlayColor, textColor, shouldRenderOverlay } = mapHeroSlideToViewModel(currentSlide);
-    const textStyle = textColor ? { color: textColor } : undefined;
-
+export default function Hero({ data }: { data?: HeroProps['data'] | null }) {
+  if (!data) {
     return (
-        <section
-            data-testid="homepage-hero"
-            className="relative -mt-[var(--header-height,64px)] w-full pt-[var(--header-height,64px)]"
-            style={{ minHeight: 'var(--hero-desktop-min-h, 70vh)' }}
-        >
-            <AnimatePresence>
-                <motion.div
-                    key={currentSlide.image?.src || index}
-                    data-testid="homepage-hero-slide"
-                    className="absolute inset-0"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: 'easeInOut' }}
-                >
-                    {currentSlide.image?.src ? (
-                        <MediaImage
-                            src={currentSlide.image.src}
-                            alt={currentSlide.image.alt}
-                            fill
-                            priority={visibleSlides.indexOf(currentSlide) === 0}
-                            className="pointer-events-none object-cover w-full h-full"
-                            sizes="(max-width: 768px) 100vw, 70vw"
-                        />
-                    ) : (
-                         <div className="w-full h-full bg-slate-100" />
-                    )}
-                </motion.div>
-            </AnimatePresence>
-
-            {shouldRenderOverlay ? (
-                <div 
-                    className="absolute inset-0"
-                    style={{ backgroundColor: overlayColor }}
-                />
-            ) : (
-                <>
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent" />
-                </>
-            )}
-            
-            <div className="container relative flex items-center py-24 md:py-28 h-full">
-                <div className="max-w-2xl">
-                    {currentSlide.eyebrow && (
-                        <p className="text-sm font-semibold tracking-wide mb-2 opacity-80" style={textStyle}>
-                            {currentSlide.eyebrow}
-                        </p>
-                    )}
-                    {currentSlide.heading && (
-                        <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight" style={textStyle}>
-                            {currentSlide.heading}
-                        </h1>
-                    )}
-                    {currentSlide.body && (
-                        <div className="prose prose-lg mt-4 max-w-none opacity-90" style={textStyle}>
-                            <p>{currentSlide.body}</p>
-                        </div>
-                    )}
-                    <div className="mt-8 flex flex-wrap gap-4">
-                        {href && label && (
-                            <Button asChild variant="secondary" className="bg-white text-primary hover:bg-white/90">
-                                <Link data-testid="homepage-hero-cta" href={href} target={target} rel={rel}>{label}</Link>
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {hasMultipleImages && (
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-                    {visibleSlides.map((_, i) => (
-                        <button
-                            key={i}
-                            onClick={() => setIndex(i)}
-                            className={cn(
-                                "h-2 w-2 rounded-full transition-colors",
-                                i === index ? "bg-white" : "bg-white/30 hover:bg-white/50"
-                            )}
-                            aria-label={`Go to slide ${i + 1}`}
-                        />
-                    ))}
-                </div>
-            )}
-        </section>
+      <section
+        data-testid="homepage-hero"
+        className="relative -mt-[var(--header-height,64px)] w-full pt-[var(--header-height,64px)] bg-slate-100"
+        style={{ minHeight: 'var(--hero-desktop-min-h, 70vh)' }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+        <div className="container relative flex items-center py-24 md:py-28 h-full">
+          <div className="max-w-2xl">
+            <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
+              Hero Content Missing
+            </h1>
+            <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">
+              The hero section data is not configured or is empty. Please check the CMS.
+            </p>
+          </div>
+        </div>
+      </section>
     );
+  }
+  
+  // Directly use the mapped properties
+  const {
+    heading,
+    body,
+    textColor,
+    imageUrl,
+    imageAlt,
+    cta,
+    overlayEnabled,
+    overlayColor,
+    eyebrow,
+  } = data;
+  
+  const textStyle = textColor ? { color: textColor } : undefined;
+  
+  // Resolve the CTA link from the CmsLink object
+  const { href, label, target, rel } = resolveCmsLink(cta);
+
+  return (
+    <section
+      data-testid="homepage-hero"
+      className="relative -mt-[var(--header-height,64px)] w-full pt-[var(--header-height,64px)]"
+      style={{ minHeight: 'var(--hero-desktop-min-h, 70vh)' }}
+    >
+      <div
+        data-testid="homepage-hero-slide"
+        className="absolute inset-0"
+      >
+        {imageUrl ? (
+          <MediaImage
+            src={imageUrl}
+            alt={imageAlt}
+            fill
+            priority
+            className="pointer-events-none object-cover w-full h-full"
+            sizes="(max-width: 768px) 100vw, 70vw"
+          />
+        ) : (
+          <div className="w-full h-full bg-slate-100" />
+        )}
+      </div>
+
+      {overlayEnabled && overlayColor && (
+        <div className="absolute inset-0" style={{ backgroundColor: overlayColor }} />
+      )}
+      
+      <div className="container relative flex items-center py-24 md:py-28 h-full">
+        <div className="max-w-2xl">
+          {eyebrow && (
+            <p className="text-sm font-semibold tracking-wide mb-2 opacity-80" style={textStyle}>
+              {eyebrow}
+            </p>
+          )}
+          {heading && (
+            <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight" style={textStyle}>
+              {heading}
+            </h1>
+          )}
+          {body && (
+            <div className="prose prose-lg mt-4 max-w-none opacity-90" style={textStyle}>
+              <p>{body}</p>
+            </div>
+          )}
+          <div className="mt-8 flex flex-wrap gap-4">
+            {href && label && (
+              <Button asChild variant="secondary" className="bg-white text-primary hover:bg-white/90">
+                <Link data-testid="homepage-hero-cta" href={href} target={target} rel={rel}>{label}</Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

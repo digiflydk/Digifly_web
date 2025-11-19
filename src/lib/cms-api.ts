@@ -6,7 +6,7 @@ try {
   require('server-only');
 } catch {}
 
-import type { HomePage, SiteSettings, Navigation, Case, Page } from '@/lib/types';
+import type { HomePage, SiteSettings, Navigation, Case, Page, CmsLink } from '@/lib/types';
 import { 
   getHomepage as getHomepageInternal, 
   getSiteSettings as getSiteSettingsInternal,
@@ -87,3 +87,6 @@ export const getCaseBySlug = getCaseBySlugInternal;
 export const createCase = createCaseInternal;
 export const updateCase = updateCaseInternal;
 export const deleteCase = deleteCaseServer;
+
+export { CmsLink };
+
