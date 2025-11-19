@@ -17,7 +17,7 @@ import {
   getCaseBySlug as getCaseBySlugInternal,
   createCase as createCaseInternal,
   updateCase as updateCaseInternal,
-  deleteCaseServer,
+  deleteCaseServer as deleteCaseInternal, // Corrected alias
   getAboutPage as getAboutPageInternal,
   getServicesPage as getServicesPageInternal,
   getContactPage as getContactPageInternal,
@@ -86,6 +86,6 @@ export const getCaseById = getCaseByIdInternal;
 export const getCaseBySlug = getCaseBySlugInternal;
 export const createCase = createCaseInternal;
 export const updateCase = updateCaseInternal;
-export const deleteCase = deleteCaseServer;
+export const deleteCase = deleteCaseInternal;
 
 export { CmsLink };

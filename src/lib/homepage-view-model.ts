@@ -1,6 +1,7 @@
-
 // src/lib/homepage-view-model.ts
 import type { HeroSlide } from "@/lib/types";
+import { resolveCmsLink } from './links';
+
 
 /**
  * DGF-475:
@@ -22,18 +23,4 @@ export function buildHeroViewModelForLogging(slide: HeroSlide) {
     overlayCmyk: slide.overlay?.cmyk ?? null,
     overlayOpacityPercent: slide.overlay?.opacityPercent ?? null,
   };
-}
-
-// Minimal version of resolveCmsLink to avoid client-side dependencies
-import { mapPageIdToPath } from './links';
-import type { CmsLink } from './types';
-function resolveCmsLink(link?: CmsLink | null) {
-    if (!link) return {};
-    if (link.type === 'internal' && link.internalRef) {
-        return { href: mapPageIdToPath(link.internalRef) };
-    }
-    if (link.type === 'external' && link.externalUrl) {
-        return { href: link.externalUrl };
-    }
-    return {};
 }
