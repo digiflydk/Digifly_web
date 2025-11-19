@@ -13,7 +13,6 @@ import { defaultHomepage } from '@/lib/defaults/siteDefaults';
 import CasesGrid from '@/components/sections/cases-grid';
 import CtaBanner from '@/components/sections/cta-banner';
 import { logHomepageHeroSnapshot } from '@/lib/dadmin/audit';
-import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
 import React from 'react';
 import { buildHeroViewModelForLogging } from "@/lib/homepage-view-model";
 
@@ -36,10 +35,11 @@ export default async function HomePage() {
   
   const firstSlide = page.hero?.slides?.[0];
   
-  // The client component <Hero> will do its own mapping
-  const heroViewModelForClient = firstSlide ? mapHeroSlideToViewModel(firstSlide) : null;
+  // DGF-475: The client component <Hero> will do its own mapping. We pass the raw slide data.
+  // The line calling mapHeroSlideToViewModel was removed as it caused a build error.
+  const heroDataForClient = firstSlide;
   
-  // For logging, we use the new server-safe helper
+  // For logging, we use the server-safe helper
   if (firstSlide) {
       const heroLogPayload = buildHeroViewModelForLogging(firstSlide);
       const environment = process.env.NODE_ENV ?? 'unknown';
@@ -65,7 +65,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero data={heroViewModelForClient} />
+      <Hero data={heroDataForClient} />
       
       {page.whatWeDo?.enabled !== false && page.whatWeDo && (
         <WhatWeDo data={page.whatWeDo} />

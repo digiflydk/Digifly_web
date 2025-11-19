@@ -5,15 +5,17 @@ import { MediaImage } from '../ui/media-image';
 import Link from 'next/link';
 import { resolveCmsLink } from '@/lib/links';
 import type { HeroViewModel } from '@/lib/hero-style-utils';
-import { CmsLink } from '@/lib/types';
+import { CmsLink, HeroSlide } from '@/lib/types';
+import { mapHeroSlideToViewModel } from '@/lib/hero-style-utils';
+import { SectionHeading } from '../ui/section-heading';
+import { Container } from '../layout/container';
 
-// This is the new, simplified HeroProps type.
-// It receives a single, already-mapped slide object.
+
 type HeroProps = {
-  data: HeroViewModel;
+  data?: HeroSlide | null;
 };
 
-export default function Hero({ data }: { data?: HeroProps['data'] | null }) {
+export default function Hero({ data }: HeroProps) {
   if (!data) {
     return (
       <section
@@ -22,21 +24,16 @@ export default function Hero({ data }: { data?: HeroProps['data'] | null }) {
         style={{ minHeight: 'var(--hero-desktop-min-h, 70vh)' }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-        <div className="container relative flex items-center py-24 md:py-28 h-full">
-          <div className="max-w-2xl">
-            <h1 className="heading-left font-headline text-[clamp(28px,6vw,56px)] leading-[1.2] font-bold tracking-tight text-foreground">
-              Hero Content Missing
-            </h1>
-            <p className="mt-4 max-w-2xl text-base md:text-lg opacity-90">
-              The hero section data is not configured or is empty. Please check the CMS.
-            </p>
-          </div>
-        </div>
+        <Container className="relative flex items-center py-24 md:py-28 h-full">
+            <div className="max-w-2xl">
+                <SectionHeading title="Hero Content Missing" subtitle="The hero section data is not configured or is empty. Please check the CMS." />
+            </div>
+        </Container>
       </section>
     );
   }
   
-  // Directly use the mapped properties
+  // DGF-475: The mapping now happens on the client, inside this component.
   const {
     heading,
     body,
@@ -47,11 +44,10 @@ export default function Hero({ data }: { data?: HeroProps['data'] | null }) {
     overlayEnabled,
     overlayColor,
     eyebrow,
-  } = data;
+  } = mapHeroSlideToViewModel(data);
   
   const textStyle = textColor ? { color: textColor } : undefined;
   
-  // Resolve the CTA link from the CmsLink object
   const { href, label, target, rel } = resolveCmsLink(cta);
 
   return (
