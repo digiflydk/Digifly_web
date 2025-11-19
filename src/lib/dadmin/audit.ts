@@ -9,6 +9,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { getAdminApp } from "@/lib/firebase-admin";
 import { getCurrentUser } from "@/lib/auth/serverAuth";
 import deepmerge from 'deepmerge';
+import type { HeroSlide } from '@/lib/types';
 
 export type AdminAction = 
     | "homepage.save" | "homepage.read" 
@@ -24,7 +25,8 @@ export type AdminAction =
     | "playwright.acceptance.studio.start"
     | "playwright.acceptance.studio.finish"
     | "playwright.acceptance.studio.error"
-    | "playwright.acceptance.selftest.diagnostics";
+    | "playwright.acceptance.selftest.diagnostics"
+    | "homepage.hero.data.loaded"; // DGF-473: New action
 
 export interface AuditLog {
   action: AdminAction;
@@ -32,7 +34,7 @@ export interface AuditLog {
   actorEmail?: string | null;
   path?: string;
   payloadSummary?: string;
-  status: "ok" | "error";
+  status: "ok" | "error" | "info";
   errorMessage?: string;
   ts: any;
   version?: string;
@@ -40,12 +42,27 @@ export interface AuditLog {
   afterSaveSnapshot?: any;
   firestoreSnapshot?: any;
   responsePayload?: any;
+  hero?: HeroSnapshot; // DGF-473: Add hero snapshot to log
 }
 
 export interface LoggingSettings {
   enabled: boolean;
   actions: Record<AdminAction, boolean>;
 }
+
+// DGF-473: New type for hero snapshot
+export type HeroSnapshot = {
+  heading: string | null;
+  body: string | null;
+  textColor: string | null;
+  imageUrl: string | null;
+  imageAlt: string | null;
+  ctaLabel: string | null;
+  ctaHref: string | null;
+  overlayEnabled: boolean;
+  overlayCmyk: { c: number | null; m: number | null; y: number | null; k: number | null; };
+  overlayOpacityPercent: number | null;
+};
 
 // Simple in-memory cache with TTL
 let settingsCache: { settings: LoggingSettings; timestamp: number } | null = null;
@@ -88,8 +105,8 @@ export async function logAdminAction(
 
     const doc: AuditLog = {
       ...input,
-      actorUid: actor?.uid ?? "unknown",
-      actorEmail: actor?.email ?? "unknown",
+      actorUid: actor?.uid ?? "system",
+      actorEmail: actor?.email ?? "system",
       ts: FieldValue.serverTimestamp(),
     };
     await db.collection("auditLogs").add(doc);
@@ -97,6 +114,23 @@ export async function logAdminAction(
     console.error("[logAdminAction] Failed to write audit log:", error);
   }
 }
+
+// DGF-473: New helper function for logging hero snapshots
+export async function logHomepageHeroSnapshot(opts: {
+  source: 'homepage-view-model' | 'api-cms-home' | 'unknown';
+  environment: string;
+  hero: HeroSnapshot;
+}) {
+  const { source, environment, hero } = opts;
+  await logAdminAction({
+    action: 'homepage.hero.data.loaded',
+    status: 'info',
+    payloadSummary: `Hero loaded on ${environment} from ${source}`,
+    hero,
+    responsePayload: hero, // Use a generic field for inspection
+  });
+}
+
 
 export async function getLogSettings(): Promise<LoggingSettings> {
     const defaultSettings: LoggingSettings = {
@@ -122,6 +156,7 @@ export async function getLogSettings(): Promise<LoggingSettings> {
             'playwright.acceptance.studio.finish': true,
             'playwright.acceptance.studio.error': true,
             'playwright.acceptance.selftest.diagnostics': true,
+            'homepage.hero.data.loaded': true, // DGF-473
         } as any,
     };
     const settings = await getLoggingSettingsServer();
