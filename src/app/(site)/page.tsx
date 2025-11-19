@@ -36,7 +36,6 @@ export default async function HomePage() {
   const firstSlide = page.hero?.slides?.[0];
   
   // DGF-475: The client component <Hero> will do its own mapping. We pass the raw slide data.
-  // The line calling mapHeroSlideToViewModel was removed as it caused a build error.
   const heroDataForClient = firstSlide;
   
   // For logging, we use the server-safe helper
