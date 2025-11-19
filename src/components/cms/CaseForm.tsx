@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -8,6 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
+import { createCaseAction, updateCaseAction } from "@/app/dadmin/cases/actions";
+import { toast } from "@/hooks/use-toast";
+import { getCaseById } from "@/lib/cms-api";
+
 
 const emptyCase: CaseDoc = {
   slug: "",
@@ -31,12 +36,12 @@ export default function CaseForm(props: { caseId?: string }) {
   React.useEffect(() => {
     if (!props.caseId) return;
     (async () => {
-      const res = await fetch(`/api/cms/cases/${props.caseId}`, { cache: "no-store" });
-      const json = await res.json();
-      if (json.ok) {
-        setData(json.data);
+      // getCaseById is safe for client if it fetches from an API route
+      const item = await getCaseById(props.caseId as string);
+      if (item) {
+        setData(item as CaseDoc);
       } else {
-        alert(json.error || "Failed to load case");
+        toast({ title: "Error", description: "Failed to load case data.", variant: 'destructive' });
       }
     })();
   }, [props.caseId]);
@@ -59,18 +64,18 @@ export default function CaseForm(props: { caseId?: string }) {
         return;
       }
 
-      const res = await fetch(props.caseId ? `/api/cms/cases/${props.caseId}` : "/api/cms/cases", {
-        method: props.caseId ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
-      });
-      const json = await res.json();
-      if (!json.ok) {
-        alert(json.error || "Failed to save");
-        return;
+      const action = props.caseId ? updateCaseAction : createCaseAction;
+      const result = await action(parsed.data);
+
+      if (!result.ok) {
+        throw new Error(result.error || "Failed to save case study");
       }
+
+      toast({ title: "Success", description: "Case study saved." });
       router.push("/dadmin/cases");
       router.refresh();
+    } catch(e: any) {
+       toast({ title: "Error", description: e.message || "An unexpected error occurred.", variant: "destructive" });
     } finally {
       setBusy(false);
     }
@@ -191,7 +196,7 @@ export default function CaseForm(props: { caseId?: string }) {
         <Button disabled={busy} onClick={submit}>
           {busy ? "Saving..." : "Save"}
         </Button>
-        <Button variant="secondary" type="button" onClick={() => history.back()}>
+        <Button variant="secondary" type="button" onClick={() => router.back()}>
           Cancel
         </Button>
       </div>
