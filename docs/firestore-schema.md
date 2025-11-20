@@ -33,7 +33,7 @@ This document provides a detailed breakdown of the data structures used in Fires
     defaultTitle: string,        // Fallback SEO title
     defaultDescription: string,  // Fallback meta description
     ogImage: string,             // Fallback Open Graph image URL
-    canonicalBase: string        // e.g., "https://www.example.com"
+    canonicalBase: string        // e.g., "https://www.digifly.app"
   }
 }
 ```
@@ -54,18 +54,18 @@ This document provides a detailed breakdown of the data structures used in Fires
   }
 }
 
-// NavLink Structure
+// Sub-structure: NavLink
 type NavLink = {
   id: string, // Unique ID for React keys
   link: CmsLink
 };
 
-// CmsLink Structure
+// Sub-structure: CmsLink
 type CmsLink = {
   type: "internal" | "external",
   label: string,
-  internalRef: string | null, // Page ID for internal links
-  externalUrl: string,      // Full URL for external links
+  internalRef: string | null, // Page ID (slug) for internal links
+  externalUrl: string,        // Full URL for external links
   newTab: boolean
 };
 ```
@@ -79,7 +79,7 @@ type CmsLink = {
 {
   hero: {
     rotationDelaySec: number,
-    slides: HeroSlide[] // Currently only the first slide is used
+    slides: HeroSlide[] // Array, but currently only the first slide is used
   },
   whatWeDo: {
     enabled: boolean,
@@ -106,7 +106,7 @@ type CmsLink = {
   }
 }
 
-// HeroSlide Structure
+// Sub-structure: HeroSlide
 type HeroSlide = {
   heading: string,
   body: string,
@@ -122,7 +122,7 @@ type HeroSlide = {
   }
 };
 
-// ServiceItem Structure
+// Sub-structure: ServiceItem
 type ServiceItem = {
   icon?: string, // Lucide icon name
   title: string,

@@ -1,56 +1,62 @@
 # Digifly Studio System Architecture
 
-This document provides a high-level overview of the technical architecture of the Digifly Studio web application.
+This document provides a high-level overview of the technical architecture of the Digifly Studio web application, focusing on the real, implemented system.
 
 ## 1. Core Technology Stack
 
-- **Framework**: Next.js 14+ (App Router)
+- **Framework**: Next.js (App Router)
 - **Hosting**: Firebase App Hosting
 - **Database**: Firestore (via Firebase Admin SDK on the server)
 - **Styling**: Tailwind CSS with shadcn/ui components
 - **Schema Validation**: Zod
 - **Testing**: Playwright (for Node.js acceptance tests and UI smoke tests)
 
-## 2. Application Structure (App Router)
+## 2. The 5-Layer System: A Server-Centric Data Flow
 
-The application uses the Next.js App Router, which enables a clear separation between Server Components and Client Components.
+Digifly Studio is built on a 5-layer, server-centric architecture that strictly separates concerns to ensure security, maintainability, and performance.
 
-- **/src/app/(site)/**: Contains routes for the public-facing website. Pages here are primarily Server Components that fetch data and pass it to Client Components for rendering.
-- **/src/app/dadmin/**: Contains routes for the admin panel. Pages are Server Components, but they render Client Components (forms, editors) that use Server Actions for mutations.
-- **/src/app/api/**: Contains API routes, primarily for the public CMS data and admin panel actions.
+**`Firestore` ↔ `cms-server.ts` ↔ `cms-api.ts` ↔ `Server Component` → `Client Component`**
 
-## 3. CMS & Data Layer: A Server-Centric Approach
+### Layer 1: Firestore (The Source of Truth)
+- All application content, configuration, and logs are stored in Firestore.
+- It is the single, canonical source of truth.
+- Access is governed by `firestore.rules`, which allows public reads for content collections and restricts writes to authenticated admin actions.
 
-The data layer is designed to be robust and server-centric, minimizing client-side data fetching and keeping secrets and direct database access off the client.
+### Layer 2: `cms-server.ts` (The Data Access Layer)
+- **Responsibility**: This is the **only** module in the application that directly communicates with Firestore.
+- It uses the Firebase Admin SDK (`firebase-admin`), which is why it can *only* run on the server.
+- It contains all data fetching (`get...`) and writing (`save...`, `update...`, `delete...`) logic.
+- All data read from Firestore is immediately parsed and validated against Zod schemas from `src/data/schemas.ts`. This prevents malformed data from propagating through the application.
 
-- **Firestore**: The single source of truth for all content. Documents are structured to match the content models (e.g., `pages/home`, `site/settings`).
-- **`src/lib/firebase/admin.ts`**: A server-only module that initializes the Firebase Admin SDK, allowing trusted server-side access to Firestore. It reads credentials from environment variables.
-- **`src/data/schemas.ts`**: Contains Zod schemas for all major Firestore documents. This is the **contract** for our data, ensuring type safety and validation at the point of read and write.
-- **`src/lib/cms-server.ts`**: The primary data-fetching and writing layer.
-  - Contains functions like `getHomepage()`, `saveHomepage()`, `getSiteSettings()`, etc.
-  - These functions are marked with `"use server"`.
-  - They read from and write directly to Firestore, parse the data with Zod schemas, and return it.
-  - **This is the ONLY layer that should directly communicate with the database.**
+### Layer 3: `cms-api.ts` (The Testable Facade)
+- **Responsibility**: This module provides a stable, server-side API for our internal tools, primarily the **Node.js-only acceptance tests**.
+- It re-exports functions from `cms-server.ts` and Server Actions.
+- **Crucial Rule**: The frontend application (Server Components) should import directly from `cms-server.ts`, while tests should import from `cms-api.ts`. This decouples the testing suite from the raw implementation details.
 
-## 4. Admin Panel & Data Mutations
+### Layer 4: Server Components (The Data Fetchers)
+- **Responsibility**: These are the Next.js pages located in `src/app/(site)/`.
+- As Server Components, they execute on the server and are responsible for fetching the data needed for a specific route.
+- They call data-fetching functions directly from `cms-server.ts` (e.g., `const page = await getHomepage();`).
+- They then pass the fetched data down to Client Components as props.
 
-All data modifications happen through the admin panel (`/dadmin`).
+### Layer 5: Client Components (The Renderers)
+- **Responsibility**: These are the UI components in `src/components/` responsible for rendering HTML and handling user interactions.
+- They receive all their data as props from a parent Server Component.
+- **Crucial Rule**: Client Components **must not** import `cms-server.ts` or any other server-only code. Doing so will pull server-side dependencies (like `firebase-admin`) into the client bundle and cause a build failure.
 
-- **Client Components**: Admin pages are built with Client Components (e.g., `HomepageEditor.tsx`) to allow for interactivity and form state management using React Hook Form.
-- **Server Actions**: When a user saves a form, the Client Component calls a Server Action (e.g., `saveHomepageAction` in `src/app/dadmin/homepage/actions.ts`).
-- **Action Logic**: The Server Action handles validation (using Zod schemas from `src/data/schemas.ts`) and calls the appropriate write function in `cms-server.ts` to update Firestore. It also triggers cache revalidation (`revalidatePath`) and writes an audit log.
+## 3. Data Mutations: The Server Action Flow
 
-This pattern keeps all mutation logic securely on the server and avoids exposing Firestore write access or complex business logic to the client.
+All data writes are handled securely through Server Actions.
 
-## 5. Logging and Observability
+1.  **Admin UI**: An admin interacts with a form in a Client Component (e.g., `HomepageEditor.tsx`).
+2.  **Server Action Call**: On submit, the form calls a Server Action (e.g., `saveHomepageAction`).
+3.  **Action Execution**: The Server Action, which runs only on the server, validates the payload and calls the appropriate write function in `cms-server.ts`.
+4.  **Firestore Write**: `cms-server.ts` writes the data to Firestore.
+5.  **Cache Revalidation**: The Server Action calls `revalidatePath()` to invalidate the Next.js cache, ensuring the public site is updated.
 
-- **`src/lib/dadmin/audit.ts`**: Provides a central `logAdminAction` function for recording significant events.
-- **Flow**: Any important server-side operation (e.g., saving a page, running a test, a page view) calls this function with a structured payload.
-- **Storage**: Logs are written to the `auditLogs` collection in Firestore.
-- **Viewing**: The `/dadmin/developer/logs` page provides a real-time stream of these logs, offering crucial visibility into system behavior for debugging.
+## 4. Caching Strategy
 
-## 6. Caching Strategy
-
-- **Data Fetching**: Data fetching in Server Components uses `unstable_noStore()` to ensure fresh data is retrieved from Firestore on each request. This is suitable for a CMS where content changes need to be reflected quickly.
-- **API Routes**: Public API routes use `Cache-Control: 'no-store'` to prevent caching.
-- **Next.js Caching**: `revalidatePath()` is used in Server Actions to bust Next.js's data and full-route caches after a write operation, ensuring the public site updates.
+- **Data Fetching**: All data-fetching functions in `cms-server.ts` use `unstable_noStore()` to opt out of Next.js's Data Cache. This ensures that every request fetches the latest content from Firestore, which is critical for a CMS.
+- **Route Rendering**: `export const dynamic = 'force-dynamic'` is used on pages to ensure they are always server-rendered on-demand.
+- **API Routes**: Public API endpoints in `src/app/api/cms/` use a `Cache-Control: 'no-store'` header to prevent client-side or CDN caching.
+- **Write Revalidation**: After any write operation, Server Actions call `revalidatePath('/')` or a more specific path to purge the Next.js Full Route Cache and Data Cache, forcing a fresh render on the next visit.

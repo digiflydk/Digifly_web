@@ -14,17 +14,17 @@ Digifly Studio is a modern, CMS-driven web application built on a robust and sca
 - **Testing**: Playwright for Node.js acceptance and UI smoke tests
 - **Mutations**: Server Actions
 
-## 2. Core Architecture: A 5-Layer System
+## 2. Core Architecture: The Data Flow
 
 The application follows a clear, server-centric data flow to ensure security and performance.
 
-**CMS Admin Panel → Server Action → `cms-server.ts` → Firestore → `cms-server.ts` (read) → Server Component → Client Component**
+**`Firestore`** ↔ **`cms-server.ts`** ↔ **`cms-api.ts`** ↔ **`Server Component`** → **`Client Component`**
 
-1.  **Firestore**: The single source of truth for all data.
+1.  **Firestore**: The single source of truth for all data (e.g., documents in `site/`, `pages/`, `cases/`).
 2.  **`cms-server.ts`**: The only part of the app that communicates directly with Firestore using the Firebase Admin SDK. It contains all data fetching and writing logic.
-3.  **Server Actions**: Secure server-side functions called by the admin panel to handle data mutations (saves, deletes). They use `cms-server.ts` to write to the database.
-4.  **Server Components**: The Next.js pages (e.g., `src/app/(site)/page.tsx`) are Server Components. They are responsible for fetching data for a route using `cms-server.ts`.
-5.  **Client Components**: The UI components (e.g., `Hero.tsx`) are Client Components. They receive data as props from Server Components and are responsible for rendering and user interaction.
+3.  **`cms-api.ts`**: A server-side facade that re-exports functions from `cms-server.ts`. Its purpose is to provide a stable, testable entry point for Node.js acceptance tests.
+4.  **Server Components**: Next.js pages (e.g., `src/app/(site)/page.tsx`) are Server Components. They are responsible for fetching data for a route using the helpers in `cms-server.ts`.
+5.  **Client Components**: UI components (e.g., `Hero.tsx`) are Client Components. They receive data as props from Server Components and are responsible for rendering and user interaction.
 
 ## 3. Getting Started
 
@@ -38,7 +38,7 @@ The application follows a clear, server-centric data flow to ensure security and
     - Copy the `.env.local.example` file to a new file named `.env.local`.
     - Fill in the required Firebase project credentials. Your `FIREBASE_SERVICE_ACCOUNT_JSON` should be a base64-encoded string.
 3.  **Seed the Database**:
-    - Run the seeding script to populate your local Firestore with default content.
+    - Run the seeding script to populate your local Firestore with default content from `src/data/defaults.ts`.
     ```bash
     npm run cms:seed
     ```
@@ -54,7 +54,8 @@ The application follows a clear, server-centric data flow to ensure security and
 
 ## 4. Documentation Index
 
-- **[Architecture Overview](./architecture.md)**: A deep dive into the 5-layer system.
+- **[Blueprint](./blueprint.md)**: The high-level conceptual model of the Digifly Studio platform.
+- **[Architecture Overview](./architecture.md)**: A deep dive into the technical system architecture.
 - **[File Map](./FILE-MAP.md)**: A guide to the project's file and folder structure.
 - **[Data Flow](./data-flow.md)**: A step-by-step breakdown of how data moves through the app.
 - **[Data Communication Rules](./data-communication.md)**: Rules for how different parts of the app communicate.
@@ -66,3 +67,4 @@ The application follows a clear, server-centric data flow to ensure security and
 - **[Troubleshooting Guide](./TROUBLESHOOTING-QUICK.md)**: Quick fixes for common development issues.
 - **[Security & RBAC](./security-rbac.md)**: Information on the application's security model.
 - **[Performance & Indexes](./performance-indexes.md)**: Notes on Firestore indexes.
+- **[Project Management Templates](./PM-KICKOFF-TEMPLATE.md)**: Templates for planning new tasks.
