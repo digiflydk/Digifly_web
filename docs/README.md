@@ -1,10 +1,10 @@
-# Digifly Project Documentation
+# Digifly Studio Project Documentation
 
-Welcome to the Digifly project! This document is the starting point for understanding the application's architecture, data flow, and development practices.
+Welcome to Digifly Studio! This document is the starting point for understanding the application's architecture, data flow, and development practices.
 
-## 1. What is Digifly?
+## 1. What is Digifly Studio?
 
-Digifly is a modern, CMS-driven web application built on a robust and scalable technology stack. Its core purpose is to provide a dynamic public-facing website where all content—from text and images to navigation and design—is managed through a secure admin panel.
+Digifly Studio is a modern, CMS-driven web application built on a robust and scalable technology stack. Its core purpose is to provide a dynamic public-facing website where all content—from text and images to navigation and design—is managed through a secure admin panel.
 
 **Tech Stack:**
 - **Framework**: Next.js (App Router)
@@ -53,8 +53,6 @@ The application follows a clear, server-centric data flow to ensure security and
 - In a production environment, this route is protected by authentication. For local development, authentication can be disabled by setting `ADMIN_AUTH_DISABLED=true` in your `.env.local` file.
 
 ## 4. Documentation Index
-
-For more detailed information, please refer to the other documents in this directory:
 
 - **[Architecture Overview](./architecture.md)**: A deep dive into the 5-layer system.
 - **[File Map](./FILE-MAP.md)**: A guide to the project's file and folder structure.

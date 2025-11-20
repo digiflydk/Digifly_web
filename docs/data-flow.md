@@ -1,4 +1,4 @@
-# Digifly Data Flow
+# Digifly Studio Data Flow
 
 This document outlines the end-to-end data flow for both reading and writing content, from an admin's action to a visitor viewing the page.
 
@@ -46,4 +46,4 @@ This flow describes what happens when a user visits the public homepage (`/`).
 5.  **Rendering (Client)**
     - The Client Components receive the data as props.
     - They may perform final view-specific mapping (e.g., converting colors, resolving links) via helpers in `src/lib/hero-style-utils.ts` or `src/lib/links.ts`.
-    - The browser receives the final HTML and renders the page with the live CMS content.
+    - The browser renders the final HTML with the live CMS content.

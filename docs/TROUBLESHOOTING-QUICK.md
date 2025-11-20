@@ -16,7 +16,7 @@ This guide provides solutions for common issues encountered during development.
     - Is the page a Server Component or a Client Component?
     - **Server Components** should fetch data directly from `src/lib/cms-server.ts`.
     - **Client Components** should receive data as props from a parent Server Component.
-    - **Anti-Pattern:** A Client Component should **never** import a data-fetching function from `cms-server.ts` or `cms-api.ts`.
+    - **Anti-Pattern:** A Client Component should **never** import a data-fetching function from `cms-server.ts`.
 3.  **Verify Firestore Path:** Check the `cms-server.ts` function to ensure it's reading from the correct Firestore document path (e.g., `pages/home`, not a legacy path).
 4.  **Check for `revalidatePath()`**: Ensure the Server Action that saves the data calls `revalidatePath('/')` or the relevant path to invalidate Next.js's server-side cache.
 
@@ -42,12 +42,11 @@ This guide provides solutions for common issues encountered during development.
 **Solutions:**
 - **`<Button href>` error**:
   - **Why?** The `<Button>` component does not accept an `href` prop. This causes accessibility and routing issues.
-  - **Fix:** Wrap the `<a>` tag inside the button and use the `asChild` prop.
+  - **Fix:** Use the `<Button asChild>` prop with a nested `<a>` tag:
     ```diff
     - <Button href="/path">Click</Button>
     + <Button asChild><a href="/path">Click</a></Button>
     ```
-    Alternatively, use the `<ButtonLink>` component if appropriate.
 - **Invalid `use server` exports**:
   - **Why?** Files marked with `'use server'` can only export asynchronous functions.
   - **Fix:** Move any non-function exports (constants, types, objects) to a separate file that does not have the `'use server'` directive.

@@ -1,6 +1,6 @@
 # Firestore Collections Overview
 
-This document outlines the primary Firestore collections and their schemas as used in the Digifly application.
+This document outlines the primary Firestore collections and their schemas as used in the Digifly Studio application.
 
 ## 1. `site`
 

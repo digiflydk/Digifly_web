@@ -1,6 +1,6 @@
-# Digifly API Overview
+# Digifly Studio API Overview
 
-This document provides an overview of the primary API endpoints available in the Digifly application.
+This document provides an overview of the primary API endpoints available in the Digifly Studio application.
 
 ## 1. Public CMS API
 
@@ -70,16 +70,6 @@ These endpoints are used by the `/dadmin` panel and are protected by authenticat
 - **Method**: `POST`
 - **Description**: Clears the session cookie to log the user out.
 - **Used By**: The logout button in the admin panel.
-
-### `/api/admin/site`
-
-- **Method**: `POST`
-- **Description**: This is the endpoint that the `saveSiteSettingsAction` Server Action calls behind the scenes to update the `site/settings` document. It is not intended for direct client-side use.
-
-### `/api/admin/navigation`
-
-- **Method**: `POST`
-- **Description**: The endpoint for the `saveNavigationAction` Server Action to update the `site/navigation` document.
 
 ## 3. Developer & Debug APIs
 

@@ -1,6 +1,6 @@
 # Data Communication Rules
 
-To maintain a secure, maintainable, and server-centric architecture, the Digifly project follows strict rules for how different parts of the application communicate.
+To maintain a secure, maintainable, and server-centric architecture, the Digifly Studio project follows strict rules for how different parts of the application communicate.
 
 ## Core Principle: Server is the Single Source of Truth
 
@@ -23,7 +23,7 @@ The server holds all business logic, data fetching/writing capabilities, and sec
 - They **MUST** fetch data by calling functions from `src/lib/cms-server.ts` (e.g., `getHomepage()`).
 - They then pass this data as props to Client Components for rendering.
 
-```
+```tsx
 // Correct: src/app/(site)/page.tsx
 import { getHomepage } from '@/lib/cms-server'; // OK: Server Component importing server-only function
 import Hero from '@/components/sections/hero';
@@ -34,7 +34,7 @@ export default async function Page() {
 }
 ```
 
-- **Client Components** (`/components/**/*.tsx`) **MUST NOT** import from `cms-server.ts` or `cms-api.ts`. They only receive data through props.
+- **Client Components** (`/components/**/*.tsx`) **MUST NOT** import from `cms-server.ts`. They only receive data through props.
 
 ### Rule 2: Frontend Writes Data via Server Actions
 
@@ -42,7 +42,7 @@ export default async function Page() {
 - To save data, they **MUST** call a **Server Action** (e.g., `saveHomepageAction`).
 - The Server Action handles the actual database write by calling a function from `cms-server.ts`.
 
-```
+```tsx
 // Correct: Admin form calling a Server Action
 "use client";
 import { saveHomepageAction } from '@/app/dadmin/homepage/actions';
@@ -64,5 +64,5 @@ function MyForm() {
 ### Anti-Patterns (What to Avoid)
 
 - **NEVER** `import { getDb } from '@/lib/firebase/admin'` from anywhere except `cms-server.ts` or other designated server-only utility files.
-- **NEVER** have a Client Component import a function from `cms-server.ts` or `cms-api.ts`. This will cause a build error because it pulls server code into the client bundle.
+- **NEVER** have a Client Component import a function from `cms-server.ts`. This will cause a build error because it pulls server code into the client bundle.
 - **NEVER** perform a direct Firestore read or write from a Client Component. Always use a Server Action for writes.

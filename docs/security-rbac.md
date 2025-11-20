@@ -1,6 +1,6 @@
 # Security & Role-Based Access Control (RBAC)
 
-This document outlines the security model for the Digifly application, including data access rules and user roles.
+This document outlines the security model for the Digifly Studio application, including data access rules and user roles.
 
 ## 1. Core Security Principles
 
@@ -19,11 +19,11 @@ The following collections are world-readable to allow the frontend to render pag
 - `cases/{caseId}`: Only documents where `published == true` are public.
 
 ### Admin-Only Write Access
-- All write operations (`create`, `update`, `delete`) on the collections above are restricted to authenticated users with an admin role.
-- The `isAdmin()` function in `firestore.rules` checks `request.auth.token.admin == true`.
+- All write operations (`create`, `update`, `delete`) on the collections above are restricted to authenticated users. The middleware handles protecting the admin panel itself.
+- The `isAdmin()` function in `firestore.rules` checks `request.auth != null`.
 
 ### Protected Collections
-- `auditLogs`: Can only be created by an authenticated user (i.e., the server) and read by admins. Updates and deletes are disallowed.
+- `auditLogs`: Can only be created and read by an authenticated user (i.e., the server and logged-in admins). Updates and deletes are disallowed.
 - `developerSettings`: Can only be read and written by admins.
 
 ## 3. User Roles & Authentication

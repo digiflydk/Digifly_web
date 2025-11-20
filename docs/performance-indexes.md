@@ -1,6 +1,6 @@
 # Firestore Performance & Indexes
 
-This document outlines the required Firestore indexes for the Digifly application to ensure optimal query performance.
+This document outlines the required Firestore indexes for the Digifly Studio application to ensure optimal query performance.
 
 ## 1. Why Indexes Are Necessary
 
@@ -33,7 +33,7 @@ The following indexes are required by the application and must be defined in the
 
 - **Purpose**: This index is used by `getCaseBySlug()` to efficiently look up a case study document using its URL slug.
 - **Query**: Filters by `slug`.
-- **Index Definition**: Although Firestore creates single-field indexes automatically, explicitly defining it can be good practice.
+- **Index Definition**: Although Firestore creates single-field indexes automatically, explicitly defining it is good practice.
   ```json
   {
     "collectionGroup": "cases",

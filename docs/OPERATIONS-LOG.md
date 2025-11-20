@@ -1,11 +1,11 @@
 # Operations Log
 
-This log tracks significant architectural decisions, schema changes, and important debugging outcomes for the Digifly project.
+This log tracks significant architectural decisions, schema changes, and important debugging outcomes for the Digifly Studio project.
 
 ---
 
-## 2025-11-20 — Documentation Pack (DGF-480)
-- **Description**: Created a full developer documentation package to reflect the current state of the Digifly application architecture, data flow, and development processes. This provides a single source of truth for new and existing developers.
+## 2025-11-20 — Documentation Pack (DGF-481)
+- **Description**: Created a full developer documentation package to reflect the current state of the Digifly Studio application architecture, data flow, and development processes. This provides a single source of truth for new and existing developers.
 - **Files Affected**:
   - `/docs/README.md`
   - `/docs/architecture.md`
@@ -18,7 +18,7 @@ This log tracks significant architectural decisions, schema changes, and importa
   - `/docs/performance-indexes.md`
   - `/docs/security-rbac.md`
   - `/docs/TROUBLESHOOTING-QUICK.md`
-- **Version**: 1.3.146
+- **Version**: 1.3.147
 
 ---
 
@@ -28,7 +28,6 @@ This log tracks significant architectural decisions, schema changes, and importa
   - The data flow was corrected to strictly enforce that data fetching and mapping for server components occur only on the server.
   - Client components now receive raw data as props and handle their own view-specific logic.
   - Added structured audit logging for CMS read/write operations to provide clear visibility into the data flow for future debugging.
-  - Refactored `cms-api.ts` to be a pure facade over server-side functions, making it safe for use in Node.js-only acceptance tests.
 - **Files Affected**:
   - `src/app/(site)/page.tsx`
   - `src/lib/cms-api.ts`

@@ -1,6 +1,6 @@
-# Digifly System Architecture
+# Digifly Studio System Architecture
 
-This document provides a high-level overview of the technical architecture of the Digifly web application.
+This document provides a high-level overview of the technical architecture of the Digifly Studio web application.
 
 ## 1. Core Technology Stack
 
