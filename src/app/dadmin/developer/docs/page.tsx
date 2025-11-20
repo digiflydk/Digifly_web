@@ -3,7 +3,7 @@ import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Download, FileJson, Beaker, ShieldCheck, History, Settings, Map, Camera } from "lucide-react";
+import { Download, FileJson, Beaker, ShieldCheck, History, Settings, Map, Camera, Link as LinkIcon } from "lucide-react";
 import { DocsList } from "@/components/docs/DocsList";
 import LoggingSettings from "../../_components/LoggingSettings";
 
@@ -83,6 +83,13 @@ const TOOLS = [
         href: "/dadmin/developer/cms-snapshots",
         icon: Camera,
         label: "View Snapshots"
+    },
+    {
+        title: "All URLs",
+        description: "A list of all URLs used in the app and their descriptions.",
+        href: "/dadmin/developer/all-urls",
+        icon: LinkIcon,
+        label: "View All URLs"
     },
 ]
 
