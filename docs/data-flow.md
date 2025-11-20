@@ -41,7 +41,7 @@ This flow describes what happens when a user visits the public homepage (`/`).
 
 4.  **Props Passed to Client Component (Server → Client)**
     - The `HomePage` Server Component renders the necessary **Client Components** (e.g., `<Hero>`, `<WhatWeDo>`).
-    - The fetched and validated data is passed down as props. For example, `page.hero` is passed to `<Hero data={page.hero} />`.
+    - The fetched and validated data is passed down as props. For example, `page.hero.slides[0]` is passed to `<Hero data={page.hero.slides[0]} />`.
 
 5.  **Rendering (Client)**
     - The Client Components receive the data as props.
