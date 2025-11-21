@@ -3,7 +3,7 @@ import { buildSeo } from "@/lib/seo";
 import type { Metadata } from 'next';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Download, FileJson, Beaker, ShieldCheck, History, Settings, Map, Camera, Link as LinkIcon } from "lucide-react";
+import { Download, FileJson, Beaker, ShieldCheck, History, Settings, Map, Camera, Link as LinkIcon, Book } from "lucide-react";
 import { DocsList } from "@/components/docs/DocsList";
 import LoggingSettings from "../../_components/LoggingSettings";
 
@@ -49,6 +49,13 @@ const DUMPS = [
 ];
 
 const TOOLS = [
+    {
+        title: "Playbook",
+        description: "Review the engineering playbook for architecture, testing, and process guidelines.",
+        href: "/dadmin/developer/playbook",
+        icon: Book,
+        label: "View Playbook"
+    },
     {
         title: "Pre-deploy Checks",
         description: "Run automated smoke tests and static analysis to ensure build stability before deployment.",
@@ -102,7 +109,7 @@ export default function DeveloperDocsPage() {
           Run checks, view test reports, and download live-generated JSON overviews of the application's structure.
         </p>
 
-         <div className="mt-8 grid gap-4 md:grid-cols-2">
+         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {TOOLS.map(tool => (
                 <div key={tool.href} className="border rounded-xl p-4 flex flex-col justify-between items-start gap-4">
                     <div>
