@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { buildSeo } from "@/lib/seo";
 
@@ -11,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function PlaywrightDocsPage() {
   return (
     <main className="prose prose-lg max-w-none">
-      <h1>Playwright &amp; Acceptance Testing</h1>
+      <h1>Playwright & Acceptance Testing</h1>
       <section>
         <h2>Overview</h2>
         <ul>
@@ -27,6 +28,35 @@ export default function PlaywrightDocsPage() {
         <ul>
           <li>Existing browser QA in /qa (UI, SEO, smoke tests in CI/CD).</li>
           <li>New Node-only acceptance layer in src/tests/acceptance (server-side CMS/API coverage in Studio).</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Test types & principles</h2>
+        <p>Digifly uses two different categories of Playwright tests:</p>
+        <ul>
+          <li>
+            <p>Browser-based QA tests located in the /qa directory. These tests run in a real browser and cover UI behaviour, SEO checks, rendering, navigation flows, and smoke testing used in CI.</p>
+          </li>
+          <li>
+            <p>Node-only acceptance tests located in src/tests/acceptance. These tests run inside the Studio environment without a browser and target server-side logic such as CMS read/write, Firestore data integrity, and API contracts.</p>
+          </li>
+        </ul>
+        <p>Acceptance tests follow strict rules:</p>
+        <ul>
+          <li>No browser or UI interactions.</li>
+          <li>No use of Playwright page or browser fixtures.</li>
+          <li>Tests must call the Digifly CMS/API/server action layer directly.</li>
+          <li>Tests must validate data shape, persistent writes, and correct API behaviour.</li>
+          <li>Every acceptance test must reference a task ID (e.g. DGFPW-001).</li>
+          <li>Each test run is logged in Firestore as a QA run.</li>
+        </ul>
+        <p>Acceptance tests do not validate:</p>
+        <ul>
+          <li>UI rendering or layout issues.</li>
+          <li>Client-side JavaScript behaviour.</li>
+          <li>Browser compatibility.</li>
+          <li>Animations, transitions, or styles.</li>
         </ul>
       </section>
 
