@@ -13,15 +13,15 @@ export default function PlaywrightDocsPage() {
   return (
     <main>
       <h1>Playwright & Acceptance Testing</h1>
-      <p>Digifly uses Playwright for automated testing. There are two layers: an existing browser-based QA setup in /qa, and a new Node-only acceptance test layer for server-side validation.</p>
+      <p>Digifly uses Playwright for automated testing. There are two layers: an existing browser-based QA setup in /qa, and a new Node-only acceptance test layer that we are introducing.</p>
       
       <section>
         <h2>Overview</h2>
         <ul>
           <li>Playwright is used to run automated tests against the Digifly platform.</li>
           <li>The existing QA setup, located in /qa, consists of browser-based tests for UI, SEO, and general smoke testing.</li>
-          <li>A new Node-only acceptance testing layer, located in src/tests/acceptance, runs within the Studio environment.</li>
-          <li>Acceptance tests validate server-side logic, data contracts, and API integrity.</li>
+          <li>The engineering playbook defines a Node-only acceptance testing layer powered by Playwright that runs in the Studio environment and does not use a real browser.</li>
+          <li>Acceptance tests validate server-side logic and data integrity, not the UI.</li>
         </ul>
       </section>
 
@@ -29,16 +29,16 @@ export default function PlaywrightDocsPage() {
         <h2>Testing layers</h2>
         <p>Digifly uses two different categories of Playwright tests:</p>
         <ul>
-        <li>
+          <li>
             <p>Browser-based QA tests located in the /qa directory. These tests run in a real browser and cover UI behaviour, SEO checks, rendering, navigation flows, and smoke testing used in CI.</p>
-        </li>
-        <li>
+          </li>
+          <li>
             <p>Node-only acceptance tests located in src/tests/acceptance. These tests run inside the Studio environment without a browser and target server-side logic such as CMS read/write, Firestore data integrity, and API contracts.</p>
-        </li>
+          </li>
         </ul>
       </section>
-      
-      <section>
+
+       <section>
         <h2>Test types & principles</h2>
         <p>Digifly uses two different categories of Playwright tests:</p>
         <ul>
@@ -78,17 +78,36 @@ export default function PlaywrightDocsPage() {
         </ul>
         <p>This organized structure is designed to be portable and can be replicated in other projects like Orderfly.</p>
       </section>
-
+      
       <section>
         <h2>Naming & task IDs</h2>
         <p>All acceptance tests must follow a consistent naming convention to ensure traceability and enable targeted test runs.</p>
         <ul>
-            <li>Acceptance test files must be located in `src/tests/acceptance` and follow the `<feature>.acceptance.spec.ts` pattern. For example, `homepage.acceptance.spec.ts` or `playwright-module.acceptance.spec.ts`.</li>
-            <li>Every test or suite of tests must be linked to a unique task ID, such as `DGFPW-001` or `DGF-480`. This ID must appear in the test or suite title.</li>
-            <li>Including the task ID allows for targeted runs using filters, for example, running all tests for a specific task with `--grep "DGFPW-001"`.</li>
-            <li>The same task ID is used consistently across the workflow: in the Studio task, the test titles, and the QA run documents in Firestore, creating a clear trace from task to test to result.</li>
-            <li>This naming convention applies to all projects where the module is used, with only the task prefix changing (e.g., `OF-203` for an Orderfly task).</li>
+          <li>Acceptance test files must be located in `src/tests/acceptance` and follow the `&lt;feature&gt;.acceptance.spec.ts` pattern. For example, `homepage.acceptance.spec.ts` or `playwright-module.acceptance.spec.ts`.</li>
+          <li>Every test or suite of tests must be linked to a unique task ID, such as `DGFPW-001` or `DGF-480`. This ID must appear in the test or suite title.</li>
+          <li>Including the task ID allows for targeted runs using filters, for example, running all tests for a specific task with `--grep "DGFPW-001"`.</li>
+          <li>The same task ID is used consistently across the workflow: in the Studio task, the test titles, and the QA run documents in Firestore, creating a clear trace from task to test to result.</li>
         </ul>
+        <p>This naming convention applies to all projects where the module is used, with only the task prefix changing (e.g. `OF-203` for an Orderfly task).</p>
+      </section>
+
+      <section>
+        <h2>QA workflow & roles</h2>
+        <p>Digifly uses a four-role model to ensure quality and consistency:</p>
+        <ul>
+          <li>PM: Defines the task goal, but not the technical implementation, specs, or architecture.</li>
+          <li>ChatGPT: Designs the full technical solution, creates the Studio-spec, assigns task IDs, and prepares prompts for Codex.</li>
+          <li>Studio: Implements the task exactly as specified, modifying only the listed files without making independent architectural decisions.</li>
+          <li>Codex: Reviews the implementation for quality, structure, and safety, returning a PASS or FAIL without writing code itself.</li>
+        </ul>
+        <p>The workflow is linear: PM → ChatGPT → Studio → Codex → Studio (fix) → Codex (final PASS).</p>
+        <ul>
+          <li>Acceptance tests are tied to DGFPW task IDs and run in a Node-only environment, as Studio cannot run browsers.</li>
+          <li>They validate server-side logic like CMS read/write, API contracts, data models, and Firestore consistency.</li>
+          <li>They do not validate UI, browser behavior, or client-side scripts.</li>
+          <li>All test runs will be accessible in the `/dadmin/developer/tests` interface in a future update.</li>
+        </ul>
+        <p>This QA workflow is standard for Digifly and will be reused in other projects like Orderfly, where only the task ID prefix changes.</p>
       </section>
 
       <section>
