@@ -19,12 +19,7 @@ export default function QaTestsPage() {
 
       <section>
         <h2>What you see here</h2>
-        <ul>
-          <li>This is a prototype UI to illustrate the future test reporting interface.</li>
-          <li>In a later version, this page will read live data from the `qaRuns` collection in Firestore.</li>
-          <li>It will support filtering by run type (e.g., `acceptance`) and `taskId`.</li>
-          <li>This UI is conceptually linked to the documentation under `/dadmin/developer/docs/qw/tests` and `/dadmin/developer/docs/pw`.</li>
-        </ul>
+        <p>This is a prototype UI to illustrate the future test reporting interface; the data is not yet live. In a later version, this page will read live data from the `qaRuns` collection in Firestore and allow filtering by run type (e.g., `acceptance`) and `taskId`. This UI is conceptually linked to the documentation under `/dadmin/developer/docs/qw/tests` and `/dadmin/developer/docs/pw`.</p>
       </section>
 
       <section>
@@ -44,10 +39,10 @@ export default function QaTestsPage() {
             <tr>
               <td>DGFPW-001</td>
               <td>acceptance</td>
-              <td>passed</td>
+              <td>failed</td>
               <td>2025-11-22T10:15:00Z</td>
               <td>2025-11-22T10:15:05Z</td>
-              <td>4 passed / 0 failed</td>
+              <td>3 passed / 1 failed</td>
             </tr>
             <tr>
               <td>DGF-480</td>
@@ -62,7 +57,7 @@ export default function QaTestsPage() {
               <td>acceptance</td>
               <td>passed</td>
               <td>2025-11-21T18:00:00Z</td>
-              <td>2025-11-21T18:00:03Z</td>_
+              <td>2025-11-21T18:00:03Z</td>
               <td>1 passed / 0 failed</td>
             </tr>
              <tr>
