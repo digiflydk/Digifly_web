@@ -1,49 +1,47 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Use process.env.PORT by default and fallback to 3000 if not set.
-const PORT = process.env.PORT || 3000;
+// Read from environment variable, default to localhost for local testing
+const BASE_URL = process.env.BASE_URL || 'http://localhost:9002';
 
-// Set webServer.url and use.baseURL with the location of the WebServer respecting the PORT variable.
-const baseURL = `http://localhost:${PORT}`;
-
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
 export default defineConfig({
-  testDir: './tests',
-  /* Run tests in files in parallel */
-  fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  timeout: 30_000,
+  
+  // Fail the build on CI if you accidentally left test.only in the source code.
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
+
+  // Retry on CI only
+  retries: process.env.CI ? 1 : 0,
+
+  // Opt out of parallel tests on CI.
   workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+
+  reporter: [
+    ['list'],
+    ['junit', { outputFile: 'qa/report/junit.xml' }],
+    ['html', { outputFolder: 'qa/report/html', open: 'never' }],
+  ],
+  
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL,
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    baseURL: BASE_URL,
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
   },
 
-  // Run your local dev server before starting the tests:
-  // https://playwright.dev/docs/test-advanced#launching-a-development-web-server-during-the-tests
-  webServer: {
-    command: 'npm run dev',
-    url: baseURL,
-    timeout: 120 * 1000,
-    reuseExistingServer: !process.env.CI,
-  },
-
-  /* Configure projects for major browsers */
   projects: [
+    // Existing browser-based QA projects
+    { name: 'chromium', testDir: './qa/tests', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', testDir: './qa/tests', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', testDir: './qa/tests', use: { ...devices['Desktop Safari'] } },
+    
+    // New Node-only Acceptance project
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'acceptance',
+      testDir: 'src/tests/acceptance',
+      testMatch: '*.acceptance.spec.ts',
     },
   ],
+
+  // Directory for test artifacts
+  outputDir: 'qa/artifacts',
 });
