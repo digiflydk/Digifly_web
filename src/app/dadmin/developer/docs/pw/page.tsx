@@ -13,6 +13,8 @@ export default function PlaywrightDocsPage() {
   return (
     <main>
       <h1>Playwright & Acceptance Testing</h1>
+      <p>This document explains how Playwright is used for automated testing in the Digifly platform. It covers the different testing layers, file structure, naming conventions, and the QA workflow.</p>
+      
       <section>
         <h2>Overview</h2>
         <ul>
@@ -20,6 +22,14 @@ export default function PlaywrightDocsPage() {
           <li>The existing QA setup, located in /qa, consists of browser-based tests for UI, SEO, and general smoke testing.</li>
           <li>A new Node-only acceptance testing layer, located in src/tests/acceptance, runs within the Studio environment.</li>
           <li>Acceptance tests validate server-side logic, data contracts, and API integrity.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Testing layers</h2>
+        <ul>
+          <li>Existing browser QA in /qa (UI, SEO, smoke tests in CI/CD).</li>
+          <li>New Node-only acceptance layer in src/tests/acceptance (server-side CMS/API coverage in Studio).</li>
         </ul>
       </section>
 
@@ -68,15 +78,15 @@ export default function PlaywrightDocsPage() {
         <h2>Naming & task IDs</h2>
         <p>All acceptance tests must follow a consistent naming convention to ensure traceability and enable targeted test runs.</p>
         <ul>
-            <li>Acceptance test files must be located in src/tests/acceptance and follow the feature.acceptance.spec.ts pattern. For example, homepage.acceptance.spec.ts or playwright-module.acceptance.spec.ts.</li>
-            <li>Every test or suite of tests must be linked to a unique task ID, such as DGFPW-001 or DGF-480. This ID must appear in the test or suite title.</li>
+            <li>Acceptance test files must be located in src/tests/acceptance and follow the feature.acceptance.spec.ts pattern. For example, a test file for the homepage feature would be named homepage.acceptance.spec.ts.</li>
+            <li>Every test or suite of tests must be linked to a unique task ID, such as DGFPW-001, DGF-480, or OF-203 for an Orderfly task. This ID must appear in the test or suite title.</li>
             <li>Including the task ID in the title allows for targeted runs using filters, for example, running all tests for a specific task with --grep DGFPW-001.</li>
             <li>The same task ID is used consistently across the workflow: in the Studio task, the test titles, and the QA run documents in Firestore, creating a clear trace from task to test to result.</li>
         </ul>
-        <p>This naming convention applies to all projects where the module is used, with only the task prefix changing (e.g. OF-203 for an Orderfly task).</p>
+        <p>This naming convention applies to all projects where the module is used, with only the task prefix changing.</p>
       </section>
 
-      <section>
+       <section>
         <h2>QA workflow & roles</h2>
         <p>Digifly uses a four-role model to ensure quality and consistency:</p>
         <ul>
@@ -92,7 +102,7 @@ export default function PlaywrightDocsPage() {
             <li>They do not validate UI, browser behavior, or client-side scripts.</li>
             <li>All test runs will be accessible in the /dadmin/developer/tests interface in a future update.</li>
         </ul>
-        <p>This QA workflow is standard for Digifly and will be reused in other projects like Orderfly, where only the task ID prefix changes.</p>
+        <p>This QA workflow is standard for Digifly and will be reused in other projects like Orderfly, where only the task ID prefixes change.</p>
       </section>
 
       <section>
@@ -124,17 +134,17 @@ export default function PlaywrightDocsPage() {
         <p>This index allows the future /dadmin/developer/tests page to quickly filter runs by type or by a specific task ID, sorted by the most recent runs first.</p>
         <p>The same index structure should be applied in any project reusing this module, such as Orderfly. Additional indexes may be needed if new filtering or sorting patterns are introduced.</p>
       </section>
-      
+
       <section>
         <h2>How to write an acceptance test</h2>
         <p>This section outlines the process for creating a new Node-only acceptance test. These tests are critical for validating server-side logic without requiring a browser environment, making them ideal for the Studio workflow.</p>
         <ul>
-          <li>Tests must run in a Node-only environment.</li>
-          <li>They must validate CMS read/write operations via the server actions layer.</li>
-          <li>They check API return shapes and data integrity in Firestore.</li>
-          <li>Tests must clean up after themselves, ensuring data is restored to its original state.</li>
-          <li>Acceptance tests do not test UI or browser behaviour. They do not use a real browser, page interactions, clicks, navigation, or DOM validation.</li>
+            <li>Tests must run in a Node-only environment.</li>
+            <li>They must validate CMS read/write operations via the server actions layer.</li>
+            <li>They check API return shapes and data integrity in Firestore.</li>
+            <li>Tests must clean up after themselves, ensuring data is restored to its original state.</li>
         </ul>
+        <p>Acceptance tests do not test UI or browser behaviour. They do not use a real browser, page interactions, clicks, navigation, or DOM validation.</p>
         <p>The file for a new acceptance test should be placed in src/tests/acceptance and named according to the feature it covers, for example, homepage.acceptance.spec.ts.</p>
         <p>The steps to create a new test are:</p>
         <ul>
@@ -152,6 +162,28 @@ export default function PlaywrightDocsPage() {
         <p>This testing methodology is designed for reusability. It can be ported to other projects like Orderfly, where only the API paths and task ID prefixes would need to be adjusted.</p>
       </section>
       
+      <section>
+        <h2>Acceptance test environment</h2>
+        <p>Acceptance tests run in a Node-only Playwright environment. This is because the Studio execution environment does not support browsers like Chromium, Firefox, or WebKit. As a result, browser-based features, including the page and browser objects, are not available.</p>
+        <p>To manage this environment, a core folder will be added at src/tests/acceptance/core. This directory will contain shared helpers and initializers for all acceptance tests, including:</p>
+        <ul>
+          <li>A test environment initializer.</li>
+          <li>Functions to load CMS, API, and server action layers.</li>
+          <li>Helpers for creating and deleting temporary test data.</li>
+          <li>Utilities for asserting data shapes and API responses.</li>
+          <li>A future QA run logger to record test outcomes in Firestore.</li>
+        </ul>
+        <p>All acceptance tests must follow key principles:</p>
+        <ul>
+          <li>Each test must initialize shared helpers from the core directory.</li>
+          <li>Tests must run in isolation to prevent data contamination.</li>
+          <li>Any modified data must be restored to its original state after a test completes.</li>
+          <li>Tests must not rely on browser-specific APIs or behavior.</li>
+          <li>Operations must be performed exclusively through server actions, direct Firestore calls, or API responses.</li>
+        </ul>
+        <p>Furthermore, acceptance tests must be deterministic and must not make calls to any third-party APIs. Only Digifly’s internal services are permitted. This environment structure is designed to be portable and can be adapted for use in other projects like Orderfly, where only the specific CMS and API imports would need to change.</p>
+      </section>
+
       <section>
         <h2>Role in the QA flow</h2>
         <p>PM → ChatGPT → Studio → Codex, with acceptance tests tied to DGFPW task IDs and logged as QA runs in Firestore.</p>
@@ -171,3 +203,5 @@ export default function PlaywrightDocsPage() {
     </main>
   );
 }
+
+    
