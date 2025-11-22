@@ -2,18 +2,21 @@
 
 import { test, expect } from '@playwright/test';
 import { initAcceptanceEnv } from './core/test-env';
-import { logQaRunStub } from './core/qa-run-logger';
+import { buildQaRunObject } from './core/qa-run-builder';
 
 test.describe('DGFPW-001 — Playwright acceptance harness', () => {
-  test('DGFPW-001 — should initialise acceptance environment and log a stub run', async () => {
+  test('DGFPW-001-12 — should build a valid QA run object', async () => {
     const env = initAcceptanceEnv();
     expect(env).toBeDefined();
 
-    const result = logQaRunStub({
+    const run = buildQaRunObject({
       taskId: 'DGFPW-001',
       status: 'passed',
     });
 
-    expect(result.ok).toBe(true);
+    expect(run.taskId).toBe('DGFPW-001');
+    expect(run.status).toBe('passed');
+    expect(run.summary.passed).toBe(1);
+    expect(run.summary.total).toBe(1);
   });
 });
