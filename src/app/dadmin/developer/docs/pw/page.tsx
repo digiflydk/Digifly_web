@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function PlaywrightDocsPage() {
   return (
-    <main className="prose prose-lg max-w-none">
+    <main>
       <h1>Playwright & Acceptance Testing</h1>
       <section>
         <h2>Overview</h2>
@@ -58,6 +58,18 @@ export default function PlaywrightDocsPage() {
           <li>Browser compatibility.</li>
           <li>Animations, transitions, or styles.</li>
         </ul>
+      </section>
+
+      <section>
+        <h2>File structure</h2>
+        <p>The project organizes test files into distinct directories based on their purpose.</p>
+        <ul>
+          <li>The root `playwright.config.ts` file configures all Playwright projects, including both browser-based QA and Node-only acceptance tests.</li>
+          <li>The `/qa` directory contains the existing suite of browser-based tests for UI, SEO, and CI smoke checks.</li>
+          <li>The `/tests` directory holds legacy or generic tests and coexists with the other testing layers.</li>
+          <li>The new Node-only acceptance tests are located under `src/tests/acceptance`, organized by feature (e.g., `cases.acceptance.spec.ts`). This directory also contains a `core` subfolder for shared helpers and environment setup.</li>
+        </ul>
+        <p>This organized structure is designed to be portable and can be replicated in other projects like Orderfly.</p>
       </section>
 
       <section>
