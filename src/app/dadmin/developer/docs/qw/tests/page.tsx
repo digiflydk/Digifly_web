@@ -19,9 +19,15 @@ export default function QaDocsPage() {
           entry point for this documentation.
         </p>
         <ul>
-          <li>Overview of the QA module and its components.</li>
-          <li>Detailed Firestore structure for storing test run data.</li>
-          <li>A reference to the Playwright acceptance testing documentation, which is available under `/dadmin/developer/docs/pw`.</li>
+          <li>
+            Overview of the QA module and its components.
+          </li>
+          <li>
+            Detailed Firestore structure for storing test run data.
+          </li>
+          <li>
+            A reference to the Playwright acceptance testing documentation, which is available under `/dadmin/developer/docs/pw`.
+          </li>
         </ul>
       </section>
 
