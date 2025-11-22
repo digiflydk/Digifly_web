@@ -46,21 +46,23 @@ function loadServiceAccount(): admin.ServiceAccount | null {
   };
 }
 
-export function getAdminApp() {
+export function getAdminApp(): admin.app.App | null {
   if (app) return app;
   
   if (!admin.apps.length) {
     const creds = loadServiceAccount();
     if (!creds) {
-        throw new Error("Firebase Admin SDK credentials are not configured.");
+      return null;
     }
     app = admin.initializeApp({ credential: admin.credential.cert(creds) });
   } else {
     app = admin.app();
   }
-  return app!;
+  return app;
 }
 
 export async function getDb() {
-  return getAdminApp().firestore();
+  const adminApp = getAdminApp();
+  if (!adminApp) return null;
+  return adminApp.firestore();
 }

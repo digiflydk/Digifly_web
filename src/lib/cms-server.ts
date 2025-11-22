@@ -25,6 +25,8 @@ const SITE_TAG = "site-settings";
 
 async function getSiteSettingsRaw(): Promise<SiteSettings> {
     const db = await getDb();
+    if (!db) return SITE_DEFAULTS; // <-- FIX: Return default if DB not available
+
     const settingsSnap = await db.doc(CMS_PATHS.site).get();
     const data = settingsSnap.exists ? settingsSnap.data() : {};
     
@@ -56,6 +58,7 @@ export const getSiteSettings = nextCache(getSiteSettingsRaw, ['site-settings:key
 export async function saveSiteSettings(data: any): Promise<SiteSettings> {
   const parsedData = SiteSettingsSchema.parse(data);
   const db = await getDb();
+  if (!db) throw new Error("Database not available");
   await db.doc(CMS_PATHS.site).set(parsedData, { merge: true });
   revalidatePath('/', 'layout');
   return parsedData;
@@ -63,6 +66,8 @@ export async function saveSiteSettings(data: any): Promise<SiteSettings> {
 
 export async function getNavigation(): Promise<Navigation> {
     const db = await getDb();
+    if (!db) return { header: [], footer: { columns: [] } }; // <-- FIX
+
     const mainSnap = await db.doc(CMS_PATHS.navigation.main).get();
     const footerSnap = await db.doc(CMS_PATHS.navigation.footer).get();
     
@@ -89,6 +94,7 @@ export async function getNavigation(): Promise<Navigation> {
 export async function saveNavigation(data: Navigation): Promise<void> {
     const parsedData = NavigationSchema.parse(data);
     const db = await getDb();
+    if (!db) throw new Error("Database not available");
     const batch = db.batch();
     
     batch.set(db.doc(CMS_PATHS.navigation.main), { header: parsedData.header }, { merge: true });
@@ -101,6 +107,7 @@ export async function saveNavigation(data: Navigation): Promise<void> {
 
 export async function getPageBySlug(slug: string): Promise<any | null> {
     const db = await getDb();
+    if (!db) return null; // <-- FIX
     const snap = await db.doc(CMS_PATHS.page(slug)).get();
     if (!snap.exists) {
         return null;
@@ -147,6 +154,7 @@ export async function getHomepage(options: { debug?: boolean } = {}): Promise<Ge
 
 export async function updateHomepage(data: HomePage) {
     const db = await getDb();
+    if (!db) throw new Error("Database not available");
     const normalized = normalizeHome(data);
     const parsed = HomepageSchema.parse(normalized);
     await db.doc(CMS_PATHS.page('home')).set(parsed, { merge: true });
@@ -158,6 +166,7 @@ export async function updateHomepage(data: HomePage) {
 export async function getCasesServer() {
   noStore();
   const db = await getDb();
+  if (!db) return []; // <-- FIX
   const snap = await db.collection(CMS_PATHS.cases).get();
   const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   return z.array(CaseSchema.partial()).parse(rows);
@@ -170,6 +179,7 @@ export async function getCases(searchParams?: URLSearchParams): Promise<CaseDoc[
 
 export async function listCaseSlugs(): Promise<string[]> {
     const db = await getDb();
+    if (!db) return []; // <-- FIX
     const snap = await db.collection(CMS_PATHS.cases).select('slug').get();
     if (snap.empty) {
         return [];
@@ -179,6 +189,7 @@ export async function listCaseSlugs(): Promise<string[]> {
 
 export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
     const db = await getDb();
+    if (!db) return null; // <-- FIX
     const snap = await db.collection(CMS_PATHS.cases).where('slug', '==', slug).limit(1).get();
     if (snap.empty) {
         return null;
@@ -195,6 +206,7 @@ export async function getCaseBySlug(slug: string): Promise<CaseDoc | null> {
 
 export async function getCaseById(id: string): Promise<CaseDoc> {
   const db = await getDb();
+  if (!db) throw new Error("Database not available");
   const snap = await db.collection('cases').doc(id).get();
 
   if (!snap.exists) {
@@ -209,6 +221,7 @@ export async function getCaseById(id: string): Promise<CaseDoc> {
 export async function createCase(data: Partial<CaseDoc>) {
     const { id, ...payload } = data;
     const db = await getDb();
+    if (!db) throw new Error("Database not available");
     const ref = await db.collection(CMS_PATHS.cases).add({
         ...payload,
         createdAt: new Date().toISOString(),
@@ -221,6 +234,7 @@ export async function createCase(data: Partial<CaseDoc>) {
 
 export async function updateCase(id: string, data: Partial<CaseDoc>) {
     const db = await getDb();
+    if (!db) throw new Error("Database not available");
     await db.collection(CMS_PATHS.cases).doc(id).set(data, { merge: true });
     revalidatePath(`/cases/${id}`);
     revalidatePath('/cases');
@@ -230,6 +244,7 @@ export async function updateCase(id: string, data: Partial<CaseDoc>) {
 export async function deleteCaseServer(id: string) {
     noStore();
     const db = await getDb();
+    if (!db) throw new Error("Database not available");
     const ref = db.collection(CMS_PATHS.cases).doc(id);
     const s = await ref.get();
     if (!s.exists) {
@@ -243,11 +258,13 @@ export async function deleteCaseServer(id: string) {
 
 export async function getCaseCount(): Promise<{ count: number }> {
     const db = await getDb();
+    if (!db) return { count: 0 };
     const snap = await db.collection(CMS_PATHS.cases).count().get();
     return { count: snap.data().count };
 }
 export async function getPageCount(): Promise<{ count: number }> {
     const db = await getDb();
+    if (!db) return { count: 0 };
     const snap = await db.collection('pages').count().get();
     return { count: snap.data().count };
 }
