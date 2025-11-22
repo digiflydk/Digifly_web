@@ -13,7 +13,11 @@ export default function PlaywrightDocsPage() {
   return (
     <main>
       <h1>Playwright & Acceptance Testing</h1>
-      <p>This document explains how Playwright is used for automated testing in the Digifly platform. It covers the different testing layers, file structure, naming conventions, and the QA workflow.</p>
+      
+      <section>
+        <h2>QA module overview</h2>
+        <p>This page is now the unified documentation hub for the QA module, Playwright acceptance tests, Firestore QA data, QA run structure, and the future QA API. All previous QA documentation under /docs/qw has been merged here.</p>
+      </section>
       
       <section>
         <h2>Overview</h2>
@@ -107,20 +111,20 @@ export default function PlaywrightDocsPage() {
 
       <section>
         <h2>QA runs & Firestore schema</h2>
-        <p>QA runs are stored in a Firestore collection named qaRuns. Each document represents a single run of one or more acceptance tests.</p>
+        <p>QA runs are stored in a Firestore collection named qaRuns. Each document represents a single test run of one or more acceptance tests.</p>
         <ul>
-            <li>runType: A string indicating the type of run, such as "acceptance" or "smoke".</li>
-            <li>taskId: The ID of the task associated with the tests (e.g., DGFPW-001, DGF-406, OF-203).</li>
-            <li>status: The status of the run, for example, "running", "passed", or "failed".</li>
-            <li>summary: An object containing aggregated information about the run, such as the total number of tests, passed, and failed counts.</li>
-            <li>errorSummary: An array or object with high-level information about any failures, like which test failed and a short error message.</li>
-            <li>startedAt: A timestamp indicating when the QA run began.</li>
-            <li>finishedAt: A timestamp indicating when the QA run completed.</li>
+          <li>The runType field is a string that indicates what type of run this is, for example acceptance or smoke.</li>
+          <li>The taskId field is a string that holds the ID of the task associated with the tests, such as DGFPW-001, DGF-406, or OF-203.</li>
+          <li>The status field is a string indicating the status of the run, for example running, passed, or failed.</li>
+          <li>The summary field is an object that contains aggregated information about the run, such as the total number of tests, and the counts for passed and failed tests.</li>
+          <li>The errorSummary field is an array or object that contains high-level information about any failures, such as which test failed and a short error message.</li>
+          <li>The startedAt field is a timestamp indicating when the QA run began.</li>
+          <li>The finishedAt field is a timestamp indicating when the QA run completed.</li>
         </ul>
-        <p>This qaRuns collection provides full traceability from a task ID to its automated tests and their last run result. The schema is designed to support a future interface at /dadmin/developer/tests for viewing and filtering test runs. Index details for Firestore will be documented in a later task.</p>
-        <p>This schema is also designed for reusability across projects. When the Playwright module is used in other applications like Orderfly, the same collection structure can be adopted, with only the task ID prefixes changing.</p>
+        <p>The qaRuns collection provides traceability from a task ID to its automated tests and their last run result. This schema is designed so that a future page at /dadmin/developer/tests can list runs and filter by runType and taskId. The required Firestore indexes are documented below.</p>
+        <p>The qaRuns schema is also designed to be reused across projects. When the Playwright module is used in other applications like Orderfly, the same collection structure should be used, with only the task ID prefixes changing.</p>
       </section>
-
+      
       <section>
         <h2>Firestore indexes for QA runs</h2>
         <p>To enable efficient querying of QA runs, a Firestore composite index is required. Queries that filter on both runType and taskId while sorting by startedAt will be rejected by Firestore without this index.</p>
@@ -139,10 +143,10 @@ export default function PlaywrightDocsPage() {
         <h2>How to write an acceptance test</h2>
         <p>This section outlines the process for creating a new Node-only acceptance test. These tests are critical for validating server-side logic without requiring a browser environment, making them ideal for the Studio workflow.</p>
         <ul>
-            <li>Tests must run in a Node-only environment.</li>
-            <li>They must validate CMS read/write operations via the server actions layer.</li>
-            <li>They check API return shapes and data integrity in Firestore.</li>
-            <li>Tests must clean up after themselves, ensuring data is restored to its original state.</li>
+          <li>Tests must run in a Node-only environment.</li>
+          <li>They must validate CMS read/write operations via the server actions layer.</li>
+          <li>They check API return shapes and data integrity in Firestore.</li>
+          <li>Tests must clean up after themselves, ensuring data is restored to its original state.</li>
         </ul>
         <p>Acceptance tests do not test UI or browser behaviour. They do not use a real browser, page interactions, clicks, navigation, or DOM validation.</p>
         <p>The file for a new acceptance test should be placed in src/tests/acceptance and named according to the feature it covers, for example, homepage.acceptance.spec.ts.</p>
@@ -203,5 +207,3 @@ export default function PlaywrightDocsPage() {
     </main>
   );
 }
-
-    
