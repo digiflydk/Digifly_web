@@ -95,6 +95,7 @@ export default async function QaTestsPage() {
                 <th>Started at</th>
                 <th>Finished at</th>
                 <th>Summary</th>
+                <th>Details</th>
                 </tr>
             </thead>
             <tbody>
@@ -111,6 +112,7 @@ export default async function QaTestsPage() {
                                 : 'N/A'
                             }
                         </td>
+                        <td>/dadmin/developer/qw/tests/{run.id}</td>
                     </tr>
                 ))}
             </tbody>
@@ -121,4 +123,3 @@ export default async function QaTestsPage() {
     </main>
   );
 }
-
