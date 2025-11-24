@@ -3,7 +3,7 @@
 import { test, expect } from '@playwright/test';
 import { initAcceptanceEnv } from './core/test-env';
 import { buildQaRunObject } from './core/qa-run-builder';
-import { logQaRunStub } from './core/qa-run-logger';
+import { logQaRunStub, logQaRunToFirestore } from './core/qa-run-logger';
 import { buildQaSummary } from './core/qa-summary';
 
 test.describe('DGFPW-001 — Playwright acceptance harness', () => {
@@ -43,5 +43,14 @@ test.describe('DGFPW-001 — Playwright acceptance harness', () => {
     expect(summary.total).toBe(3);
     expect(summary.passed).toBe(2);
     expect(summary.failed).toBe(1);
+  });
+
+  test('DGFPW-001-18 — should write a QA run to Firestore', async () => {
+    const run = buildQaRunObject({
+      taskId: 'DGFPW-001',
+      status: 'passed',
+    });
+    const result = await logQaRunToFirestore(run);
+    expect(result.ok).toBe(true);
   });
 });
