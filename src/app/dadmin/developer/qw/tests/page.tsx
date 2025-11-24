@@ -43,14 +43,13 @@ async function getQaRuns(): Promise<QaRun[]> {
 
     return snapshot.docs.map(doc => {
         const data = doc.data();
-        // Ensure timestamps are strings for rendering
         return {
             id: doc.id,
             taskId: data.taskId,
             runType: data.runType,
             status: data.status,
-            startedAt: new Date(data.startedAt).toISOString(),
-            finishedAt: new Date(data.finishedAt).toISOString(),
+            startedAt: String(data.startedAt ?? ''),
+            finishedAt: String(data.finishedAt ?? ''),
             summary: data.summary,
         } as QaRun;
     });
@@ -122,3 +121,4 @@ export default async function QaTestsPage() {
     </main>
   );
 }
+
