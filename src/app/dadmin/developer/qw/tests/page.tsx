@@ -1,6 +1,9 @@
 
 import type { Metadata } from 'next';
 import { buildSeo } from "@/lib/seo";
+import { getDb } from '@/lib/firebase-admin';
+
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
     return await buildSeo({
@@ -9,69 +12,113 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 }
 
-export default function QaTestsPage() {
+type QaRun = {
+  id: string;
+  taskId: string;
+  runType: string;
+  status: string;
+  startedAt: string;
+  finishedAt: string;
+  summary?: {
+    total: number;
+    passed: number;
+    failed: number;
+  };
+};
+
+async function getQaRuns(): Promise<QaRun[]> {
+    const db = await getDb();
+    if (!db) {
+        throw new Error("Firestore database is not available.");
+    }
+
+    const snapshot = await db.collection('qaRuns')
+                             .orderBy('startedAt', 'desc')
+                             .limit(20)
+                             .get();
+
+    if (snapshot.empty) {
+        return [];
+    }
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        // Ensure timestamps are strings for rendering
+        return {
+            id: doc.id,
+            taskId: data.taskId,
+            runType: data.runType,
+            status: data.status,
+            startedAt: new Date(data.startedAt).toISOString(),
+            finishedAt: new Date(data.finishedAt).toISOString(),
+            summary: data.summary,
+        } as QaRun;
+    });
+}
+
+export default async function QaTestsPage() {
+    let runs: QaRun[] = [];
+    let error: string | null = null;
+
+    try {
+        runs = await getQaRuns();
+    } catch (e: any) {
+        error = e.message || "An unknown error occurred while fetching QA runs.";
+        console.error(error);
+    }
+
   return (
     <main>
       <section>
         <h1>QA tests & runs</h1>
-        <p>This page provides the UI for viewing QA runs, including acceptance tests and smoke tests. The data below is currently static placeholder content.</p>
+        <p>This UI shows the latest QA runs recorded in the 'qaRuns' Firestore collection. Runs are created automatically by the Playwright acceptance test suite.</p>
       </section>
 
-      <section>
-        <h2>What you see here</h2>
-        <p>This is a prototype UI to illustrate the future test reporting interface; the data is not yet live. In a later version, this page will read live data from the `qaRuns` collection in Firestore and allow filtering by run type (e.g., `acceptance`) and `taskId`. This UI is conceptually linked to the documentation under `/dadmin/developer/docs/qw/tests` and `/dadmin/developer/docs/pw`.</p>
-      </section>
-
-      <section>
-        <h2>Latest QA runs (placeholder data)</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Task ID</th>
-              <th>Run type</th>
-              <th>Status</th>
-              <th>Started at</th>
-              <th>Finished at</th>
-              <th>Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>DGFPW-001</td>
-              <td>acceptance</td>
-              <td>failed</td>
-              <td>2025-11-22T10:15:00Z</td>
-              <td>2025-11-22T10:15:05Z</td>
-              <td>3 passed / 1 failed</td>
-            </tr>
-            <tr>
-              <td>DGF-480</td>
-              <td>acceptance</td>
-              <td>failed</td>
-              <td>2025-11-22T09:30:00Z</td>
-              <td>2025-11-22T09:30:12Z</td>
-              <td>1 passed / 1 failed</td>
-            </tr>
-            <tr>
-              <td>DGF-406</td>
-              <td>acceptance</td>
-              <td>passed</td>
-              <td>2025-11-21T18:00:00Z</td>
-              <td>2025-11-21T18:00:03Z</td>
-              <td>1 passed / 0 failed</td>
-            </tr>
-             <tr>
-              <td>SMOKE-CI</td>
-              <td>smoke</td>
-              <td>passed</td>
-              <td>2025-11-21T17:55:00Z</td>
-              <td>2025-11-21T17:56:10Z</td>
-              <td>12 passed / 0 failed</td>
-            </tr>
-          </tbody>
-        </table>
-        <p>In the future, clicking a row will open a detailed view showing logs and error summaries based on the `errorSummary` field from the `qaRuns` documents in Firestore. For now, this table is a static illustration of the layout.</p>
-      </section>
+      {error ? (
+        <section>
+            <h2>Error</h2>
+            <p>Unable to load QA runs right now.</p>
+        </section>
+      ) : runs.length === 0 ? (
+        <section>
+            <h2>Latest QA runs</h2>
+            <p>No QA runs have been recorded yet. Run the acceptance suite to create QA runs.</p>
+        </section>
+      ) : (
+        <section>
+            <h2>Latest QA runs</h2>
+            <table>
+            <thead>
+                <tr>
+                <th>Task ID</th>
+                <th>Run type</th>
+                <th>Status</th>
+                <th>Started at</th>
+                <th>Finished at</th>
+                <th>Summary</th>
+                </tr>
+            </thead>
+            <tbody>
+                {runs.map(run => (
+                    <tr key={run.id}>
+                        <td>{run.taskId}</td>
+                        <td>{run.runType}</td>
+                        <td>{run.status}</td>
+                        <td>{run.startedAt}</td>
+                        <td>{run.finishedAt}</td>
+                        <td>
+                            {run.summary 
+                                ? `${run.summary.passed} passed / ${run.summary.failed} failed`
+                                : 'N/A'
+                            }
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+            </table>
+            <p>These rows are read from the 'qaRuns' collection in Firestore. New runs are created by the Playwright acceptance tests.</p>
+        </section>
+      )}
     </main>
   );
 }
