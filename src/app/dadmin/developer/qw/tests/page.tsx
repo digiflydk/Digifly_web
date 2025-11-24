@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import { buildSeo } from "@/lib/seo";
 import { getDb } from '@/lib/firebase-admin';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,16 +27,27 @@ type QaRun = {
   };
 };
 
-async function getQaRuns(): Promise<QaRun[]> {
+type SearchParams = {
+  taskId?: string;
+  status?: string;
+};
+
+async function getQaRuns(searchParams: SearchParams = {}): Promise<QaRun[]> {
     const db = await getDb();
     if (!db) {
         throw new Error("Firestore database is not available.");
     }
 
-    const snapshot = await db.collection('qaRuns')
-                             .orderBy('startedAt', 'desc')
-                             .limit(20)
-                             .get();
+    let query: FirebaseFirestore.Query = db.collection('qaRuns');
+
+    if (searchParams.taskId) {
+        query = query.where('taskId', '==', searchParams.taskId);
+    }
+    if (searchParams.status) {
+        query = query.where('status', '==', searchParams.status);
+    }
+    
+    const snapshot = await query.orderBy('startedAt', 'desc').limit(20).get();
 
     if (snapshot.empty) {
         return [];
@@ -55,12 +67,14 @@ async function getQaRuns(): Promise<QaRun[]> {
     });
 }
 
-export default async function QaTestsPage() {
+export default async function QaTestsPage({ searchParams }: { searchParams?: SearchParams }) {
     let runs: QaRun[] = [];
     let error: string | null = null;
+    const taskId = searchParams?.taskId || 'All';
+    const status = searchParams?.status || 'All';
 
     try {
-        runs = await getQaRuns();
+        runs = await getQaRuns(searchParams);
     } catch (e: any) {
         error = e.message || "An unknown error occurred while fetching QA runs.";
         console.error(error);
@@ -70,7 +84,13 @@ export default async function QaTestsPage() {
     <main>
       <section>
         <h1>QA tests & runs</h1>
-        <p>This UI shows the latest QA runs recorded in the 'qaRuns' Firestore collection. Runs are created automatically by the Playwright acceptance test suite.</p>
+        <p>This UI shows QA runs from the 'qaRuns' Firestore collection, which are created by the Playwright acceptance test suite.</p>
+      </section>
+
+      <section>
+        <h2>Current filters</h2>
+        <p>Task ID: {taskId}</p>
+        <p>Status: {status}</p>
       </section>
 
       {error ? (
@@ -81,7 +101,7 @@ export default async function QaTestsPage() {
       ) : runs.length === 0 ? (
         <section>
             <h2>Latest QA runs</h2>
-            <p>No QA runs have been recorded yet. Run the acceptance suite to create QA runs.</p>
+            <p>No matching QA runs found. Run the acceptance suite to create more runs or adjust your filters.</p>
         </section>
       ) : (
         <section>
@@ -112,7 +132,9 @@ export default async function QaTestsPage() {
                                 : 'N/A'
                             }
                         </td>
-                        <td>/dadmin/developer/qw/tests/{run.id}</td>
+                        <td>
+                           <Link href={`/dadmin/developer/qw/tests/${run.id}`}>View</Link>
+                        </td>
                     </tr>
                 ))}
             </tbody>
