@@ -15,12 +15,12 @@ export function MarketingFooter() {
           <p>Flow. Digitalize. Scale.</p>
         </div>
         <p className="footer-statement">
-          Software, automatisering og AI <br />
+          Software, AI og rådgivning <br />
           med forretningen som udgangspunkt.
         </p>
         <nav aria-label="Footernavigation">
           <Link href="/services">Hvad vi gør</Link>
-          <Link href="/cases">Det vi bygger</Link>
+          <Link href="/cases">Vores arbejde</Link>
           <Link href="/about">Om Digifly</Link>
           <Link href="/contact">Kontakt</Link>
         </nav>

@@ -1,6 +1,6 @@
 # Digifly website
 
-Danish B2B website for Digifly, built in the existing Next.js App Router project. The site presents AI, software, integration and development services alongside Orderfly and Opsfly as own products.
+Danish B2B website for Digifly, built in the existing Next.js App Router project. The site presents AI, software, system implementation and advisory services through five anonymous customer cases. Testimonial cards are explicit preview placeholders, with no invented quotes.
 
 ## Development
 

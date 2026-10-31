@@ -5,7 +5,8 @@ import { FlowArt } from "@/components/marketing/flow-art";
 import { AiWorkflow } from "@/components/marketing/ai-workflow";
 import {
   ServicesSection,
-  ProductsSection,
+  CasesSection,
+  TestimonialsSection,
   ProcessSection,
   PerspectiveSection,
   FaqSection,
@@ -30,15 +31,16 @@ export default function HomePage() {
           </h1>
           <h2>Gør AI til en del af forretningen.</h2>
           <p className="hero-intro">
-            Vi bygger digitale produkter, forbinder systemer og automatiserer
-            arbejdsgange. Med jeres forretning som udgangspunkt.
+            Vi udvikler software, implementerer systemer og gør komplekse
+            opgaver konkrete. Med jeres forretning som udgangspunkt og AI som en
+            del af værktøjskassen.
           </p>
           <div className="hero-actions">
             <Link className="button" href="/contact">
               Tal med os <Arrow diagonal />
             </Link>
-            <Link className="text-link" href="#produkter">
-              Se hvad vi bygger <Arrow />
+            <Link className="text-link" href="#cases">
+              Se vores arbejde <Arrow />
             </Link>
           </div>
         </div>
@@ -55,7 +57,8 @@ export default function HomePage() {
         </span>
       </div>
       <ServicesSection />
-      <ProductsSection />
+      <CasesSection />
+      <TestimonialsSection />
       <AiWorkflow />
       <ProcessSection />
       <PerspectiveSection />

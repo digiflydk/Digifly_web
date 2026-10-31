@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { siteUrl } from "@/lib/marketing";
+import { customerCases, siteUrl } from "@/lib/marketing";
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteUrl();
   if (!base || process.env.SITE_INDEXABLE !== "true") return [];
@@ -7,8 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/",
     "/services",
     "/cases",
-    "/cases/orderfly",
-    "/cases/opsfly",
+    ...customerCases.map((item) => `/cases/${item.slug}`),
     "/about",
     "/contact",
     "/privacy",

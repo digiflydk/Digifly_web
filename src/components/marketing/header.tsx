@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Arrow } from "./icons";
 const links = [
   ["Hvad vi gør", "/#ydelser"],
-  ["Det vi bygger", "/#produkter"],
+  ["Vores arbejde", "/#cases"],
   ["Samarbejdet", "/#samarbejdet"],
   ["Om Digifly", "/about"],
 ];

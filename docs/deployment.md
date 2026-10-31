@@ -20,7 +20,7 @@ The preview coordinator owns the server through the Sites preview helper. script
 
 1. Current source commit passes typecheck, lint, build, contact/middleware unit tests and preview HTTP checks.
 2. Independent browser review covers 320, 390, 768 and 1440px, keyboard, menu, links, AI controls and form states.
-3. PM confirms positioning, offered services, public legal entity, canonical domain and public contact recipient.
+3. PM confirms positioning, anonymous case descriptions, offered services, public legal entity, canonical domain and public contact recipient. Replace testimonial placeholders with approved genuine quotes or hide that section before launch.
 4. Complete CONTACT_PRIVACY_NOTICE is reviewed, and configured gateway delivery is tested end-to-end to the agreed recipient. Secrets exist only in runtime secret storage. Gateway must validate token, enforce abuse limits, store/forward reliably, and define retention.
 5. Firebase project/backend/repository/branch/region/runtime and last known good release are verified. Confirm Node 22 matches engines and supported runtime.
 6. Merge reviewed PR, follow the single automatic rollout or explicitly deploy the approved merge SHA.

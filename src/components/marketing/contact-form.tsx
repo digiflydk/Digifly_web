@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Arrow } from "./icons";
+import { contactSubjects } from "@/lib/contact-options";
 export function MarketingContactForm({
   enabled,
   subject = "",
@@ -106,15 +107,7 @@ export function MarketingContactForm({
         <div className="form-field">
           <label htmlFor="contact-subject">Hvad handler det om?</label>
           <select id="contact-subject" name="subject" defaultValue={subject}>
-            {[
-              "",
-              "AI og automatisering",
-              "Digitalt produkt",
-              "Integrationer",
-              "Udviklingskapacitet",
-              "Orderfly",
-              "Opsfly",
-            ].map((value) => (
+            {contactSubjects.map((value) => (
               <option value={value} key={value}>
                 {value || "Ikke afklaret endnu"}
               </option>

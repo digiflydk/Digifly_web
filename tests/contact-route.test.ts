@@ -10,7 +10,7 @@ const valid = {
   email: "person@example.com",
   company: "Example",
   message: "A local test message only.",
-  subject: "Orderfly",
+  subject: "Fondsresearch",
   website: "",
 };
 function request(body: unknown = valid, origin = "https://digifly.test") {
@@ -60,6 +60,14 @@ test("configured contact validates origin/input and reports provider acceptance 
     assert.equal((await POST(request({ ...valid, email: "bad" }))).status, 400);
     assert.equal(
       (await POST(request({ ...valid, website: "bot" }))).status,
+      400,
+    );
+    assert.equal(
+      (await POST(request({ ...valid, subject: "Orderfly" }))).status,
+      400,
+    );
+    assert.equal(
+      (await POST(request({ ...valid, subject: "Opsfly" }))).status,
       400,
     );
     assert.equal(calls, 0);

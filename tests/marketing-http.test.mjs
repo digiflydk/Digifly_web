@@ -6,8 +6,11 @@ test("marketing pages render and IDs are unique", async () => {
     "/",
     "/services",
     "/cases",
-    "/cases/orderfly",
-    "/cases/opsfly",
+    "/cases/warehouse-management",
+    "/cases/omnichannel",
+    "/cases/monday-implementering",
+    "/cases/fondsresearch",
+    "/cases/retail-labels-og-pant",
     "/about",
     "/contact",
     "/privacy",
@@ -21,6 +24,10 @@ test("marketing pages render and IDs are unique", async () => {
     assert.equal(new Set(ids).size, ids.length, `${path} has duplicate IDs`);
     assert.ok(!html.includes("reducing manual effort by 90%"));
     assert.ok(!html.includes("50k active users"));
+    assert.doesNotMatch(
+      html,
+      /orderfly|opsfly|egne produkter|eget produkt/i,
+    );
     assert.ok(!html.includes("googletagmanager.com"));
     assert.ok(!html.includes("http://localhost:3000"));
   }
@@ -30,6 +37,8 @@ test("unknown and former placeholder case URLs return actual 404", async () => {
     "/this-page-does-not-exist",
     "/cases/autostream-ai",
     "/cases/connect-app",
+    "/cases/orderfly",
+    "/cases/opsfly",
   ])
     assert.equal((await fetch(base + path)).status, 404, path);
 });

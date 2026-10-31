@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { products, siteUrl } from "@/lib/marketing";
-import { ProductArt } from "@/components/marketing/product-art";
+import { customerCases, siteUrl } from "@/lib/marketing";
+import { CaseMark } from "@/components/marketing/case-mark";
 import { Arrow } from "@/components/marketing/icons";
 export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+  return customerCases.map((item) => ({ slug: item.slug }));
 }
 export async function generateMetadata({
   params,
@@ -13,63 +13,61 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = products.find((item) => item.slug === slug);
+  const item = customerCases.find((entry) => entry.slug === slug);
   return {
-    title: product ? `${product.name} · Eget produkt` : "Produktet findes ikke",
-    description: product?.description,
-    alternates:
-      siteUrl() && product ? { canonical: `/cases/${slug}` } : undefined,
+    title: item ? `${item.name} · Anonym kundecase` : "Casen findes ikke",
+    description: item?.description,
+    alternates: siteUrl() && item ? { canonical: `/cases/${slug}` } : undefined,
   };
 }
-export default async function ProductPage({
+export default async function CasePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = products.find((item) => item.slug === slug);
-  if (!product) notFound();
+  const item = customerCases.find((entry) => entry.slug === slug);
+  if (!item) notFound();
   return (
     <>
-      <section className="page-hero wrap">
+      <section className="page-hero wrap customer-case-hero">
         <Link href="/cases" className="back-link">
-          ← Alle produkter
+          ← Vores arbejde
         </Link>
         <p className="eyebrow">
-          EGET PRODUKT / {product.category.toUpperCase()}
+          ANONYM KUNDECASE / {item.category.toUpperCase()}
         </p>
         <h1>
-          {product.name}
+          {item.name}
           <span className="indigo">.</span>
         </h1>
-        <p>{product.title}</p>
+        <p>{item.title}</p>
       </section>
-      <div className="wrap case-hero-art">
-        <ProductArt product={product.slug as "orderfly" | "opsfly"} />
-      </div>
       <section className="section wrap case-details">
         <div>
-          <p className="eyebrow">UDGANGSPUNKTET</p>
-          <h2>
-            En hverdag, <br />
-            der skal hænge sammen.
-          </h2>
-        </div>
-        <div>
-          <p>{product.problem}</p>
-          <h3>Det arbejder vi med</h3>
-          <p>{product.approach}</p>
+          <div className="case-detail-mark">
+            <CaseMark kind={item.visual} />
+            <span>Illustration af opgaven</span>
+          </div>
+          <h2>Opgaven</h2>
           <div className="text-tags">
-            {product.tags.map((tag) => (
+            {item.tags.map((tag) => (
               <span key={tag}>{tag}</span>
             ))}
           </div>
+        </div>
+        <div>
+          <p>{item.problem}</p>
+          <h3>Vores bidrag</h3>
+          <p>{item.approach}</p>
           <p className="case-disclosure">
-            {product.name} er Digiflys eget produkt. Illustrationen viser
-            produktets fokusområder og er ikke et skærmbillede med kundedata.
+            Kundenavnet er udeladt. Beskrivelsen viser opgavens fokus og omfang.
           </p>
-          <Link href={`/contact?subject=${product.name}`} className="button">
-            Tal med os om {product.name} <Arrow diagonal />
+          <Link
+            href={`/contact?subject=${encodeURIComponent(item.subject)}`}
+            className="button"
+          >
+            Tal med os om en lignende opgave <Arrow diagonal />
           </Link>
         </div>
       </section>

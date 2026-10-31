@@ -17,10 +17,10 @@ export const services = [
   },
   {
     id: "integrationer",
-    title: "Systemer, der taler sammen",
+    title: "Systemimplementering og integrationer",
     description:
-      "Forbind de værktøjer, I allerede bruger. Vi bygger integrationer, som flytter data og samler arbejdsgange.",
-    tags: ["API-integrationer", "Dataflows", "Samlet overblik"],
+      "Få de digitale værktøjer til at passe til jeres arbejdsgange. Vi hjælper med implementering, tilpasning og forbindelser mellem systemer.",
+    tags: ["Systemimplementering", "Integrationer", "Arbejdsgange"],
     example: "Mindre manuel kopiering. Mere sammenhæng.",
   },
   {
@@ -31,35 +31,95 @@ export const services = [
     tags: ["Projektleverancer", "Videreudvikling", "Teknisk sparring"],
     example: "Et ekstra perspektiv. Et konkret næste skridt.",
   },
-];
-export const products = [
   {
-    slug: "orderfly",
-    name: "Orderfly",
-    category: "Bestilling og kunderejse",
-    title: "Fra menu til bestilling.",
+    id: "raadgivning",
+    title: "Rådgivning og markedsforberedelse",
     description:
-      "En platform til restaurantens digitale bestillingsflow med menu, checkout og administration. Vi arbejder med både kundens oplevelse og den daglige håndtering af ordrer.",
-    tags: ["Bestillingsflow", "Checkout", "Administration"],
-    problem:
-      "En digital bestilling skal fungere for både kunden og restauranten. Oplysningerne skal følge ordren hele vejen, og medarbejderen skal kunne handle på dem.",
-    approach:
-      "Vi arbejder med sammenhængen mellem menu, bestilling, betaling og håndtering af ordren. Kundeoplevelse og administration udvikles som dele af den samme proces.",
-  },
-  {
-    slug: "opsfly",
-    name: "Opsfly",
-    category: "Drift og administration",
-    title: "Overblik over det, der får hverdagen til at fungere.",
-    description:
-      "Et produkt til operationelle arbejdsgange med fokus på medarbejdere, vagtplanlægning og administration. Daglige opgaver og information samlet i en digital løsning.",
-    tags: ["Medarbejdere", "Vagtplanlægning", "Administration"],
-    problem:
-      "Driften består af mange opgaver, mennesker og informationer. Når de er spredt, bliver det svært at se, hvad der skal ske, og hvem der har ansvaret.",
-    approach:
-      "Vi arbejder med at samle medarbejderfunktioner, vagtplanlægning og administrative arbejdsgange. Fokus er et brugbart overblik for dem, der står med opgaverne i hverdagen.",
+      "Få hjælp til at undersøge muligheder og gøre næste beslutning konkret. Vi arbejder med blandt andet fondsresearch, retail-labels og undersøgelse af mærkningskrav og pantsystemer på udenlandske markeder.",
+    tags: ["Fondsresearch", "Retail-labels", "Markedsforberedelse"],
+    example: "Fra åbne spørgsmål til et brugbart beslutningsgrundlag.",
   },
 ];
+export const customerCases = [
+  {
+    slug: "warehouse-management",
+    name: "Warehouse management system",
+    category: "Software og lagerstyring",
+    title: "Digital understøttelse af lagerets arbejdsgange.",
+    description:
+      "Arbejde med et warehouse management system med fokus på virksomhedens lagerprocesser og behov for overblik.",
+    problem:
+      "Lagerets arbejdsgange skal kunne omsættes til en digital løsning, der passer til den måde, virksomheden arbejder på.",
+    approach:
+      "Udvikling af et warehouse management system med virksomhedens arbejdsprocesser som udgangspunkt.",
+    tags: ["Lagerstyring", "Software", "Arbejdsgange"],
+    subject: "Lagerstyring",
+    visual: "warehouse",
+  },
+  {
+    slug: "omnichannel",
+    name: "Omnichannel-platform",
+    category: "Platform og kunderejse",
+    title: "Sammenhæng på tværs af kanaler.",
+    description:
+      "Arbejde med en omnichannel-platform, der forbinder virksomhedens kanaler i en samlet digital løsning.",
+    problem:
+      "Kunderejsen og virksomhedens processer skal hænge sammen, også når kontakten foregår gennem forskellige kanaler.",
+    approach:
+      "Udvikling af en omnichannel-platform med fokus på sammenhæng mellem kanaler og arbejdsgange.",
+    tags: ["Omnichannel", "Kunderejse", "Platform"],
+    subject: "Omnichannel",
+    visual: "channels",
+  },
+  {
+    slug: "monday-implementering",
+    name: "Implementering af monday.com",
+    category: "Systemimplementering",
+    title: "Et system, der passer til arbejdet.",
+    description:
+      "Implementering af monday.com med udgangspunkt i virksomhedens arbejdsprocesser og behov for struktur og overblik.",
+    problem:
+      "Et nyt værktøj skal afspejle de opgaver og samarbejdsformer, det skal understøtte i hverdagen.",
+    approach:
+      "Opsætning og tilpasning af monday.com til virksomhedens arbejdsgange.",
+    tags: ["monday.com", "Systemimplementering", "Arbejdsprocesser"],
+    subject: "monday.com",
+    visual: "workflow",
+  },
+  {
+    slug: "fondsresearch",
+    name: "Fondsresearch",
+    category: "Research og rådgivning",
+    title: "Find de muligheder, der passer til projektet.",
+    description:
+      "Søgning efter relevante fonde og støttemuligheder med udgangspunkt i et konkret projekt og dets behov.",
+    problem:
+      "Det kræver overblik at finde fonde, hvis formål og kriterier kan være relevante for projektet.",
+    approach:
+      "Research af relevante fonde og deres fokusområder som grundlag for at vurdere, hvilke muligheder der er værd at arbejde videre med.",
+    tags: ["Fondsresearch", "Støttemuligheder", "Beslutningsgrundlag"],
+    subject: "Fondsresearch",
+    visual: "documents",
+  },
+  {
+    slug: "retail-labels-og-pant",
+    name: "Retail-labels og internationale pantsystemer",
+    category: "Produkt- og markedsforberedelse",
+    title: "Forbered produktet til næste marked.",
+    description:
+      "Udvikling af retail-labels og undersøgelse af mærkningskrav og pantsystemer på udenlandske markeder.",
+    problem:
+      "Når et produkt skal ind på et nyt marked, skal emballagens information og de relevante krav til mærkning og pant undersøges.",
+    approach:
+      "Arbejde med etiketter og research af markedets mærkningskrav og pantsystemer som grundlag for den videre produktforberedelse.",
+    tags: ["Retail-labels", "Mærkningskrav", "Pantsystemer"],
+    subject: "Retail-labels og markedsresearch",
+    visual: "label",
+  },
+] as const;
+export type CaseVisual = (typeof customerCases)[number]["visual"];
+export const casesIntro =
+  "Fra software og systemimplementering til research og forberedelse af produkter til nye markeder. Her er et udvalg af vores opgaver, præsenteret uden kundenavne.";
 export const steps = [
   {
     title: "Forstå opgaven",
@@ -111,4 +171,4 @@ export function siteUrl(): string | undefined {
   }
 }
 export const siteDescription =
-  "Digifly bygger digitale produkter, forbinder systemer og automatiserer arbejdsgange med AI. Fra første idé til løsning i drift.";
+  "Digifly hjælper med AI, software, systemimplementering og rådgivning. Se udvalgte opgaver inden for digitale løsninger, fondsresearch og markedsforberedelse.";

@@ -18,17 +18,22 @@ export default function AboutPage() {
       </section>
       <section className="wrap about-statement">
         <p>
-          Vi arbejder med både egne produkter og udvikling for virksomheder, der
-          vil gøre en idé til virkelighed eller få mere ud af deres digitale
-          løsninger.
+          Digifly kombinerer forretningsforståelse, teknologi og rådgivning. Vi
+          hjælper virksomheder med at udvikle software, implementere systemer og
+          undersøge muligheder for deres næste skridt.
         </p>
         <p>
-          Vores vision er at gøre teknologi til et praktisk redskab for vækst.
-          Det begynder med at forstå menneskerne og arbejdsgangene bag opgaven
-          og fortsætter med løsninger, der kan bruges, vedligeholdes og
-          udvikles.
+          Opgaverne spænder fra AI og digitale arbejdsgange til fondsresearch og
+          forberedelse af produkter til nye markeder. Fælles for arbejdet er
+          ønsket om at gøre komplekse spørgsmål konkrete og skabe et brugbart
+          grundlag for handling.
         </p>
-        <p>Vi er nysgerrige på nye muligheder og konkrete i det, vi bygger.</p>
+        <p>
+          Vores vision er at gøre teknologi og viden til praktiske redskaber for
+          vækst. Vi starter med at forstå forretningen og arbejder hen imod
+          løsninger, der kan bruges og udvikles i hverdagen.
+        </p>
+        <p>Vi er nysgerrige på nye muligheder og konkrete i det, vi leverer.</p>
       </section>
       <section className="wrap brand-values">
         <article>

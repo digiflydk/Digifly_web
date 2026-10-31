@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MarketingContactForm } from "@/components/marketing/contact-form";
 import { contactEnabled } from "@/lib/contact";
+import { isContactSubject } from "@/lib/contact-options";
 import { siteUrl } from "@/lib/marketing";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -13,8 +14,7 @@ export default async function ContactPage({
   searchParams: Promise<{ subject?: string }>;
 }) {
   const params = await searchParams;
-  const allowed = ["Orderfly", "Opsfly"];
-  const subject = allowed.includes(params.subject || "") ? params.subject : "";
+  const subject = isContactSubject(params.subject) ? params.subject : "";
   return (
     <section className="wrap contact-page">
       <div>

@@ -1,7 +1,13 @@
 import Link from "next/link";
-import { faqs, products, services, steps } from "@/lib/marketing";
+import {
+  faqs,
+  customerCases,
+  casesIntro,
+  services,
+  steps,
+} from "@/lib/marketing";
 import { Arrow } from "./icons";
-import { ProductArt } from "./product-art";
+import { CaseMark } from "./case-mark";
 export function ServicesSection() {
   return (
     <section id="ydelser" className="section wrap">
@@ -39,47 +45,78 @@ export function ServicesSection() {
     </section>
   );
 }
-export function ProductsSection() {
+export function CasesSection({
+  showHeading = true,
+}: { showHeading?: boolean } = {}) {
   return (
-    <section id="produkter" className="section products-section">
+    <section
+      id="cases"
+      className={`section cases-section${showHeading ? "" : " cases-section-index"}`}
+    >
       <div className="wrap">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">02 / DET VI BYGGER</p>
-            <h2>
-              Vi bygger også <br />
-              vores egne produkter.
-            </h2>
+        {showHeading && (
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">02 / VORES ARBEJDE</p>
+              <h2>
+                Forskellige opgaver.
+                <br /> Samme blik for forretningen.
+              </h2>
+            </div>
+            <p>{casesIntro}</p>
           </div>
-          <p>
-            Fra digitale kundeoplevelser til den daglige drift. Et indblik i de
-            løsninger, vi arbejder med.
-          </p>
-        </div>
-        <div className="product-stories">
-          {products.map((product, i) => (
+        )}
+        <div className="case-grid">
+          {customerCases.map((item, index) => (
             <article
-              className={`product-story product-${product.slug}`}
-              key={product.slug}
+              className={`case-card case-tone-${index % 3}`}
+              key={item.slug}
             >
-              <div className="product-copy">
-                <p className="eyebrow">
-                  EGET PRODUKT / {product.category.toUpperCase()}
-                </p>
-                <h3>
-                  {product.name}
-                  <span>↗</span>
-                </h3>
-                <h4>{product.title}</h4>
-                <p>{product.description}</p>
-                <Link href={`/cases/${product.slug}`} className="text-link">
-                  Læs om {product.name} <Arrow />
-                </Link>
+              <div className="case-card-top">
+                <span className="case-number">0{index + 1}</span>
+                <CaseMark kind={item.visual} />
               </div>
-              <ProductArt product={product.slug as "orderfly" | "opsfly"} />
+              <p className="eyebrow case-badge">ANONYM KUNDECASE</p>
+              <h3>{item.name}</h3>
+              <p className="case-card-description">{item.description}</p>
+              <Link
+                href={`/cases/${item.slug}`}
+                className="text-link"
+                aria-label={`Læs om opgaven: ${item.name}`}
+              >
+                Læs om opgaven <Arrow />
+              </Link>
             </article>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+export function TestimonialsSection() {
+  return (
+    <section
+      className="section wrap testimonials-section"
+      aria-labelledby="testimonials-heading"
+    >
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">KUNDEUDTALELSER</p>
+          <h2 id="testimonials-heading">Kundernes perspektiv</h2>
+        </div>
+        <p>
+          Pladsholdere i denne forhåndsvisning. Citater tilføjes, når de er
+          modtaget og godkendt.
+        </p>
+      </div>
+      <div className="testimonial-placeholders">
+        {["X", "Y", "Z"].map((label) => (
+          <article key={label} className="testimonial-placeholder">
+            <p className="eyebrow">PLADSHOLDER</p>
+            <h3>Pladsholder {label}</h3>
+            <p>Afventer godkendt kundeudtalelse.</p>
+          </article>
+        ))}
       </div>
     </section>
   );

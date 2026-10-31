@@ -1,9 +1,9 @@
 # Release record
 
-Current task: Digifly AI website first version.
+Current task: Digifly AI website with anonymous customer cases and explicit testimonial placeholders.
 Baseline: 8f8e5390a140ae75acd70434df43904e09282fb0.
 Branch: feature/digifly-ai-website.
-PR: Pending coordinator creation.
+PR: https://github.com/digiflydk/Digifly_web/pull/1 (coordinator owns review and release).
 Tested commit: The exact feature commit and final check results are recorded in the PR.
 Review: Content and source review completed; browser findings addressed. Final QA decision is recorded in the PR.
 Merge SHA: Not merged.
