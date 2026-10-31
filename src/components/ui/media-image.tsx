@@ -23,5 +23,5 @@ export function MediaImage({ src, alt, className = "", hint, ...props }: MediaIm
     imageProps["data-ai-hint"] = hint;
   }
 
-  return <Image {...imageProps} />;
+  return <Image {...imageProps} alt={safeAlt} />;
 }

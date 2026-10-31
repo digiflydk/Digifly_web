@@ -1,65 +1,66 @@
-
-
-import { getHomepage, getSiteSettings } from '@/lib/cms-server';
-import Hero from '@/components/sections/hero';
-import ServicesOverview from '@/components/sections/services-overview';
-import CasesGrid from '@/components/sections/cases-grid';
-import CtaBanner from '@/components/sections/cta-banner';
-import IntroWhyHowWhat from '@/components/sections/intro-why-how-what';
-import { buildSeo } from '@/lib/seo';
-import type { Metadata } from 'next';
-import { SectionHeading } from '@/components/ui/section-heading';
-import { Container } from '@/components/layout/container';
-import type { HomePage } from '@/lib/schemas';
-
-
-export async function generateMetadata(): Promise<Metadata> {
-    const result = await getHomepage();
-    const site = await getSiteSettings();
-
-    // Use sanitized data even if validation fails, it's safer
-    const page = result.data as HomePage; 
-
-    const seoTitle = page?.seo?.title ? page.seo.title : site.siteTitle;
-    const seoDesc = page?.seo?.description ? page.seo.description : site.defaultSeo?.description;
-    
-    return buildSeo({
-      title: seoTitle,
-      description: seoDesc,
-    });
-}
-
-
-export default async function HomePage() {
-  const result = await getHomepage();
-  const page = result.data as HomePage;
-
-  // Final check to ensure we always have a valid page object to render
-  if (!page) {
-    return (
-        <Container className="py-16 text-center">
-            <SectionHeading 
-                title="Content Not Found" 
-                subtitle="The homepage content could not be loaded. Please check the CMS." 
-            />
-        </Container>
-    )
-  }
-
+import Link from "next/link";
+import type { Metadata } from "next";
+import { Arrow } from "@/components/marketing/icons";
+import { FlowArt } from "@/components/marketing/flow-art";
+import { AiWorkflow } from "@/components/marketing/ai-workflow";
+import {
+  ServicesSection,
+  ProductsSection,
+  ProcessSection,
+  PerspectiveSection,
+  FaqSection,
+  ContactCta,
+} from "@/components/marketing/sections";
+import { siteUrl } from "@/lib/marketing";
+export const metadata: Metadata = {
+  alternates: siteUrl() ? { canonical: "/" } : undefined,
+};
+export default function HomePage() {
   return (
     <>
-      <Hero data={page.hero} />
-      {page.intro && <IntroWhyHowWhat data={page.intro} />}
-      {page.servicesPreview && page.servicesPreview.length > 0 && <ServicesOverview items={page.servicesPreview} />}
-      <CasesGrid 
-        ids={page.featuredCases}
-        title="Our Work in Action"
-        subtitle="See how we translate complex problems into elegant, effective solutions."
-        showAllLink
-      />
-      {page.cta?.button?.href && (
-        <CtaBanner text={page.cta.text} button={page.cta.button} />
-      )}
+      <section className="hero wrap">
+        <div className="hero-copy">
+          <p className="eyebrow">
+            <span className="small-dot" /> AI. SOFTWARE. FORRETNING.
+          </p>
+          <h1>
+            <span>Flow.</span>
+            <span>Digitalize.</span>
+            <span className="indigo">Scale.</span>
+          </h1>
+          <h2>Gør AI til en del af forretningen.</h2>
+          <p className="hero-intro">
+            Vi bygger digitale produkter, forbinder systemer og automatiserer
+            arbejdsgange. Med jeres forretning som udgangspunkt.
+          </p>
+          <div className="hero-actions">
+            <Link className="button" href="/contact">
+              Tal med os <Arrow diagonal />
+            </Link>
+            <Link className="text-link" href="#produkter">
+              Se hvad vi bygger <Arrow />
+            </Link>
+          </div>
+        </div>
+        <FlowArt />
+      </section>
+      <div className="wrap capabilities-strip">
+        <span>Forretningsforståelse</span>
+        <b aria-hidden="true">+</b>
+        <span>Digital udvikling</span>
+        <b aria-hidden="true">+</b>
+        <span>AI i praksis</span>
+        <span className="strip-end">
+          FRA IDÉ TIL DRIFT <Arrow diagonal />
+        </span>
+      </div>
+      <ServicesSection />
+      <ProductsSection />
+      <AiWorkflow />
+      <ProcessSection />
+      <PerspectiveSection />
+      <FaqSection />
+      <ContactCta />
     </>
   );
 }

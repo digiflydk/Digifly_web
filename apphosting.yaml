@@ -1,15 +1,5 @@
-# Settings to manage and configure a Firebase App Hosting backend.
-# https://firebase.google.com/docs/app-hosting/configure
-
-# The command to build your app
-build:
-  command: "npm run build"
-# After a successful deployment, run Playwright tests against the live URL.
-# The `|| true` ensures that the build doesn't fail if tests fail.
-postdeploy:
-  command: "BASE_URL=${LIVE_URL} npm run postdeploy || true"
-
+# Firebase App Hosting reads the build script from package.json.
+# Backend/project, domain and secrets must be verified before rollout.
 runConfig:
-  # Increase this value if you'd like to automatically spin up
-  # more instances in response to increased traffic.
-  maxInstances: 1
+  minInstances: 0
+  maxInstances: 2

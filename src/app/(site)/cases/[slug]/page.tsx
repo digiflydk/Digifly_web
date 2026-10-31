@@ -1,54 +1,78 @@
-
-
-import Image from "next/image";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCaseBySlug, getCases } from "@/lib/cms";
-import { Metadata } from "next";
-import { buildSeo } from "@/lib/seo";
-import { CaseSchema } from "@/lib/schemas";
-
-export async function generateStaticParams() {
-    const cases = await getCases({ published: true });
-    return cases.map(c => ({ slug: c.slug }));
+import Link from "next/link";
+import { products, siteUrl } from "@/lib/marketing";
+import { ProductArt } from "@/components/marketing/product-art";
+import { Arrow } from "@/components/marketing/icons";
+export function generateStaticParams() {
+  return products.map((product) => ({ slug: product.slug }));
 }
-
-type Params = Promise<{ slug: string }>;
-
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-    const { slug } = await params;
-    const item = await getCaseBySlug(slug);
-    if (!item || !item.published) return buildSeo({ title: 'Not Found' });
-
-    const parsed = CaseSchema.parse(item);
-
-    return buildSeo({
-      title: parsed.seo?.title || parsed.title,
-      description: parsed.seo?.description || parsed.excerpt,
-      images: parsed.cover?.src
-    });
-}
-
-
-export default async function CaseDetailPage({ params }: { params: Params }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
-  const item = await getCaseBySlug(slug);
-  if (!item || item.published === false) return notFound();
-
-  const parsed = CaseSchema.parse(item);
-
+  const product = products.find((item) => item.slug === slug);
+  return {
+    title: product ? `${product.name} · Eget produkt` : "Produktet findes ikke",
+    description: product?.description,
+    alternates:
+      siteUrl() && product ? { canonical: `/cases/${slug}` } : undefined,
+  };
+}
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const product = products.find((item) => item.slug === slug);
+  if (!product) notFound();
   return (
-    <article className="container mx-auto p-6 prose prose-neutral max-w-3xl">
-      <h1>{parsed.title}</h1>
-      <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border my-4">
-        <Image
-          src={(parsed.cover?.src && parsed.cover.src !== "" ? parsed.cover.src : "/placeholder/case-cover.webp")}
-          alt={parsed.cover?.alt || parsed.title}
-          fill
-          className="object-cover"
-        />
+    <>
+      <section className="page-hero wrap">
+        <Link href="/cases" className="back-link">
+          ← Alle produkter
+        </Link>
+        <p className="eyebrow">
+          EGET PRODUKT / {product.category.toUpperCase()}
+        </p>
+        <h1>
+          {product.name}
+          <span className="indigo">.</span>
+        </h1>
+        <p>{product.title}</p>
+      </section>
+      <div className="wrap case-hero-art">
+        <ProductArt product={product.slug as "orderfly" | "opsfly"} />
       </div>
-      {parsed.excerpt ? <p className="lead">{parsed.excerpt}</p> : null}
-      {parsed.content ? <div dangerouslySetInnerHTML={{ __html: parsed.content }} /> : null}
-    </article>
+      <section className="section wrap case-details">
+        <div>
+          <p className="eyebrow">UDGANGSPUNKTET</p>
+          <h2>
+            En hverdag, <br />
+            der skal hænge sammen.
+          </h2>
+        </div>
+        <div>
+          <p>{product.problem}</p>
+          <h3>Det arbejder vi med</h3>
+          <p>{product.approach}</p>
+          <div className="text-tags">
+            {product.tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+          <p className="case-disclosure">
+            {product.name} er Digiflys eget produkt. Illustrationen viser
+            produktets fokusområder og er ikke et skærmbillede med kundedata.
+          </p>
+          <Link href={`/contact?subject=${product.name}`} className="button">
+            Tal med os om {product.name} <Arrow diagonal />
+          </Link>
+        </div>
+      </section>
+    </>
   );
 }
