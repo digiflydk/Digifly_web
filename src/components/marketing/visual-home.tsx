@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Arrow } from "./icons";
 import { HomeScene } from "./home-scenes";
+import { InterfacePreview, ResearchVisual } from "./interface-preview";
 import { customerCases } from "@/lib/marketing";
 
 const serviceCards = [
@@ -8,52 +9,58 @@ const serviceCards = [
     pillar: "Flow.",
     title: "Systemer i sammenhæng",
     text: "Forbind systemer og automatisér arbejdsgange med AI, hvor det giver mening.",
-    scene: "systems",
-    label: "Illustration af et system med opgaver og arbejdsgange",
+    scene: "connections",
+    label:
+      "Illustrativ systemvisning af forbundne systemer, AI og arbejdsgange",
     href: "/services#ydelse-flow",
   },
   {
     pillar: "Digitalize.",
     title: "Systemimplementering og udvikling",
     text: "Implementér de rigtige systemer. Udvikl software til jeres behov.",
-    scene: "software",
-    label: "Illustration af softwaremoduler og en udviklingsflade",
+    scene: "development",
+    label: "Illustrativ systemvisning af softwareudvikling og en produktflade",
     href: "/services#ydelse-digitalize",
   },
   {
     pillar: "Scale.",
     title: "Plads til næste skridt",
     text: "Få udviklingskapacitet og rådgivning til næste skridt i forretningen.",
-    scene: "channels",
-    label: "Illustration af digitale platforme, der forbindes",
+    scene: "roadmap",
+    label: "Illustrativ systemvisning af et roadmap for videreudvikling",
     href: "/services#ydelse-scale",
   },
 ] as const;
 const caseVisuals = {
   "warehouse-management": {
     title: "Lagerstyring",
-    scene: "warehouse",
-    label: "Illustration af lagerreoler, kasser og en digital arbejdsflade",
+    kind: "photo",
+    src: "/images/warehouse.webp",
+    label: "Konceptbillede af scanning af varer på et lager",
   },
   omnichannel: {
     title: "Omnichannel",
-    scene: "channels",
-    label: "Illustration af sammenhæng mellem digitale kanaler",
+    kind: "interface",
+    scene: "omnichannel",
+    label:
+      "Illustrativ systemvisning af et fælles overblik over digitale kanaler",
   },
   "monday-implementering": {
     title: "monday.com",
-    scene: "systems",
-    label: "Illustration af et board med opgaver",
+    kind: "interface",
+    scene: "board",
+    label: "Illustrativ systemvisning af et board med opgaver",
   },
   fondsresearch: {
     title: "Fondsresearch",
-    scene: "research",
+    kind: "research",
     label: "Illustration af dokumenter og research",
   },
   "retail-labels-og-pant": {
     title: "Etiketter og pant",
-    scene: "packaging",
-    label: "Illustration af emballage og etiketter",
+    kind: "photo",
+    src: "/images/retail-labels.webp",
+    label: "Konceptbillede af emballage og etiketter",
   },
 } as const;
 
@@ -83,13 +90,15 @@ export function VisualHome() {
           </div>
         </div>
         <div className="vh-hero-picture">
-          <HomeScene
-            kind="hero"
-            label="Illustration af systemimplementering, software og AI i sammenhæng"
+          <img
+            className="vh-photo vh-hero-photo"
+            src="/images/hero-workshop.webp"
+            alt="Konceptbillede af samarbejde om en digital løsning"
+            width="1536"
+            height="1024"
+            fetchPriority="high"
           />
-          <span className="vh-picture-note">
-            Fra behov til sammenhæng · Illustration
-          </span>
+          <span className="vh-picture-note">Konceptbillede</span>
         </div>
       </section>
 
@@ -116,7 +125,7 @@ export function VisualHome() {
                 aria-label={`${item.pillar} ${item.title}`}
               >
                 <div className="vh-service-picture">
-                  <HomeScene kind={item.scene} label={item.label} />
+                  <InterfacePreview kind={item.scene} label={item.label} />
                 </div>
                 <div className="vh-service-copy">
                   <h3>
@@ -145,14 +154,16 @@ export function VisualHome() {
                 <br /> Samme nysgerrighed.
               </h2>
               <p className="vh-case-intro">
-                Udvalgte opgaver. Kundenavne er udeladt. Scenerne er
-                illustrationer.
+                Udvalgte opgaver. Kundenavne er udeladt.
               </p>
             </div>
             <Link className="text-link" href="/cases">
               Alle cases <Arrow />
             </Link>
           </div>
+          <p className="vh-media-context">
+            Konceptbilleder og illustrative systemvisninger
+          </p>
           <div className="vh-case-grid">
             {customerCases.map((item) => {
               const visual = caseVisuals[item.slug];
@@ -164,7 +175,23 @@ export function VisualHome() {
                     aria-label={`Se opgaven: ${visual.title}`}
                   >
                     <div className="vh-case-picture">
-                      <HomeScene kind={visual.scene} label={visual.label} />
+                      {visual.kind === "photo" ? (
+                        <img
+                          className="vh-photo"
+                          src={visual.src}
+                          alt={visual.label}
+                          width="1536"
+                          height="1024"
+                          loading="lazy"
+                        />
+                      ) : visual.kind === "interface" ? (
+                        <InterfacePreview
+                          kind={visual.scene}
+                          label={visual.label}
+                        />
+                      ) : (
+                        <ResearchVisual />
+                      )}
                     </div>
                     <div className="vh-case-copy">
                       <h3>{visual.title}</h3>

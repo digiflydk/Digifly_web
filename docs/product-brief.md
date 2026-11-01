@@ -28,8 +28,8 @@ hjælpe med, og se anonyme kundecases som konkrete eksempler på arbejdet.
 
 ## Visuelt princip for forsiden
 
-Forsiden er en kort, billedbåret indgang. Store originale SVG-scener illustrerer
-systemer, software, AI og de fem anonyme opgaver. Tekstmængden er reduceret til
+Forsiden er en kort, billedbåret indgang. Konceptfotos, illustrative systemvisninger og én AI-illustration viser
+arbejdet fra forskellige vinkler. Tekstmængden er reduceret til
 korte teasere; tre ydelseskort, tre samarbejdstrin og en tydelig kontaktvej
 bevares. Scenerne er illustrationer uden kundedata, tal eller resultatpåstande.
 FAQ, udførlige ydelser, proces, vision og caseforklaringer findes på undersiderne.
