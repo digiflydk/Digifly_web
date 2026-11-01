@@ -1,41 +1,41 @@
-import { getContactPage } from "@/lib/cms";
-import { Container } from "@/components/layout/container";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { ContactForm } from "@/components/sections/contact-form";
-import { buildSeo } from "@/lib/seo";
-import type { Metadata } from 'next';
-import { ContactPageSchema } from "@/lib/schemas";
-import { safeStr } from "@/lib/safe";
-
-export const dynamic = 'force-dynamic';
-
-export async function generateMetadata(): Promise<Metadata> {
-  const rawPage = await getContactPage();
-  const page = ContactPageSchema.parse(rawPage || {});
-
-  return buildSeo({
-    title: safeStr(page.seo?.title, page.title),
-    description: safeStr(page.seo?.description, page.subtitle),
-  });
-}
-
-export default async function ContactPage() {
-    const rawPage = await getContactPage();
-    const page = ContactPageSchema.parse(rawPage || {});
-
-    return (
-        <div className="py-16 md:py-24">
-            <Container>
-                <div className="max-w-2xl mx-auto">
-                    <SectionHeading 
-                        title={page.title}
-                        subtitle={page.subtitle}
-                        textCenter
-                        className="mb-12"
-                    />
-                    <ContactForm />
-                </div>
-            </Container>
+import type { Metadata } from "next";
+import { MarketingContactForm } from "@/components/marketing/contact-form";
+import { contactEnabled } from "@/lib/contact";
+import { isContactSubject } from "@/lib/contact-options";
+import { siteUrl } from "@/lib/marketing";
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Kontakt",
+  alternates: siteUrl() ? { canonical: "/contact" } : undefined,
+};
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ subject?: string }>;
+}) {
+  const params = await searchParams;
+  const subject = isContactSubject(params.subject) ? params.subject : "";
+  return (
+    <section className="wrap contact-page">
+      <div>
+        <p className="eyebrow">JERES NÆSTE SKRIDT</p>
+        <h1>
+          Hvad skal kunne <br />
+          lade sig gøre hos jer?
+        </h1>
+        <p className="intro-text">
+          Fortæl os om den idé, udfordring eller arbejdsgang, I vil tage videre.
+          Så tager vi en samtale om mulighederne og et konkret første skridt.
+        </p>
+        <div className="contact-aside">
+          <h2>I behøver ikke have alle svarene.</h2>
+          <p>
+            En konkret udfordring er et godt sted at starte. Vi hjælper med at
+            finde ud af, hvad der er værd at bygge først.
+          </p>
         </div>
-    )
+      </div>
+      <MarketingContactForm enabled={contactEnabled()} subject={subject} />
+    </section>
+  );
 }

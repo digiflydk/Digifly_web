@@ -1,15 +1,21 @@
-# Settings to manage and configure a Firebase App Hosting backend.
-# https://firebase.google.com/docs/app-hosting/configure
-
-# The command to build your app
-build:
-  command: "npm run build"
-# After a successful deployment, run Playwright tests against the live URL.
-# The `|| true` ensures that the build doesn't fail if tests fail.
-postdeploy:
-  command: "BASE_URL=${LIVE_URL} npm run postdeploy || true"
-
+# Verified target: studio-9863436583-e36f9 / studio (us-central1).
+# Firebase App Hosting builds from digiflydk/Digifly_web, main, repository root.
 runConfig:
-  # Increase this value if you'd like to automatically spin up
-  # more instances in response to increased traffic.
-  maxInstances: 1
+  minInstances: 0
+  maxInstances: 2
+env:
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://digifly.dk
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: SITE_INDEXABLE
+    value: "true"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: CONTACT_FORM_ENABLED
+    value: "false"
+    availability:
+      - BUILD
+      - RUNTIME

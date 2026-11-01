@@ -1,28 +1,54 @@
-import { Container } from "@/components/layout/container";
-import { SectionHeading } from "@/components/ui/section-heading";
-
+import type { Metadata } from "next";
+import Link from "next/link";
+import { contactEnabled } from "@/lib/contact";
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Privatliv" };
 export default function PrivacyPage() {
-    return (
-        <div className="py-16 md:py-24">
-            <Container>
-                <div className="max-w-3xl mx-auto">
-                    <SectionHeading
-                        title="Privacy Policy"
-                        subtitle="Last updated: "
-                        textCenter
-                        className="mb-12"
-                    />
-                    <div className="prose prose-lg max-w-none">
-                        <p>Your privacy is important to us. It is Digifly's policy to respect your privacy regarding any information we may collect from you across our website.</p>
-                        <p>We only ask for personal information when we truly need it to provide a service to you. We collect it by fair and lawful means, with your knowledge and consent. We also let you know why we’re collecting it and how it will be used.</p>
-                        <p>We only retain collected information for as long as necessary to provide you with your requested service. What data we store, we’ll protect within commercially acceptable means to prevent loss and theft, as well as unauthorized access, disclosure, copying, use or modification.</p>
-                        <p>We don’t share any personally identifying information publicly or with third-parties, except when required to by law.</p>
-                        <p>Our website may link to external sites that are not operated by us. Please be aware that we have no control over the content and practices of these sites, and cannot accept responsibility or liability for their respective privacy policies.</p>
-                        <p>You are free to refuse our request for your personal information, with the understanding that we may be unable to provide you with some of your desired services.</p>
-                        <p>Your continued use of our website will be regarded as acceptance of our practices around privacy and personal information. If you have any questions about how we handle user data and personal information, feel free to contact us.</p>
-                    </div>
-                </div>
-            </Container>
-        </div>
-    )
+  const enabled = contactEnabled();
+  return (
+    <article className="wrap legal-page">
+      <p className="eyebrow">DINE OPLYSNINGER</p>
+      <h1>Privatliv</h1>
+      {enabled ? (
+        <>
+          <p>
+            Kontaktformularen behandler dit navn, din mailadresse, din besked og
+            de valgfrie oplysninger, du tilføjer, for at modtage og behandle din
+            henvendelse.
+          </p>
+          <div className="privacy-notice">
+            {process.env.CONTACT_PRIVACY_NOTICE?.split("\n")
+              .filter(Boolean)
+              .map((paragraph, i) => (
+                <p key={i}>{paragraph}</p>
+              ))}
+          </div>
+        </>
+      ) : (
+        <>
+          <p>
+            Kontaktformularen er ikke åbnet endnu og sender ikke beskeder.
+            Oplysninger, du skriver i felterne, bliver ikke gemt af formularen.
+          </p>
+          <h2>Før kontaktformularen åbner</h2>
+          <p>
+            Før formularen aktiveres, bliver siden opdateret med den
+            dataansvarlige virksomheds oplysninger, kontaktmuligheder og
+            information om formål, behandlingsgrundlag, opbevaring, modtagere og
+            dine rettigheder.
+          </p>
+        </>
+      )}
+      <h2>Besøg på hjemmesiden</h2>
+      <p>
+        Hjemmesiden indlæser ikke analyseværktøjer eller markedsføringspixels.
+        Hostingudbyderen kan behandle tekniske oplysninger om besøget,
+        eksempelvis IP-adresse og forespørgsler, for at levere og beskytte
+        tjenesten.
+      </p>
+      <p>
+        Læs også om <Link href="/cookies">cookies</Link>.
+      </p>
+    </article>
+  );
 }

@@ -1,54 +1,76 @@
-
-
-import Image from "next/image";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCaseBySlug, getCases } from "@/lib/cms";
-import { Metadata } from "next";
-import { buildSeo } from "@/lib/seo";
-import { CaseSchema } from "@/lib/schemas";
-
-export async function generateStaticParams() {
-    const cases = await getCases({ published: true });
-    return cases.map(c => ({ slug: c.slug }));
+import Link from "next/link";
+import { customerCases, siteUrl } from "@/lib/marketing";
+import { CaseMark } from "@/components/marketing/case-mark";
+import { Arrow } from "@/components/marketing/icons";
+export function generateStaticParams() {
+  return customerCases.map((item) => ({ slug: item.slug }));
 }
-
-type Params = Promise<{ slug: string }>;
-
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-    const { slug } = await params;
-    const item = await getCaseBySlug(slug);
-    if (!item || !item.published) return buildSeo({ title: 'Not Found' });
-
-    const parsed = CaseSchema.parse(item);
-
-    return buildSeo({
-      title: parsed.seo?.title || parsed.title,
-      description: parsed.seo?.description || parsed.excerpt,
-      images: parsed.cover?.src
-    });
-}
-
-
-export default async function CaseDetailPage({ params }: { params: Params }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
-  const item = await getCaseBySlug(slug);
-  if (!item || item.published === false) return notFound();
-
-  const parsed = CaseSchema.parse(item);
-
+  const item = customerCases.find((entry) => entry.slug === slug);
+  return {
+    title: item ? `${item.name} · Anonym kundecase` : "Casen findes ikke",
+    description: item?.description,
+    alternates: siteUrl() && item ? { canonical: `/cases/${slug}` } : undefined,
+  };
+}
+export default async function CasePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const item = customerCases.find((entry) => entry.slug === slug);
+  if (!item) notFound();
   return (
-    <article className="container mx-auto p-6 prose prose-neutral max-w-3xl">
-      <h1>{parsed.title}</h1>
-      <div className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border my-4">
-        <Image
-          src={(parsed.cover?.src && parsed.cover.src !== "" ? parsed.cover.src : "/placeholder/case-cover.webp")}
-          alt={parsed.cover?.alt || parsed.title}
-          fill
-          className="object-cover"
-        />
-      </div>
-      {parsed.excerpt ? <p className="lead">{parsed.excerpt}</p> : null}
-      {parsed.content ? <div dangerouslySetInnerHTML={{ __html: parsed.content }} /> : null}
-    </article>
+    <>
+      <section className="page-hero wrap customer-case-hero">
+        <Link href="/cases" className="back-link">
+          ← Vores arbejde
+        </Link>
+        <p className="eyebrow">
+          ANONYM KUNDECASE / {item.category.toUpperCase()}
+        </p>
+        <h1>
+          {item.name}
+          <span className="indigo">.</span>
+        </h1>
+        <p>{item.title}</p>
+      </section>
+      <section className="section wrap case-details">
+        <div>
+          <div className="case-detail-mark">
+            <CaseMark kind={item.visual} />
+            <span>Illustration af opgaven</span>
+          </div>
+          <h2>Opgaven</h2>
+          <div className="text-tags">
+            {item.tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p>{item.problem}</p>
+          <h3>Vores bidrag</h3>
+          <p>{item.approach}</p>
+          <p className="case-disclosure">
+            Kundenavnet er udeladt. Beskrivelsen viser opgavens fokus og omfang.
+          </p>
+          <Link
+            href={`/contact?subject=${encodeURIComponent(item.subject)}`}
+            className="button"
+          >
+            Tal med os om en lignende opgave <Arrow diagonal />
+          </Link>
+        </div>
+      </section>
+    </>
   );
 }

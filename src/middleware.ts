@@ -1,44 +1,40 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const BLOCKED_PATTERNS = [
-  /^\/\.git(?:\/|$)/i,
-  /^\/\.env$/i,
-  /^\/\.DS_Store$/i,
-  /^\/wordpress(?:\/|$)/i,
-  /^\/info\.php$/i,
-  /^\/server(?:-status)?$/i,
-  /^\/telescope(?:\/|$)/i,
-  /^\/config\.json$/i,
-  /^\/@vite\/env$/i,
-  // Block common, but unknown API endpoints
-  /^\/api\/(?!cms|debug|contact|docs|_health|admin).*/i,
-  /^\/(graphql|gql)(?:\/|$)/i,
-  /^\/(swagger|api-docs|v2|v3)(?:\/|$)/i,    // swagger, api-docs, etc.
-  /^\/webjars\/swagger-ui\/index\.html$/i,
-  /^\/swagger(?:-ui\.html|\/index\.html|\.json)?$/i,
-  /^\/version$/i,
-  /^\/login\.action$/i,
-  /^\/_all_dbs$/i,
-  /^\/ecp\/Current\/exporttool/i,            // ms exchange probe
-  /^\/v2\/_catalog$/i,                       // docker registry probe
-  /^\/js\/lkk_ch\.js$/i,
-  /^\/css\/support_parent\.css$/i,
-  /^\/s\/[0-9a-f/_;.-]+\/META-INF\/.+$/i,    // random maven/jira probes
-];
+// Legacy CMS uses Admin SDK without verified user authentication.
+// Keep it unreachable until server-side authentication is implemented and reviewed.
+const legacy = /^\/(?:dadmin|docs|api\/(?:admin|cms|debug|docs))(?:\/|$)/i;
+const probes =
+  /^\/(?:\.git|\.env|\.DS_Store|wordpress|info\.php|server-status|graphql|swagger|api-docs)(?:\/|$)/i;
 
-export function middleware(req: NextRequest) {
-  const { pathname } = new URL(req.url);
-
-  for (const re of BLOCKED_PATTERNS) {
-    if (re.test(pathname)) {
-      return new NextResponse("Not found", { status: 404 });
+export function middleware(request: NextRequest) {
+  let pathname = request.nextUrl.pathname;
+  try {
+    for (let i = 0; i < 3; i++) {
+      const decoded = decodeURIComponent(pathname);
+      if (decoded === pathname) break;
+      pathname = decoded;
     }
+  } catch {
+    return new NextResponse("Bad request", { status: 400 });
+  }
+  if (
+    legacy.test(pathname) ||
+    probes.test(pathname) ||
+    pathname.startsWith("/api/health/firebase")
+  ) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+  // Marketing has no Server Actions. Block legacy actions even if their IDs are known.
+  if (
+    !["GET", "HEAD", "OPTIONS"].includes(request.method) &&
+    pathname !== "/api/contact"
+  ) {
+    return new NextResponse("Method not allowed", {
+      status: 405,
+      headers: { Allow: "GET, HEAD, OPTIONS" },
+    });
   }
   return NextResponse.next();
 }
-
-// Run middleware on all routes
-export const config = {
-  matcher: ["/:path*"],
-};
+export const config = { matcher: ["/:path*"] };

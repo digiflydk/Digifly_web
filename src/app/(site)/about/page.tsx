@@ -1,41 +1,62 @@
-import { getAboutPage } from "@/lib/cms";
-import { Container } from "@/components/layout/container";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { RichText } from "@/components/ui/rich-text";
-import { buildSeo } from "@/lib/seo";
-import type { Metadata } from 'next';
-import { AboutPageSchema } from "@/lib/schemas";
-import { safeStr } from "@/lib/safe";
-
-export const dynamic = 'force-dynamic';
-
-export async function generateMetadata(): Promise<Metadata> {
-  const rawPage = await getAboutPage();
-  const page = AboutPageSchema.parse(rawPage || {});
-  
-  return buildSeo({
-    title: safeStr(page.seo?.title, page.title),
-    description: safeStr(page.seo?.description, page.subtitle),
-  });
-}
-
-export default async function AboutPage() {
-    const rawPage = await getAboutPage();
-    const page = AboutPageSchema.parse(rawPage || {});
-
-    return (
-        <div className="py-16 md:py-24">
-            <Container>
-                <SectionHeading 
-                    title={page.title}
-                    subtitle={page.subtitle}
-                    textCenter
-                    className="mb-12"
-                />
-                <div className="max-w-3xl mx-auto">
-                    <RichText content={page.content?.body ?? []} />
-                </div>
-            </Container>
-        </div>
-    )
+import type { Metadata } from "next";
+import { ProcessSection, ContactCta } from "@/components/marketing/sections";
+import { siteUrl } from "@/lib/marketing";
+export const metadata: Metadata = {
+  title: "Om Digifly",
+  alternates: siteUrl() ? { canonical: "/about" } : undefined,
+};
+export default function AboutPage() {
+  return (
+    <>
+      <section className="page-hero wrap">
+        <p className="eyebrow">VORES PERSPEKTIV</p>
+        <h1>
+          Teknologi skal kunne <br />
+          <span className="indigo">mærkes i hverdagen.</span>
+        </h1>
+        <p>Vi forbinder forretningsforståelse, software og AI.</p>
+      </section>
+      <section className="wrap about-statement">
+        <p>
+          Digifly kombinerer forretningsforståelse, teknologi og rådgivning. Vi
+          hjælper virksomheder med at udvikle software, implementere systemer og
+          undersøge muligheder for deres næste skridt.
+        </p>
+        <p>
+          Kernen i vores arbejde er systemimplementering, softwareudvikling og
+          sammenhængende arbejdsgange med AI. Vi hjælper også med afgrænsede
+          researchopgaver inden for fonde og markedsforberedelse, når det
+          understøtter virksomhedens næste skridt.
+        </p>
+        <p>
+          Vores vision er at gøre teknologi og viden til praktiske redskaber for
+          vækst. Vi starter med at forstå forretningen og arbejder hen imod
+          løsninger, der kan bruges og udvikles i hverdagen.
+        </p>
+        <p>Vi er nysgerrige på nye muligheder og konkrete i det, vi leverer.</p>
+      </section>
+      <section className="wrap brand-values">
+        <article>
+          <span>01</span>
+          <h2>Flow.</h2>
+          <p>Få mennesker, data og arbejdsgange til at hænge sammen.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h2>Digitalize.</h2>
+          <p>
+            Implementér de rigtige systemer, og udvikl løsninger til jeres
+            konkrete behov.
+          </p>
+        </article>
+        <article>
+          <span>03</span>
+          <h2>Scale.</h2>
+          <p>Skab et teknisk grundlag, som kan udvikle sig med forretningen.</p>
+        </article>
+      </section>
+      <ProcessSection />
+      <ContactCta />
+    </>
+  );
 }
