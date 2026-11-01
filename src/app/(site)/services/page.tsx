@@ -3,7 +3,7 @@ import { ServicesSection, ContactCta } from "@/components/marketing/sections";
 import { AiWorkflow } from "@/components/marketing/ai-workflow";
 import { siteUrl } from "@/lib/marketing";
 export const metadata: Metadata = {
-  title: "AI, software og integrationer",
+  title: "Systemimplementering, udvikling og AI",
   alternates: siteUrl() ? { canonical: "/services" } : undefined,
 };
 export default function ServicesPage() {
@@ -16,7 +16,7 @@ export default function ServicesPage() {
           til en løsning, der virker.
         </h1>
         <p>
-          AI, software og integrationer med et klart formål i jeres forretning.
+          Systemimplementering, softwareudvikling og AI, der forbinder den daglige drift med jeres næste vækstfase.
         </p>
       </div>
       <ServicesSection />

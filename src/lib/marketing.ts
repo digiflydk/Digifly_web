@@ -1,44 +1,40 @@
 export const services = [
   {
-    id: "ai",
-    title: "AI og automatisering",
-    description:
-      "Find de opgaver, hvor AI og automatisering giver mening. Vi bygger løsninger med tydelige rammer for data og menneskelig kontrol.",
-    tags: ["AI-assistenter", "Dokumentflows", "Automatisering"],
-    example: "Fra en gentagen opgave til et gennemtænkt workflow.",
+    "id": "flow",
+    "pillar": "Flow.",
+    "title": "Arbejdsgange, integrationer og AI",
+    "description": "Få mennesker, data og systemer til at arbejde sammen. Vi forbinder jeres værktøjer og automatiserer gentagne opgaver med AI, hvor det giver mening.",
+    "tags": [
+      "Arbejdsgange",
+      "Integrationer",
+      "AI-automatisering"
+    ],
+    "example": "Skab sammenhæng i den daglige drift."
   },
   {
-    id: "produkter",
-    title: "Digitale produkter",
-    description:
-      "Gør en idé til et produkt, kunder og medarbejdere kan bruge. Fra brugeroplevelse og første version til løbende forbedringer.",
-    tags: ["Webapps", "Kundeportaler", "SaaS"],
-    example: "Fra det første koncept til et produkt i drift.",
+    "id": "digitalize",
+    "pillar": "Digitalize.",
+    "title": "Systemimplementering og udvikling",
+    "description": "Få systemer, der passer til jeres forretning. Vi implementerer og tilpasser platforme som monday.com og udvikler software, når opgaven kræver en løsning bygget til jer.",
+    "tags": [
+      "Systemimplementering",
+      "Softwareudvikling",
+      "Webapps og platforme"
+    ],
+    "example": "Fra behov og opsætning til en løsning i brug."
   },
   {
-    id: "integrationer",
-    title: "Systemimplementering og integrationer",
-    description:
-      "Få de digitale værktøjer til at passe til jeres arbejdsgange. Vi hjælper med implementering, tilpasning og forbindelser mellem systemer.",
-    tags: ["Systemimplementering", "Integrationer", "Arbejdsgange"],
-    example: "Mindre manuel kopiering. Mere sammenhæng.",
-  },
-  {
-    id: "udvikling",
-    title: "Udviklingskapacitet",
-    description:
-      "Få hjælp til en afgrænset leverance eller den fortsatte udvikling af jeres platform. Med tydelige prioriteringer og synlige leverancer.",
-    tags: ["Projektleverancer", "Videreudvikling", "Teknisk sparring"],
-    example: "Et ekstra perspektiv. Et konkret næste skridt.",
-  },
-  {
-    id: "raadgivning",
-    title: "Rådgivning og markedsforberedelse",
-    description:
-      "Få hjælp til at undersøge muligheder og gøre næste beslutning konkret. Vi arbejder med blandt andet fondsresearch, retail-labels og undersøgelse af mærkningskrav og pantsystemer på udenlandske markeder.",
-    tags: ["Fondsresearch", "Retail-labels", "Markedsforberedelse"],
-    example: "Fra åbne spørgsmål til et brugbart beslutningsgrundlag.",
-  },
+    "id": "scale",
+    "pillar": "Scale.",
+    "title": "Videreudvikling og teknisk kapacitet",
+    "description": "Byg videre, når forretningen vokser. Vi hjælper med at prioritere næste skridt, videreudvikle jeres platform og tilføre udviklingskapacitet, så teknologien kan følge med.",
+    "tags": [
+      "Videreudvikling",
+      "Teknisk sparring",
+      "Udviklingskapacitet"
+    ],
+    "example": "Et teknisk grundlag for næste fase."
+  }
 ];
 export const customerCases = [
   {
@@ -171,4 +167,4 @@ export function siteUrl(): string | undefined {
   }
 }
 export const siteDescription =
-  "Digifly hjælper med AI, software, systemimplementering og rådgivning. Se udvalgte opgaver inden for digitale løsninger, fondsresearch og markedsforberedelse.";
+  "Digifly implementerer systemer, udvikler software og forbinder arbejdsgange med AI. Flow. Digitalize. Scale. Fra daglig drift til næste vækstfase.";

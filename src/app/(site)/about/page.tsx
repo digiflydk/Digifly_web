@@ -23,10 +23,10 @@ export default function AboutPage() {
           undersøge muligheder for deres næste skridt.
         </p>
         <p>
-          Opgaverne spænder fra AI og digitale arbejdsgange til fondsresearch og
-          forberedelse af produkter til nye markeder. Fælles for arbejdet er
-          ønsket om at gøre komplekse spørgsmål konkrete og skabe et brugbart
-          grundlag for handling.
+          Kernen i vores arbejde er systemimplementering, softwareudvikling og
+          sammenhængende arbejdsgange med AI. Vi hjælper også med afgrænsede
+          researchopgaver inden for fonde og markedsforberedelse, når det
+          understøtter virksomhedens næste skridt.
         </p>
         <p>
           Vores vision er at gøre teknologi og viden til praktiske redskaber for
@@ -45,8 +45,8 @@ export default function AboutPage() {
           <span>02</span>
           <h2>Digitalize.</h2>
           <p>
-            Omsæt manuelle processer og nye idéer til brugbare digitale
-            løsninger.
+            Implementér de rigtige systemer, og udvikl løsninger til jeres
+            konkrete behov.
           </p>
         </article>
         <article>

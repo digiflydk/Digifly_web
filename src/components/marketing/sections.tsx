@@ -16,9 +16,9 @@ export function ServicesSection() {
         <div>
           <h2>Jeres ambitioner skal ikke vente på jeres systemer.</h2>
           <p>
-            Måske bruger I for meget tid på at flytte data manuelt. Måske er
-            næste produkt stadig en idé. Vi tager fat i det, der skal bringe jer
-            videre.
+            Skab flow i hverdagen, omsæt behov til digitale løsninger, og byg
+            et teknisk grundlag for vækst. Vi hjælper fra systemimplementering
+            og udvikling til den løbende forbedring.
           </p>
         </div>
       </div>
@@ -30,7 +30,7 @@ export function ServicesSection() {
             id={`ydelse-${item.id}`}
           >
             <span className="row-number">0{i + 1}</span>
-            <h3>{item.title}</h3>
+            <h3><span className="service-pillar">{item.pillar}</span>{item.title}</h3>
             <div>
               <p>{item.description}</p>
               <div className="text-tags">

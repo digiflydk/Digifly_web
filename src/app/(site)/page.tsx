@@ -31,9 +31,9 @@ export default function HomePage() {
           </h1>
           <h2>Gør AI til en del af forretningen.</h2>
           <p className="hero-intro">
-            Vi udvikler software, implementerer systemer og gør komplekse
-            opgaver konkrete. Med jeres forretning som udgangspunkt og AI som en
-            del af værktøjskassen.
+            Vi implementerer systemer, udvikler software og forbinder
+            arbejdsgange med AI. Så jeres teknologi understøtter både den
+            daglige drift og næste fase af jeres vækst.
           </p>
           <div className="hero-actions">
             <Link className="button" href="/contact">
@@ -47,7 +47,7 @@ export default function HomePage() {
         <FlowArt />
       </section>
       <div className="wrap capabilities-strip">
-        <span>Forretningsforståelse</span>
+        <span>Systemimplementering</span>
         <b aria-hidden="true">+</b>
         <span>Digital udvikling</span>
         <b aria-hidden="true">+</b>

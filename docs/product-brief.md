@@ -71,3 +71,6 @@ aktuelle GitHub-kobling.
 Hjemmesiden kan udvikles og gennemgås, mens disse forhold afklares. Kode, data og
 domæner holdes adskilt fra restaurantens drift. Der oprettes ikke nye GitHub
 Actions-workflows som del af denne opgave.
+
+## Positioning refinement
+Core services follow the tagline: Flow (workflows, integration, AI automation), Digitalize (system implementation and bespoke development), Scale (continued development and technical capacity). Fund and label research remain supplementary anonymous cases, not primary service pillars. Homepage, services, about and footer use this positioning.

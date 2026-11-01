@@ -15,7 +15,7 @@ export function MarketingFooter() {
           <p>Flow. Digitalize. Scale.</p>
         </div>
         <p className="footer-statement">
-          Software, AI og rådgivning <br />
+          Systemimplementering, udvikling og AI <br />
           med forretningen som udgangspunkt.
         </p>
         <nav aria-label="Footernavigation">
