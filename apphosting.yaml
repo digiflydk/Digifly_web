@@ -1,5 +1,21 @@
-# Firebase App Hosting reads the build script from package.json.
-# Backend/project, domain and secrets must be verified before rollout.
+# Verified target: studio-9863436583-e36f9 / studio (us-central1).
+# Firebase App Hosting builds from digiflydk/Digifly_web, main, repository root.
 runConfig:
   minInstances: 0
   maxInstances: 2
+env:
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://digifly.dk
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: SITE_INDEXABLE
+    value: "true"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: CONTACT_FORM_ENABLED
+    value: "false"
+    availability:
+      - BUILD
+      - RUNTIME

@@ -61,8 +61,7 @@ export function MarketingContactForm({
       )}
       {!enabled && (
         <p className="form-status" role="status">
-          Dette er en forhåndsvisning. Kontaktformularen åbner ved lancering og
-          sender ikke beskeder endnu.
+          Kontaktformularen er ikke åbnet endnu og sender derfor ikke beskeder.
         </p>
       )}
       <div className="form-row">
@@ -157,7 +156,7 @@ export function MarketingContactForm({
         disabled={!enabled || status === "sending"}
       >
         {!enabled
-          ? "Åbner ved lancering"
+          ? "Formularen er lukket"
           : status === "sending"
             ? "Sender…"
             : "Send henvendelse"}

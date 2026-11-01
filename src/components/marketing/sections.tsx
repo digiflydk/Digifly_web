@@ -16,9 +16,9 @@ export function ServicesSection() {
         <div>
           <h2>Jeres ambitioner skal ikke vente på jeres systemer.</h2>
           <p>
-            Skab flow i hverdagen, omsæt behov til digitale løsninger, og byg
-            et teknisk grundlag for vækst. Vi hjælper fra systemimplementering
-            og udvikling til den løbende forbedring.
+            Skab flow i hverdagen, omsæt behov til digitale løsninger, og byg et
+            teknisk grundlag for vækst. Vi hjælper fra systemimplementering og
+            udvikling til den løbende forbedring.
           </p>
         </div>
       </div>
@@ -30,7 +30,10 @@ export function ServicesSection() {
             id={`ydelse-${item.id}`}
           >
             <span className="row-number">0{i + 1}</span>
-            <h3><span className="service-pillar">{item.pillar}</span>{item.title}</h3>
+            <h3>
+              <span className="service-pillar">{item.pillar}</span>
+              {item.title}
+            </h3>
             <div>
               <p>{item.description}</p>
               <div className="text-tags">
@@ -89,34 +92,6 @@ export function CasesSection({
             </article>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-export function TestimonialsSection() {
-  return (
-    <section
-      className="section wrap testimonials-section"
-      aria-labelledby="testimonials-heading"
-    >
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">KUNDEUDTALELSER</p>
-          <h2 id="testimonials-heading">Kundernes perspektiv</h2>
-        </div>
-        <p>
-          Pladsholdere i denne forhåndsvisning. Citater tilføjes, når de er
-          modtaget og godkendt.
-        </p>
-      </div>
-      <div className="testimonial-placeholders">
-        {["X", "Y", "Z"].map((label) => (
-          <article key={label} className="testimonial-placeholder">
-            <p className="eyebrow">PLADSHOLDER</p>
-            <h3>Pladsholder {label}</h3>
-            <p>Afventer godkendt kundeudtalelse.</p>
-          </article>
-        ))}
       </div>
     </section>
   );

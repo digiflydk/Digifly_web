@@ -1732,34 +1732,6 @@ summary:focus-visible {
   font-size: 13px;
   min-height: 48px;
 }
-.testimonials-section .section-heading {
-  align-items: start;
-}
-.testimonials-section h2 {
-  max-width: 540px;
-}
-.testimonial-placeholders {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
-}
-.testimonial-placeholder {
-  border: 1px dashed #b7b6b1;
-  padding: 28px;
-  border-radius: 10px;
-}
-.testimonial-placeholder .eyebrow {
-  font-size: 10px;
-}
-.testimonial-placeholder h3 {
-  font-size: 22px;
-  margin-top: 20px;
-}
-.testimonial-placeholder > p:last-child {
-  font-size: 13px;
-  margin-top: 10px;
-  color: var(--muted-ink);
-}
 .customer-case-hero h1 {
   max-width: 1100px;
   font-size: clamp(40px, 5.6vw, 80px);
@@ -1793,16 +1765,9 @@ summary:focus-visible {
   .case-card:nth-child(-n + 2) h3 {
     font-size: 28px;
   }
-  .testimonial-placeholders {
-    gap: 15px;
-  }
-  .testimonial-placeholder {
-    padding: 20px;
-  }
 }
 @media (max-width: 600px) {
-  .case-grid,
-  .testimonial-placeholders {
+  .case-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
   }
@@ -1815,9 +1780,6 @@ summary:focus-visible {
   .case-card h3,
   .case-card:nth-child(-n + 2) h3 {
     font-size: 27px;
-  }
-  .testimonial-placeholder {
-    padding: 24px;
   }
   .customer-case-hero h1 {
     font-size: 40px;
@@ -1835,4 +1797,10 @@ summary:focus-visible {
   padding-bottom: 0;
 }
 
-.service-pillar { display: block; color: var(--indigo, #4f46e5); font-size: 0.55em; letter-spacing: 0.04em; margin-bottom: 0.6em; }
+.service-pillar {
+  display: block;
+  color: var(--indigo, #4f46e5);
+  font-size: 0.55em;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.6em;
+}

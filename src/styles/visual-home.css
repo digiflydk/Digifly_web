@@ -208,16 +208,6 @@
 .visual-home .vh-case-arrow:hover {
   background: #fff9;
 }
-.visual-home .vh-testimonials-note {
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid #d9d6cf;
-  font-size: 13px;
-}
-.visual-home .vh-testimonials-note span {
-  color: var(--muted-ink);
-  margin-left: 8px;
-}
 .visual-home .vh-ai {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
@@ -480,15 +470,6 @@
   .visual-home .vh-case-arrow {
     width: 42px;
     height: 42px;
-  }
-  .visual-home .vh-testimonials-note {
-    margin-top: 30px;
-    font-size: 12px;
-  }
-  .visual-home .vh-testimonials-note span {
-    display: block;
-    margin-left: 0;
-    margin-top: 5px;
   }
   .visual-home .vh-ai {
     grid-template-columns: minmax(0, 1fr);

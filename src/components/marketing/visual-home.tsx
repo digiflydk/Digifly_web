@@ -204,10 +204,6 @@ export function VisualHome() {
               );
             })}
           </div>
-          <p className="vh-testimonials-note">
-            Kundeudtalelser følger.{" "}
-            <span>Pladsholder i forhåndsvisningen.</span>
-          </p>
         </div>
       </section>
 

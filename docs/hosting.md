@@ -1,24 +1,37 @@
 # Digifly hosting inventory
 
+The coordinator verified the following in the signed-in Firebase Console on November 1, 2026.
+
 | Setting | Verified state |
 | --- | --- |
-| Selected codebase | digiflydk/Digifly_web |
+| Repository | digiflydk/Digifly_web |
 | Baseline | 8f8e5390a140ae75acd70434df43904e09282fb0 |
 | Feature branch | feature/digifly-ai-website |
 | Framework | Next.js 15.5.28, React 18, TypeScript |
-| Runtime target | Node 22; local checks currently use runtime-provided Node 24.22.1 |
-| Firebase project | studio-3438007779-7a496 appears in the older Digifly-web-2.0 .firebaserc only; live association unverified |
-| Backend, region, app root, live branch | Must be read from the active Firebase backend before release |
-| Public domain | digifly.dk observed by coordinator; final canonical and backend association remain to be confirmed |
-| DNS provider, records, certificate, billing | Not verified in this implementation session |
-| Last good rollout / rollback image | Must be recorded before deployment |
+| Runtime target | Node 22; local checks use runtime-provided Node 24.22.1 |
+| Firebase project | studio-9863436583-e36f9 |
+| App Hosting backend | studio |
+| Backend region | us-central1 |
+| Connected repository / live branch / app root | digiflydk/Digifly_web / main / / |
+| Automatic rollouts | Enabled for main |
+| Backend environment | prod |
+| Console environment overrides | Console reported “No environment variable overrides found” |
+| Environment-specific repository overlay | None; apphosting.yaml is the only App Hosting config |
+| Public domain | digifly.dk — Connected |
+| Public canonical | https://digifly.dk |
+| Existing successful rollback build | a-hxwmx1uqi6q8 |
+| Associated Cloud Build | 038956b3-a695-4a9a-aae2-3f8e02749ddd |
+| Existing rollout timestamp | Console displayed November 11, 2025, 14:52:44; source Firebase Studio |
+| DNS provider, individual records, billing | Not independently inventoried; no DNS change is required for this connected-domain rollout |
 
-No Firebase production deployment, DNS mutation or main merge is part of this implementation checkout. No third hosted repository was created. Firebase App Hosting remains the intended production platform.
+The older repository's studio-3438007779-7a496 reference is not the verified Digifly production target. Do not deploy to that project based on the old .firebaserc. No third hosted repository was created.
 
-## Non-secret environment
+## Version-controlled environment
 
-NEXT_PUBLIC_SITE_URL must be a verified HTTPS canonical origin. SITE_INDEXABLE defaults to false; enable only at approved public launch with a valid origin. RELEASE_SHA can supply the exact source commit in build environments without Git; otherwise it is read from Git at build time and exposed by /api/health.
+apphosting.yaml sets NEXT_PUBLIC_SITE_URL=https://digifly.dk, SITE_INDEXABLE=true and CONTACT_FORM_ENABLED=false at both BUILD and RUNTIME. This enables the verified canonical and public indexing while keeping the contact form closed. Local development without these variables continues to default to noindex.
 
-CONTACT_FORM_ENABLED=true, CONTACT_WEBHOOK_URL, CONTACT_WEBHOOK_TOKEN and CONTACT_PRIVACY_NOTICE are all required to open the contact form. The gateway URL must use HTTPS and implement the documented contract. The token belongs in Secret Manager, never source control. CONTACT_PRIVACY_NOTICE must contain the reviewed real business and processing information before activation. CONTACT_FORM_ENABLED alone cannot open the form.
+RELEASE_SHA can supply the exact source commit when the build environment lacks Git. Otherwise the commit is read from Git at build time and exposed by /api/health. The coordinator verifies the deployed version after rollout.
 
-Firebase console values may override apphosting.yaml. Confirm the deployed configuration and backend runtime before rollout. Existing GitHub credentials do not imply Firebase Console access.
+Contact activation is a separate follow-up. CONTACT_FORM_ENABLED=true, CONTACT_WEBHOOK_URL, CONTACT_WEBHOOK_TOKEN and CONTACT_PRIVACY_NOTICE are all required to open it. A real recipient, reviewed business/processing notice, HTTPS gateway and end-to-end receipt must be verified first. Keep the token in Secret Manager. No public email or telephone was found on the existing contact page; none is invented by this launch.
+
+Firebase Console values override apphosting.yaml. The coordinator must check for conflicting values before the rollout, including canonical, indexing and the disabled contact flag. The supported env/availability syntax and precedence are documented at https://firebase.google.com/docs/app-hosting/configure.

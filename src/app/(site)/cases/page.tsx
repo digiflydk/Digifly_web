@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import {
-  CasesSection,
-  TestimonialsSection,
-  ContactCta,
-} from "@/components/marketing/sections";
+import { CasesSection, ContactCta } from "@/components/marketing/sections";
 import { casesIntro, siteUrl } from "@/lib/marketing";
 export const metadata: Metadata = {
   title: "Vores arbejde · Udvalgte kundecases",
@@ -20,7 +16,6 @@ export default function CasesPage() {
         <p>{casesIntro}</p>
       </section>
       <CasesSection showHeading={false} />
-      <TestimonialsSection />
       <ContactCta />
     </>
   );

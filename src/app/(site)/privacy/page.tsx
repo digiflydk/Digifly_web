@@ -7,9 +7,7 @@ export default function PrivacyPage() {
   const enabled = contactEnabled();
   return (
     <article className="wrap legal-page">
-      <p className="eyebrow">
-        {enabled ? "DINE OPLYSNINGER" : "OM DENNE FORHÅNDSVISNING"}
-      </p>
+      <p className="eyebrow">DINE OPLYSNINGER</p>
       <h1>Privatliv</h1>
       {enabled ? (
         <>
@@ -29,15 +27,15 @@ export default function PrivacyPage() {
       ) : (
         <>
           <p>
-            Denne version af Digiflys hjemmeside er en forhåndsvisning.
-            Kontaktformularen sender ikke beskeder, og oplysninger, du skriver i
-            felterne, bliver ikke gemt af formularen.
+            Kontaktformularen er ikke åbnet endnu og sender ikke beskeder.
+            Oplysninger, du skriver i felterne, bliver ikke gemt af formularen.
           </p>
           <h2>Før kontaktformularen åbner</h2>
           <p>
-            Ved lanceringen bliver siden opdateret med den dataansvarlige
-            virksomheds oplysninger, kontaktmuligheder og information om formål,
-            behandlingsgrundlag, opbevaring, modtagere og dine rettigheder.
+            Før formularen aktiveres, bliver siden opdateret med den
+            dataansvarlige virksomheds oplysninger, kontaktmuligheder og
+            information om formål, behandlingsgrundlag, opbevaring, modtagere og
+            dine rettigheder.
           </p>
         </>
       )}
