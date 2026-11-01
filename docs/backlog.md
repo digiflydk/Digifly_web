@@ -7,6 +7,7 @@
 | DGF 03 | Danish positioning, AI story, anonymous customer case content | Implemented; updated anonymous-case copy reviewed, final PM launch review pending |
 | DGF 04 | Responsive marketing site and configured contact gateway | Implemented; live gateway/recipient and legal entity pending |
 | DGF 05 | Independent QA, PR, Firebase rollout and live checks | QA in progress; production release blocked on verified backend/contact/launch decisions |
+| DGF 08 | Kortere, billedbåret homepage med originale SVG-scener og tre ydelseskort | Implementeret; visuelt review afventer |
 | DGF 06 | Upgrade Next 15 to supported Next 16 before January 31, 2027 | Planned follow-up |
 | DGF 07 | Optional authenticated CMS | Deferred; requires server-side auth and security review |
 

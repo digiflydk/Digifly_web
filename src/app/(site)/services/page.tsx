@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { ServicesSection, ContactCta } from "@/components/marketing/sections";
+import {
+  ServicesSection,
+  FaqSection,
+  ContactCta,
+} from "@/components/marketing/sections";
 import { AiWorkflow } from "@/components/marketing/ai-workflow";
 import { siteUrl } from "@/lib/marketing";
 export const metadata: Metadata = {
@@ -16,11 +20,13 @@ export default function ServicesPage() {
           til en løsning, der virker.
         </h1>
         <p>
-          Systemimplementering, softwareudvikling og AI, der forbinder den daglige drift med jeres næste vækstfase.
+          Systemimplementering, softwareudvikling og AI, der forbinder den
+          daglige drift med jeres næste vækstfase.
         </p>
       </div>
       <ServicesSection />
       <AiWorkflow />
+      <FaqSection />
       <ContactCta />
     </>
   );

@@ -6,8 +6,8 @@ The marketing site uses the existing Digifly_web repository and Next.js App Rout
 
 | Route | Purpose | Source |
 | --- | --- | --- |
-| / | Positioning, services, anonymous cases, testimonial placeholders, AI workflow, process, FAQ | marketing components and src/lib/marketing.ts |
-| /services | Four service areas and AI approach | services array |
+| / | Short visual introduction, three services, five case teasers, illustrative AI, three process steps and contact | visual-home.tsx, home-scenes.tsx and scoped visual-home.css |
+| /services | Three service pillars, AI approach and FAQ | services array and shared sections |
 | /cases | Five anonymous customer tasks, with explicit testimonial placeholders | customerCases array |
 | /cases/warehouse-management, /cases/omnichannel, /cases/monday-implementering, /cases/fondsresearch, /cases/retail-labels-og-pant | Task focus, contribution and anonymization disclosure | customerCases array |
 | /about | Vision and working method | page and process component |

@@ -26,6 +26,15 @@ hjælpe med, og se anonyme kundecases som konkrete eksempler på arbejdet.
 - De nye cases har hver sin underside. Tidligere egne produktadresser er ikke
   lanceret og returnerer 404.
 
+## Visuelt princip for forsiden
+
+Forsiden er en kort, billedbåret indgang. Store originale SVG-scener illustrerer
+systemer, software, AI og de fem anonyme opgaver. Tekstmængden er reduceret til
+korte teasere; tre ydelseskort, tre samarbejdstrin og en tydelig kontaktvej
+bevares. Scenerne er illustrationer uden kundedata, tal eller resultatpåstande.
+FAQ, udførlige ydelser, proces, vision og caseforklaringer findes på undersiderne.
+På forsiden er kundeudtalelser alene en diskret, tydelig pladsholderlinje.
+
 ## Koordination og ansvar
 
 PM fastlægger forretningsmæssige valg og vurderer den første version. Koordinatoren
