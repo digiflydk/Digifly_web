@@ -6,24 +6,24 @@ The marketing site uses the existing Digifly_web repository and Next.js App Rout
 
 | Route | Purpose | Source |
 | --- | --- | --- |
-| / | Short visual introduction, three services, five case teasers, illustrative AI, three process steps and contact | visual-home.tsx, home-scenes.tsx and scoped visual-home.css |
+| / | Short visual introduction, three services, five case teasers, illustrative AI, three process steps and contact | visual-home.tsx, interface-preview.tsx, home-scenes.tsx and scoped visual-home.css |
 | /services | Three service pillars, AI approach and FAQ | services array and shared sections |
-| /cases | Five anonymous customer tasks, with explicit testimonial placeholders | customerCases array |
+| /cases | Five anonymous customer tasks | customerCases array |
 | /cases/warehouse-management, /cases/omnichannel, /cases/monday-implementering, /cases/fondsresearch, /cases/retail-labels-og-pant | Task focus, contribution and anonymization disclosure | customerCases array |
 | /about | Vision and working method | page and process component |
-| /contact | Validated contact flow, closed in preview | contact form and contactSchema |
-| /privacy and /cookies | Actual preview handling; launch-specific notice required | static pages and reviewed notice configuration |
+| /contact | Validated contact flow, explicitly closed at informational launch | contact form and contactSchema |
+| /privacy and /cookies | Current data handling; reviewed contact notice required before activation | static pages and reviewed notice configuration |
 | /api/contact | Configured HTTPS gateway delivery | contact API |
 | /api/health | Runtime and build commit identification | health API |
-| /robots.txt and /sitemap.xml | Indexing disabled by default | metadata routes |
+| /robots.txt and /sitemap.xml | Public canonical/indexing enabled by App Hosting config; local default noindex | metadata routes |
 
 ## Data and validation
 
 Marketing content is source-controlled, typed data. There is no schema-to-CMS mapping for the new pages. Old CMS files remain in source only. The middleware blocks all legacy admin, CMS, debug, docs and Firebase health routes, including encoded variants. All non-reading requests except POST /api/contact are rejected, so legacy Server Actions cannot be invoked through alternate public paths. React client interactions use in-memory state only.
 
-The contact schema validates name (2–100), email (maximum 254), company (maximum 150), subject (shared allowed values in src/lib/contact-options.ts), message (10–5000) and an empty honeypot. No personal data is logged or saved locally. The delivery gateway is responsible for durable receipt, forwarding to the confirmed recipient, retention and distributed abuse controls. Success means the gateway accepted the request, not proof of inbox delivery. End-to-end delivery is a launch gate.
+The contact schema validates name (2–100), email (maximum 254), company (maximum 150), subject (shared allowed values in src/lib/contact-options.ts), message (10–5000) and an empty honeypot. No personal data is logged or saved locally. The delivery gateway is responsible for durable receipt, forwarding to the confirmed recipient, retention and distributed abuse controls. Success means the gateway accepted the request, not proof of inbox delivery. End-to-end delivery is required before contact activation.
 
-Case slugs and sitemap entries derive from the same source. Removed product routes return 404. Case links select a validated contact subject; unknown and removed subjects are rejected by the API. Testimonial cards contain no quotes or attribution and must be replaced with approved real material or hidden at launch.
+Case slugs and sitemap entries derive from the same source. Removed product routes return 404. Case links select a validated contact subject; unknown and removed subjects are rejected by the API. Testimonial placeholder sections have been removed. Future testimonials require approved genuine material.
 
 No restaurant databases, credentials, orders, payments or printer resources are used. Analytics and third-party font loading were removed from the marketing layout. Source backups are Git commits; no new database backup process is required for this site.
 

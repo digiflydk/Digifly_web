@@ -1,6 +1,6 @@
 # Digifly website
 
-Danish B2B website for Digifly, built in the existing Next.js App Router project. The site presents AI, software, system implementation and advisory services through five anonymous customer cases. Testimonial cards are explicit preview placeholders, with no invented quotes.
+Danish B2B website for Digifly, built in the existing Next.js App Router project. The site presents AI, software, system implementation and advisory services through five anonymous customer cases. Testimonial placeholders have been removed for publication; no quotes are invented.
 
 ## Development
 
@@ -10,7 +10,9 @@ Run `npm run typecheck`, `npm run lint`, `npm run test:unit` and `npm run build`
 
 ## Release status
 
-This is a feature-branch implementation. Firebase production deployment, contact gateway, confirmed public contact recipient, legal company details and canonical-domain verification remain release gates. The contact form fails closed until all required configuration and a reviewed privacy notice exist. The preview is noindex by default.
+Publication of the informational website is authorized. The verified target is Firebase project studio-9863436583-e36f9, backend studio in us-central1, connected to digifly.dk and automatic main rollouts from this repository. apphosting.yaml sets the public canonical, enables indexing and explicitly keeps contact disabled. The coordinator records the actual rollout outcome in the PR.
+
+The contact gateway, real recipient and reviewed business/privacy information remain follow-up requirements before enabling the form. Local development without production variables remains noindex.
 
 Legacy CMS/Admin routes are blocked because their previous write APIs lacked verified authorization. Source is retained for a separate authenticated CMS task. Do not re-enable those routes by deleting the middleware block.
 

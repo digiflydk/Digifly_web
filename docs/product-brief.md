@@ -20,8 +20,8 @@ hjælpe med, og se anonyme kundecases som konkrete eksempler på arbejdet.
 - Ingen kundenavne, opfundne resultater, certificeringer eller konkrete
   regelpåstande. Fondsresearch beskriver søgning efter muligheder, ikke
   ansøgningsarbejde eller bevillinger.
-- Kundeudtalelser vises kun som tydelige pladsholdere X, Y og Z. Ingen opdigtede
-  citater, stjerner, personer eller roller.
+- Udtalelsespladsholdere er fjernet før offentliggørelse. Fremtidige
+  kundeudtalelser kræver reelle, godkendte citater.
 - Samarbejdsmodel, vision, kontakt og relevant information om data og cookies.
 - De nye cases har hver sin underside. Tidligere egne produktadresser er ikke
   lanceret og returnerer 404.
@@ -33,7 +33,7 @@ arbejdet fra forskellige vinkler. Tekstmængden er reduceret til
 korte teasere; tre ydelseskort, tre samarbejdstrin og en tydelig kontaktvej
 bevares. Scenerne er illustrationer uden kundedata, tal eller resultatpåstande.
 FAQ, udførlige ydelser, proces, vision og caseforklaringer findes på undersiderne.
-På forsiden er kundeudtalelser alene en diskret, tydelig pladsholderlinje.
+Der vises ingen udtalelsespladsholdere ved offentliggørelse.
 
 ## Koordination og ansvar
 
@@ -51,8 +51,9 @@ godkendte opgave.
 Arbejdet ligger i `digiflydk/Digifly_web` på
 `feature/digifly-ai-website`, ud fra main `8f8e539`. Det er det nyere og mest
 komplette af de to eksisterende Digifly-repositories. Branding er genbrugt fra
-`digiflydk/Digifly-web-2.0`. Dette valg er ikke en verificering af Firebase-backendens
-aktuelle GitHub-kobling.
+`digiflydk/Digifly-web-2.0`. Koordinatoren har siden verificeret den faktiske
+GitHub-kobling i Firebase: projekt `studio-9863436583-e36f9`, backend `studio`,
+region `us-central1`, branch `main`, rod `/` og tilsluttet `digifly.dk`.
 
 ## Acceptkriterier
 
@@ -64,22 +65,20 @@ aktuelle GitHub-kobling.
 - Build skriver ikke til databasen. Testfejl returnerer fejlkode.
 - Gamle skrive-API'er må ikke være offentligt tilgængelige uden adgangskontrol.
 - Uafhængigt review og beståede relevante checks knyttes til den aktuelle version.
-- Produktion færdigmeldes først efter verificering af release og kontaktflow.
+- Produktion færdigmeldes efter verificering af rollout og offentlige sider.
+  Kontaktformularen forbliver tydeligt lukket, indtil faktisk levering er afprøvet.
 
-## Forhold der skal være afklaret før offentlig lancering
+## Offentliggørelse og opfølgning
 
-1. Aktivt Firebase-projekt, backend, region, repository, branch og domænekobling.
-   `studio-3438007779-7a496` er en projektreference fra det andet repository,
-   ikke et verificeret deploymål.
-2. Offentlig kontaktadresse og den faktiske leveringsintegration.
-3. Virksomhedsoplysninger og den foreslåede vision/tekst til endelig lancering.
-4. Godkendelse af casebeskrivelser. Udtalelsespladsholdere skal erstattes med
-   godkendte citater eller skjules ved lancering.
-5. Preview- og produktionsindstillinger, herunder indeksering og canonical.
+Brugeren har godkendt offentliggørelse af informationssiden. Firebase-kobling,
+domæne, automatiske main-rollouts og tidligere fungerende rollout er verificeret.
+Canonical er `https://digifly.dk`, og produktion indekseres. Koordinatoren ejer
+den endelige Git-release og kontrol af den offentliggjorte version.
 
-Hjemmesiden kan udvikles og gennemgås, mens disse forhold afklares. Kode, data og
-domæner holdes adskilt fra restaurantens drift. Der oprettes ikke nye GitHub
-Actions-workflows som del af denne opgave.
+Kontaktformularen er fortsat lukket. En reel modtager, leveringsintegration og
+gennemgåede virksomheds-/privatlivsoplysninger skal på plads, før den aktiveres.
+Ingen kontaktoplysninger eller kundeudtalelser opfindes. Kode, data og domæner
+holdes adskilt fra restaurantens drift. Der oprettes ikke nye GitHub Actions-workflows.
 
 ## Positioning refinement
 Core services follow the tagline: Flow (workflows, integration, AI automation), Digitalize (system implementation and bespoke development), Scale (continued development and technical capacity). Fund and label research remain supplementary anonymous cases, not primary service pillars. Homepage, services, about and footer use this positioning.
